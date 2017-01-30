@@ -1,12 +1,12 @@
 <?php
 /*
- * Plugin Name: Klarna Payments for WooCommerce
+ * Plugin Name: Klarna Order Management for WooCommerce
  * Plugin URI: https://krokedil.se/
- * Description: Provides Klarna Payments as payment method to WooCommerce.
+ * Description: Provides order management for Klarna plugins.
  * Author: Krokedil
  * Author URI: https://krokedil.se/
  * Version: 0.1-alpha
- * Text Domain: klarna-payments-for-woocommerce
+ * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
 */
 
@@ -102,17 +102,21 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		protected function __construct() {
 			add_action( 'plugins_loaded', array( $this, 'init' ) );
+			add_action( 'wp_head', array( $this, 'test_retrieve' ) );
 		}
 
 		/**
 		 * Init the plugin at plugins_loaded.
 		 */
 		public function init() {
-			include_once( dirname( __FILE__ ) . '/includes/class-wc-klarna-order-management-request-setup.php' );
-			include_once( dirname( __FILE__ ) . '/includes/class-wc-klarna-order-management-pre-delivery.php' );
-			include_once( dirname( __FILE__ ) . '/includes/class-wc-klarna-order-management-delivery.php' );
-			include_once( dirname( __FILE__ ) . '/includes/class-wc-klarna-order-management-post-delivery.php' );
-			include_once( dirname( __FILE__ ) . '/includes/class-wc-klarna-pending-orders.php' );
+			include_once( dirname( __FILE__ ) . '/includes/wc-klarna-order-management-request.php' );
+			// include_once( dirname( __FILE__ ) . '/includes/wc-klarna-order-management-pre-delivery.php' );
+			// include_once( dirname( __FILE__ ) . '/includes/wc-klarna-pending-orders.php' );
+		}
+
+		public function test_retrieve() {
+			$something = WC_Klarna_Order_Management_Pre_Delivery::retrieve_klarna_order( 253 );
+			$something_else = $something;
 		}
 
 		/**
