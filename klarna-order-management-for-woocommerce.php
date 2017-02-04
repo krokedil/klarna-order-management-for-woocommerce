@@ -102,7 +102,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		protected function __construct() {
 			add_action( 'plugins_loaded', array( $this, 'init' ) );
-			add_action( 'wp_head', array( $this, 'test_retrieve' ) );
+			// add_action( 'wp_head', array( $this, 'test' ) );
 		}
 
 		/**
@@ -110,13 +110,40 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		public function init() {
 			include_once( dirname( __FILE__ ) . '/includes/wc-klarna-order-management-request.php' );
-			// include_once( dirname( __FILE__ ) . '/includes/wc-klarna-order-management-pre-delivery.php' );
+			include_once( dirname( __FILE__ ) . '/includes/wc-klarna-order-management-order-lines.php' );
 			// include_once( dirname( __FILE__ ) . '/includes/wc-klarna-pending-orders.php' );
+
+			// Cancel order.
+			add_action( 'woocommerce_order_status_cancelled', array( $this, 'cancel_klarna_order' ) );
+
+			// Capture an order.
+			add_action( 'woocommerce_order_status_completed', array( $this, 'capture_klarna_order' ) );
+
+			// Update an order.
+			add_action( 'woocommerce_before_save_order_items', array( $this, 'update_klarna_order'), 10, 2 );
+
+			/*
+			// Add order item.
+			add_action( 'woocommerce_ajax_add_order_item_meta', array( $this, 'update_klarna_order_add_item' ), 10, 3 );
+
+			// Remove order item.
+			add_action( 'woocommerce_before_delete_order_item', array( $this, 'update_klarna_order_delete_item' ) );
+
+			// Edit an order item and save.
+			add_action( 'woocommerce_saved_order_items', array( $this, 'update_klarna_order_edit_item' ), 10, 2 );
+			*/
 		}
 
-		public function test_retrieve() {
-			$something = WC_Klarna_Order_Management_Pre_Delivery::retrieve_klarna_order( 253 );
-			$something_else = $something;
+		public function test() {
+			$request = new WC_Klarna_Order_Management_Request( 'capture', 260 );
+			$response = $request->response();
+
+			// $order = wc_get_order( 255 );
+			// $order1 = '';
+
+			// $order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( 255 );
+			// $order_lines = $order_lines_processor->order_lines();
+			$a = 1;
 		}
 
 		/**
@@ -130,6 +157,91 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			}
 			self::$log->add( 'klarna-order-management-for-woocommerce', $message );
 		}
+
+		/**
+		 * Cancels a Klarna order.
+		 *
+		 * @param int $order_id Order ID.
+		 */
+		public function cancel_klarna_order( $order_id ) {
+			$order = wc_get_order( $order_id );
+
+			// Not going to do this for non-KP orders.
+			if ( 'klarna_payments' !== $order->payment_method ) {
+				return;
+			}
+
+			$request = new WC_Klarna_Order_Management_Request( 'retrieve', $order_id );
+			$klarna_order = $request->response();
+
+			if ( ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
+				$request = new WC_Klarna_Order_Management_Request( 'cancel', $order_id, $klarna_order );
+				$response = $request->response();
+
+				if ( ! is_wp_error( $response ) ) {
+					$order->add_order_note( 'Klarna order cancelled.' );
+				}
+			}
+		}
+
+		/**
+		 * Updates a Klarna order.
+		 *
+		 * @param int $order_id Order ID.
+		 */
+		public function update_klarna_order( $order_id, $items ) {
+			$order = wc_get_order( $order_id );
+
+			// Not going to do this for non-KP orders.
+			if ( 'klarna_payments' !== $order->payment_method ) {
+				return;
+			}
+
+			// Changes only possible if order is set to On Hold.
+			if ( 'on-hold' !== $order->get_status() ) {
+				return;
+			}
+
+			$request = new WC_Klarna_Order_Management_Request( 'retrieve', $order_id );
+			$klarna_order = $request->response();
+
+			if ( ! in_array( $klarna_order->status, array( 'CANCELLED' ), true ) && in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
+				$request = new WC_Klarna_Order_Management_Request( 'update', $order_id, $klarna_order );
+				$response = $request->response();
+
+				if ( ! is_wp_error( $response ) ) {
+					$order->add_order_note( 'Klarna order cancelled.' );
+				}
+			}
+		}
+
+		/**
+		 * Captures Klarna order.
+		 *
+		 * @param int $order_id Order ID.
+		 */
+		public function capture_klarna_order( $order_id ) {
+			$order = wc_get_order( $order_id );
+
+			// Not going to do this for non-KP orders.
+			if ( 'klarna_payments' !== $order->payment_method ) {
+				return;
+			}
+
+			// Retrieve Klarna order first.
+			$request = new WC_Klarna_Order_Management_Request( 'retrieve', $order_id );
+			$klarna_order = $request->response();
+
+			if ( ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
+				$request = new WC_Klarna_Order_Management_Request( 'capture', $order_id, $klarna_order );
+				$response = $request->response();
+
+				if ( ! is_wp_error( $response ) ) {
+					$order->add_order_note( 'Klarna order captured.' );
+				}
+			}
+		}
+
 	}
 
 	WC_Klarna_Order_Management::get_instance();
