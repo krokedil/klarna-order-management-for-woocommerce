@@ -123,14 +123,24 @@ class WC_Klarna_Order_Management_Request {
 	public function get_merchant_id() {
 		$order = wc_get_order( $this->order_id );
 
-		$billing_address = $order->get_address( 'billing' );
-		$billing_country = $billing_address['country'];
-
-		if ( 'test' === get_post_meta( $this->order_id, '_wc_klarna_payments_env', true ) ) {
-			return $this->klarna_payments_settings['test_merchant_id_us'];
-		} else {
-			return $this->klarna_payments_settings['merchant_id_us'];
+		switch ( get_post_meta( $this->order_id, '_wc_klarna_environment', true ) ) {
+			case 'us-test':
+				$merchant_id = $this->klarna_payments_settings['test_merchant_id_us'];
+				break;
+			case 'us-live':
+				$merchant_id = $this->klarna_payments_settings['merchant_id'];
+				break;
+			case 'eu-test':
+				$merchant_id = $this->klarna_payments_settings['test_merchant_id_eu'];
+				break;
+			case 'eu-live':
+				$merchant_id = $this->klarna_payments_settings['merchant_id_eu'];
+				break;
+			default:
+				$merchant_id = '';
 		}
+
+		return $merchant_id;
 	}
 
 	/**
@@ -141,16 +151,24 @@ class WC_Klarna_Order_Management_Request {
 	public function get_shared_secret() {
 		$order = wc_get_order( $this->order_id );
 
-		$billing_address = $order->get_address( 'billing' );
-		$billing_country = $billing_address['country'];
-
-		$klarna_payments_settings = get_option( 'woocommerce_klarna_payments_settings' );
-
-		if ( 'test' === get_post_meta( $this->order_id, '_wc_klarna_payments_env', true ) ) {
-			return $klarna_payments_settings['test_shared_secret_us'];
-		} else {
-			return $klarna_payments_settings['shared_secret_us'];
+		switch ( get_post_meta( $this->order_id, '_wc_klarna_environment', true ) ) {
+			case 'us-test':
+				$shared_secret = $this->klarna_payments_settings['test_shared_secret_us'];
+				break;
+			case 'us-live':
+				$shared_secret = $this->klarna_payments_settings['shared_secret_us'];
+				break;
+			case 'eu-test':
+				$shared_secret = $this->klarna_payments_settings['test_shared_secret_eu'];
+				break;
+			case 'eu-live':
+				$shared_secret = $this->klarna_payments_settings['shared_secret_eu'];
+				break;
+			default:
+				$shared_secret = '';
 		}
+
+		return $shared_secret;
 	}
 
 	/**
@@ -159,11 +177,24 @@ class WC_Klarna_Order_Management_Request {
 	 * @TODO: Consider other countries too, currently defaults to US.
 	 */
 	public function get_server_base() {
-		if ( 'test' === get_post_meta( $this->order_id, '_wc_klarna_payments_env', true ) ) {
-			return 'https://api-na.playground.klarna.com';
-		} else {
-			return 'https://api-na.klarna.com';
+		switch ( get_post_meta( $this->order_id, '_wc_klarna_environment', true ) ) {
+			case 'us-test':
+				$server_base = 'https://api-na.playground.klarna.com';
+				break;
+			case 'us-live':
+				$server_base = 'https://api-na.klarna.com';
+				break;
+			case 'eu-test':
+				$server_base = 'https://api.playground.klarna.com';
+				break;
+			case 'eu-live':
+				$server_base = 'https://api.klarna.com';
+				break;
+			default:
+				$server_base = '';
 		}
+
+		return $server_base;
 	}
 
 	/**
