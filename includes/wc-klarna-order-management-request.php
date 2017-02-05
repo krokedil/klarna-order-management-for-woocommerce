@@ -12,7 +12,7 @@ class WC_Klarna_Order_Management_Request {
 	var $request;
 	var $order_id;
 	var $klarna_payments_settings;
-	var $capture_id;
+	var $klarna_capture_id;
 	var $klarna_order;
 	var $klarna_order_id;
 	var $klarna_merchant_id;
@@ -26,16 +26,16 @@ class WC_Klarna_Order_Management_Request {
 	/**
 	 * WC_Klarna_Order_Management_Request constructor.
 	 *
-	 * @param string      $request      Klarna request.
-	 * @param int         $order_id     WooCommerce order ID.
-	 * @param object|bool $klarna_order Klarna order object.
-	 * @param string|bool $capture_id   Klarna capture ID.
+	 * @param array $args Klarna request arguments.
 	 */
-	public function __construct( $request, $order_id, $klarna_order = false, $capture_id = false ) {
-		$this->request                     = $request;
-		$this->order_id                    = $order_id;
-		$this->capture_id                  = $capture_id;
-		$this->klarna_order                = $klarna_order;
+	public function __construct( $args = array() ) {
+		$this->request                     = $args['request'];
+		$this->order_id                    = $args['order_id'];
+		$this->klarna_capture_id           = array_key_exists( 'klarna_capture_id', $args ) ? $args['klarna_capture_id'] : false;
+		$this->klarna_order                = array_key_exists( 'klarna_order', $args ) ? $args['klarna_order'] : false;
+		$this->refund_amount               = array_key_exists( 'refund_amount', $args ) ? $args['refund_amount'] : 0;
+		$this->refund_reason               = array_key_exists( 'refund_reason', $args ) ? $args['refund_reason'] : '';
+
 		$this->klarna_order_id             = $this->get_klarna_order_id();
 		$this->klarna_server_base          = $this->get_server_base();
 		$klarna_request_details            = $this->get_request_details();
@@ -74,6 +74,12 @@ class WC_Klarna_Order_Management_Request {
 				$order = wc_get_order( $this->order_id );
 				$request_args['body'] = wp_json_encode( array(
 					'captured_amount' => $order->get_total() * 100,
+				) );
+			} elseif ( 'refund' === $this->klarna_request_body ) {
+				// @TODO: Send order lines as well. Not always possible, but should be done when it is.
+				$request_args['body'] = wp_json_encode( array(
+					'refunded_amount' => (int) $this->refund_amount * 100,
+					'description'     => $this->refund_reason,
 				) );
 			}
 		}
@@ -121,9 +127,9 @@ class WC_Klarna_Order_Management_Request {
 		$billing_country = $billing_address['country'];
 
 		if ( 'test' === get_post_meta( $this->order_id, '_wc_klarna_payments_env', true ) ) {
-			return $this->klarna_payments_settings['test_merchant_id'];
+			return $this->klarna_payments_settings['test_merchant_id_us'];
 		} else {
-			return $this->klarna_payments_settings['merchant_id'];
+			return $this->klarna_payments_settings['merchant_id_us'];
 		}
 	}
 
@@ -141,9 +147,9 @@ class WC_Klarna_Order_Management_Request {
 		$klarna_payments_settings = get_option( 'woocommerce_klarna_payments_settings' );
 
 		if ( 'test' === get_post_meta( $this->order_id, '_wc_klarna_payments_env', true ) ) {
-			return $klarna_payments_settings['test_shared_secret'];
+			return $klarna_payments_settings['test_shared_secret_us'];
 		} else {
-			return $klarna_payments_settings['shared_secret'];
+			return $klarna_payments_settings['shared_secret_us'];
 		}
 	}
 
@@ -209,7 +215,7 @@ class WC_Klarna_Order_Management_Request {
 				'method' => 'GET',
 			),
 			'retrieve_capture' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures/' . $this->capture_id,
+				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures/' . $this->klarna_capture_id,
 				'method' => 'GET',
 			),
 			'update_capture_billing_address' => array(
@@ -217,12 +223,12 @@ class WC_Klarna_Order_Management_Request {
 				'method' => '',
 			),
 			'add_shipping_info_to_capture' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . ' /captures/' . $this->capture_id . '/shipping-info',
+				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . ' /captures/' . $this->klarna_capture_id . '/shipping-info',
 				'method' => 'POST',
 				'body' => 'shipping_info',
 			),
 			'trigger_communication' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures/' . $this->capture_id . '/trigger-send-out',
+				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures/' . $this->klarna_capture_id . '/trigger-send-out',
 				'method' => 'POST',
 			),
 			'refund' => array(
@@ -263,9 +269,9 @@ class WC_Klarna_Order_Management_Request {
 			case 'capture':
 				if ( 201 === $response_code ) {
 					$response_headers = $response['headers']; // Captured ID is sent in headers.
-					$capture_id       = $response_headers['capture-id'];
+					$klarna_capture_id       = $response_headers['capture-id'];
 
-					return $capture_id;
+					return $klarna_capture_id;
 				} else {
 					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
 				}
@@ -279,6 +285,13 @@ class WC_Klarna_Order_Management_Request {
 
 			case 'update_order_lines':
 				if ( 204 === $response_code ) {
+					return true;
+				} else {
+					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
+				}
+
+			case 'refund':
+				if ( 201 === $response_code ) {
 					return true;
 				} else {
 					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );

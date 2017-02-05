@@ -88,7 +88,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		/**
 		 * Returns the *Singleton* instance of this class.
 		 *
-		 * @return Singleton The *Singleton* instance.
+		 * @return self The *Singleton* instance.
 		 */
 		public static function get_instance() {
 			if ( null === self::$instance ) {
@@ -153,16 +153,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			// Update address, using filter because action is introduced in WC 2.7. Not doing this right now.
 			// add_filter( 'woocommerce_admin_billing_fields', array( $this, 'update_klarna_order_address' ) );
 
-			/*
-			// Add order item.
-			add_action( 'woocommerce_ajax_add_order_item_meta', array( $this, 'update_klarna_order_add_item' ), 10, 3 );
-
-			// Remove order item.
-			add_action( 'woocommerce_before_delete_order_item', array( $this, 'update_klarna_order_delete_item' ) );
-
-			// Edit an order item and save.
-			add_action( 'woocommerce_saved_order_items', array( $this, 'update_klarna_order_edit_item' ), 10, 2 );
-			*/
+			// Pending orders.
+			add_action( 'wc_klarna_notification_listener', array( $this, 'notification_listener' ) );
 		}
 
 		/**
@@ -203,19 +195,30 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				return;
 			}
 
+			if ( get_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true ) ) {
+				return;
+			}
+
 			// Retrieve Klarna order first.
-			$request = new WC_Klarna_Order_Management_Request( 'retrieve', $order_id );
+			$request = new WC_Klarna_Order_Management_Request( array(
+				'request' => 'retrieve',
+				'order_id' => $order_id,
+			) );
 			$klarna_order = $request->response();
 
 			if ( ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
-				$request = new WC_Klarna_Order_Management_Request( 'cancel', $order_id, $klarna_order );
+				$request = new WC_Klarna_Order_Management_Request( array(
+					'request' => 'cancel',
+					'order_id' => $order_id,
+					'klarna_order' => $klarna_order,
+				) );
 				$response = $request->response();
 
 				if ( ! is_wp_error( $response ) ) {
 					$order->add_order_note( 'Klarna order cancelled.' );
 					add_post_meta( $order_id, '_wc_klarna_cancelled', 'yes', true );
 				} else {
-					$order->add_order_note( 'Could not cancel Klarna order. ' . $response->get_error_message() );
+					$order->add_order_note( 'Could not cancel Klarna order. ' . $response->get_error_message() . '.' );
 				}
 			}
 		}
@@ -241,17 +244,24 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				return;
 			}
 
-			$request = new WC_Klarna_Order_Management_Request( 'retrieve', $order_id );
+			$request = new WC_Klarna_Order_Management_Request( array(
+				'request' => 'retrieve',
+				'order_id' => $order_id,
+			) );
 			$klarna_order = $request->response();
 
 			if ( ! in_array( $klarna_order->status, array( 'CANCELLED', 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
-				$request = new WC_Klarna_Order_Management_Request( 'update_order_lines', $order_id, $klarna_order );
+				$request = new WC_Klarna_Order_Management_Request( array(
+					'request' => 'update_order_lines',
+					'order_id' => $order_id,
+					'klarna_order' => $klarna_order,
+				) );
 				$response = $request->response();
 
 				if ( ! is_wp_error( $response ) ) {
 					$order->add_order_note( 'Klarna order updated.' );
 				} else {
-					$order->add_order_note( 'Could not update Klarna order lines. ' . $response->get_error_message() );
+					$order->add_order_note( 'Could not update Klarna order lines. ' . $response->get_error_message() . '.' );
 				}
 			}
 		}
@@ -275,18 +285,25 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			}
 
 			// Retrieve Klarna order first.
-			$request = new WC_Klarna_Order_Management_Request( 'retrieve', $order_id );
+			$request = new WC_Klarna_Order_Management_Request( array(
+				'request' => 'retrieve',
+				'order_id' => $order_id,
+			) );
 			$klarna_order = $request->response();
 
 			if ( ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
-				$request = new WC_Klarna_Order_Management_Request( 'capture', $order_id, $klarna_order );
+				$request = new WC_Klarna_Order_Management_Request( array(
+					'request' => 'capture',
+					'order_id' => $order_id,
+					'klarna_order' => $klarna_order,
+				) );
 				$response = $request->response();
 
 				if ( ! is_wp_error( $response ) ) {
 					$order->add_order_note( 'Klarna order captured. Capture ID: ' . $response );
 					add_post_meta( $order_id, '_wc_klarna_capture_id', $response, true );
 				} else {
-					$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() );
+					$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() . '.' );
 				}
 			}
 		}
@@ -312,7 +329,10 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			}
 
 			// Retrieve Klarna order first.
-			$request = new WC_Klarna_Order_Management_Request( 'retrieve', $order_id );
+			$request = new WC_Klarna_Order_Management_Request( array(
+				'request' => 'retrieve',
+				'order_id' => $order_id,
+			) );
 			$klarna_order = $request->response();
 
 			// Don't update cancelled orders.
@@ -344,27 +364,65 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// Not going to do this for non-KP orders.
 			if ( 'klarna_payments' !== $order->payment_method ) {
-				return;
+				return false;
 			}
 
 			// Do nothing if Klarna order was already captured.
-			if ( get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) {
-				return;
+			if ( ! get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) {
+				return false;
 			}
 
 			// Retrieve Klarna order first.
-			$request = new WC_Klarna_Order_Management_Request( 'retrieve', $order_id );
+			$request = new WC_Klarna_Order_Management_Request( array(
+				'request' => 'retrieve',
+				'order_id' => $order_id,
+			) );
 			$klarna_order = $request->response();
 
 			if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
-				$request = new WC_Klarna_Order_Management_Request( 'refund', $order_id, $klarna_order );
+				$request = new WC_Klarna_Order_Management_Request( array(
+					'request'       => 'refund',
+					'order_id'      => $order_id,
+					'klarna_order'  => $klarna_order,
+					'refund_amount' => $amount,
+					'refund_reason' => $reason,
+				) );
 				$response = $request->response();
 
 				if ( ! is_wp_error( $response ) ) {
-					$order->add_order_note( 'Klarna order captured. Capture ID: ' . $response );
+					$order->add_order_note( wc_price( $amount, array( 'currency' => get_post_meta( $order_id, '_order_currency', true ) ) ) . ' refunded via Klarna.' );
 					add_post_meta( $order_id, '_wc_klarna_capture_id', $response, true );
+
+					return true;
 				} else {
-					$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() );
+					$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() . '.' );
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Notification listener for Pending orders.
+		 *
+		 * @link https://developers.klarna.com/en/us/kco-v3/pending-orders
+		 */
+		public function notification_listener() {
+			if ( $_GET['order_id'] ) { // Input var okay.
+				$order_id = intval( $_GET['order_id'] ); // Input var okay.
+				$order = wc_get_order( $order_id );
+
+				$post_body = file_get_contents( 'php://input' );
+				$data = json_decode( $post_body, true );
+
+				if ( 'FRAUD_RISK_ACCEPTED' === $data['event_type'] ) {
+					$order->payment_complete( $data['order_id'] );
+					$order->add_order_note( 'Payment via Klarna Payments, order ID: ' . $data['order_id'] );
+					add_post_meta( $order_id, '_wc_klarna_payments_order_id', $data['order_id'], true );
+				} elseif ( 'FRAUD_RISK_REJECTED' === $data['event_type'] || 'FRAUD_RISK_STOPPED' === $data['event_type'] ) {
+					// Set meta field so order cancellation doesn't trigger Klarna API requests.
+					add_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true, true );
+					$order->cancel_order( 'Klarna order rejected.' );
 				}
 			}
 		}
