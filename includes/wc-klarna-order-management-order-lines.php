@@ -67,8 +67,8 @@ class WC_Klarna_Order_Management_Order_Lines {
 		$this->process_sales_tax();
 
 		return array(
-			'order_lines' => $this->order_lines,
-			'order_amount' => $this->order_amount,
+			'order_lines'      => $this->order_lines,
+			'order_amount'     => $this->order_amount,
 			'order_tax_amount' => $this->order_tax_amount,
 		);
 	}
@@ -126,8 +126,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 				'total_tax_amount'      => 0,
 			);
 
-			$this->order_lines[] = $sales_tax;
-			$this->order_amount += $sales_tax_amount;
+			$this->order_lines[]     = $sales_tax;
+			$this->order_amount     += $sales_tax_amount;
+			$this->order_tax_amount  = $sales_tax_amount;
 		}
 	}
 
@@ -274,10 +275,18 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @return integer $item_total_amount Cart item total amount.
 	 */
 	public function get_item_total_amount( $order_line_item ) {
-		if ( 'US' === $this->billing_country ) {
-			$item_total_amount = ( $order_line_item['line_total'] * 100 );
+		if ( 'shipping' === $order_line_item['type'] ) {
+			if ( 'US' === $this->billing_country ) {
+				$item_total_amount = $this->order->get_total_shipping();
+			} else {
+				$item_total_amount = $this->order->get_total_shipping() + $this->order->order_shipping_tax;
+			}
 		} else {
-			$item_total_amount = ( ( $order_line_item['line_total'] + $order_line_item['line_tax'] ) * 100 );
+			if ( 'US' === $this->billing_country ) {
+				$item_total_amount = ( $order_line_item['line_total'] * 100 );
+			} else {
+				$item_total_amount = ( ( $order_line_item['line_total'] + $order_line_item['line_tax'] ) * 100 );
+			}
 		}
 		return round( $item_total_amount );
 	}

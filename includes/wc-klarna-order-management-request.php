@@ -12,7 +12,7 @@ class WC_Klarna_Order_Management_Request {
 	var $request;
 	var $order_id;
 	var $klarna_payments_settings;
-	var $klarna_capture_id;
+	var $capture_id;
 	var $klarna_order;
 	var $klarna_order_id;
 	var $klarna_merchant_id;
@@ -62,12 +62,13 @@ class WC_Klarna_Order_Management_Request {
 
 		if ( $this->klarna_request_body ) {
 			if ( 'order_lines' === $this->klarna_request_body ) {
-				$order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( 255 );
+				$order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( $this->order_id );
 				$order_lines = $order_lines_processor->order_lines();
 
 				$request_args['body'] = wp_json_encode( array(
-					'order_lines' => $order_lines['order_lines'],
-					'adjust_amount' => -100,
+					'order_lines'      => $order_lines['order_lines'],
+					'order_amount'     => $order_lines['order_amount'],
+					'order_tax_amount' => $order_lines['order_tax_amount'],
 				) );
 			} elseif ( 'capture' === $this->klarna_request_body ) {
 				$order = wc_get_order( $this->order_id );
@@ -175,9 +176,9 @@ class WC_Klarna_Order_Management_Request {
 	 */
 	public function get_request_details() {
 		$requests = array(
-			'update' => array(
+			'update_order_lines' => array(
 				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/authorization',
-				'method' => 'POST',
+				'method' => 'PATCH',
 				'body' => 'order_lines',
 			),
 			'cancel' => array(
@@ -208,7 +209,7 @@ class WC_Klarna_Order_Management_Request {
 				'method' => 'GET',
 			),
 			'retrieve_capture' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures/' . $this->klarna_capture_id,
+				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures/' . $this->capture_id,
 				'method' => 'GET',
 			),
 			'update_capture_billing_address' => array(
@@ -216,12 +217,12 @@ class WC_Klarna_Order_Management_Request {
 				'method' => '',
 			),
 			'add_shipping_info_to_capture' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . ' /captures/' . $this->klarna_capture_id . '/shipping-info',
+				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . ' /captures/' . $this->capture_id . '/shipping-info',
 				'method' => 'POST',
 				'body' => 'shipping_info',
 			),
 			'trigger_communication' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures/' . $this->klarna_capture_id . '/trigger-send-out',
+				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures/' . $this->capture_id . '/trigger-send-out',
 				'method' => 'POST',
 			),
 			'refund' => array(
@@ -270,11 +271,15 @@ class WC_Klarna_Order_Management_Request {
 				}
 
 			case 'cancel':
-				if ( 201 === $response_code ) {
-					$response_headers = $response['headers']; // Captured ID is sent in headers.
-					$capture_id       = $response_headers['capture-id'];
+				if ( 204 === $response_code ) {
+					return true;
+				} else {
+					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
+				}
 
-					return $capture_id;
+			case 'update_order_lines':
+				if ( 204 === $response_code ) {
+					return true;
 				} else {
 					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
 				}
