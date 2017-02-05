@@ -246,14 +246,38 @@ class WC_Klarna_Order_Management_Request {
 	 *
 	 * @return array|mixed|object|WP_Error
 	 */
-	private static function process_response( $response ) {
+	private function process_response( $response ) {
 		$response_body    = json_decode( wp_remote_retrieve_body( $response ) );
 		$response_code    = wp_remote_retrieve_response_code( $response );
 
-		if ( 200 === $response_code || 204 === $response_code || 201 === $response_code ) {
-			return $response_body;
-		} else {
-			return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
+		switch ( $this->request ) {
+			case 'retrieve':
+				if ( 200 === $response_code ) {
+					// Return entire Klarna order object.
+					return $response_body;
+				} else {
+					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
+				}
+
+			case 'capture':
+				if ( 201 === $response_code ) {
+					$response_headers = $response['headers']; // Captured ID is sent in headers.
+					$capture_id       = $response_headers['capture-id'];
+
+					return $capture_id;
+				} else {
+					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
+				}
+
+			case 'cancel':
+				if ( 201 === $response_code ) {
+					$response_headers = $response['headers']; // Captured ID is sent in headers.
+					$capture_id       = $response_headers['capture-id'];
+
+					return $capture_id;
+				} else {
+					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
+				}
 		}
 	}
 }

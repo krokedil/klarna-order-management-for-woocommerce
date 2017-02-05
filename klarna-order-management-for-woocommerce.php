@@ -36,35 +36,51 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * What this class needs to do:
 		 *
 		 *    Pre-delivery
+		 *    ============
 		 * 1. Update order amount
+		 *    - Updated 'order_amount' must not be negative
+		 *    - Updated 'order_amount' must not be less than current 'captured_amount'
 		 * 2. Retrieve an order
 		 * 3. Update billing and/or shipping address
+		 *    - Fields can be updated independently. To clear a field, set its value to "" (empty string), mandatory fields can not be cleared
 		 * 4. Update merchant references (update order ID, probably not needed)
+		 *    - Update one or both merchant references. To clear a reference, set its value to "" (empty string)
 		 *
 		 *    Delivery
-		 * 1. Capture full amount
-		 * 2. Capture part of the order amount (can't do this in WooCommerce)
+		 *    ========
+		 * 1. (DONE) Capture full amount (and store capture ID as order meta field)
+		 *    - 'captured_amount' must be equal to or less than the order's 'remaining_authorized_amount'
+		 *    - Shipping address (for the capture) is inherited from the order
+		 * 2. (NO) Capture part of the order amount (can't do this in WooCommerce)
 		 *
 		 *    Post delivery
+		 *    =============
 		 * 1. Retrieve a capture
-		 * 2. Update billing address for a capture
-		 * 3. Trigger a new send out of customer communication
-		 * 4. Refund an amount of a captured order
-		 * 5. Release the remaining authorization for an order
+		 * 2. (NO) Add new shipping information ('shipping_info', not address) to a capture (can't do this with WooCommerce alone)
+		 * 3. Update billing address for a capture (do this when updating WC order after the capture)
+		 *    - Fields can be updated independently. To clear a field, set its value to "" (empty string), mandatory fields can not be cleared
+		 * 4. (NO) Trigger a new send out of customer communication (no need to do this right away)
+		 * 5. Refund an amount of a captured order
+		 *    - The refunded amount must not be higher than 'captured_amount'
+		 *    - The refunded amount can optionally be accompanied by a descriptive text and order lines
+		 * 6. Release the remaining authorization for an order (can't do this, because there's no partial captures)
 		 *
 		 *    Pending orders
+		 *    ==============
 		 *  - notification_url is used for callbacks
 		 *  - Orders should be set to on hold during checkout if fraud_status: PENDING
 		 */
 
 
 		/**
-		 * @var Singleton The reference the *Singleton* instance of this class
+		 * @var $instance reference the *Singleton* instance of this class
 		 */
 		private static $instance;
 
 		/**
 		 * @var Reference to logging class.
+		 *
+		 * @TODO: Add logging.
 		 */
 		private static $log;
 
@@ -102,6 +118,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		protected function __construct() {
 			add_action( 'plugins_loaded', array( $this, 'init' ) );
+
 			// add_action( 'wp_head', array( $this, 'test' ) );
 		}
 
@@ -109,9 +126,16 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * Init the plugin at plugins_loaded.
 		 */
 		public function init() {
+			// Do nothing if Klarna Payments plugin is not active.
+			if ( ! class_exists( 'WC_Klarna_Payments' ) ) {
+				return;
+			}
+
 			include_once( dirname( __FILE__ ) . '/includes/wc-klarna-order-management-request.php' );
 			include_once( dirname( __FILE__ ) . '/includes/wc-klarna-order-management-order-lines.php' );
-			// include_once( dirname( __FILE__ ) . '/includes/wc-klarna-pending-orders.php' );
+			include_once( dirname( __FILE__ ) . '/includes/wc-klarna-pending-orders.php' );
+
+			add_action( 'wc_klarna_payments_supports', array( $this, 'add_gateway_support' ) );
 
 			// Cancel order.
 			add_action( 'woocommerce_order_status_cancelled', array( $this, 'cancel_klarna_order' ) );
@@ -120,7 +144,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			add_action( 'woocommerce_order_status_completed', array( $this, 'capture_klarna_order' ) );
 
 			// Update an order.
-			add_action( 'woocommerce_before_save_order_items', array( $this, 'update_klarna_order'), 10, 2 );
+			add_action( 'woocommerce_before_save_order_items', array( $this, 'update_klarna_order' ), 10, 2 );
 
 			/*
 			// Add order item.
@@ -134,16 +158,13 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			*/
 		}
 
-		public function test() {
-			$request = new WC_Klarna_Order_Management_Request( 'capture', 260 );
-			$response = $request->response();
-
-			// $order = wc_get_order( 255 );
-			// $order1 = '';
-
-			// $order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( 255 );
-			// $order_lines = $order_lines_processor->order_lines();
-			$a = 1;
+		/**
+		 * Add refunds support to Klarna Payments gateway.
+		 *
+		 * @param array $features Supported features.
+		 */
+		public function add_gateway_support( $features ) {
+			$features[] = 'refunds';
 		}
 
 		/**
@@ -171,6 +192,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				return;
 			}
 
+			// Retrieve Klarna order first.
 			$request = new WC_Klarna_Order_Management_Request( 'retrieve', $order_id );
 			$klarna_order = $request->response();
 
@@ -180,6 +202,9 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				if ( ! is_wp_error( $response ) ) {
 					$order->add_order_note( 'Klarna order cancelled.' );
+					add_post_meta( $order_id, '_wc_klarna_cancelled', 'yes', true );
+				} else {
+					$order->add_order_note( 'Could not cancel Klarna order. ' . $response->get_error_message() );
 				}
 			}
 		}
@@ -187,7 +212,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		/**
 		 * Updates a Klarna order.
 		 *
-		 * @param int $order_id Order ID.
+		 * @param int   $order_id Order ID.
+		 * @param array $items Order items.
 		 */
 		public function update_klarna_order( $order_id, $items ) {
 			$order = wc_get_order( $order_id );
@@ -216,7 +242,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		}
 
 		/**
-		 * Captures Klarna order.
+		 * Captures a Klarna order.
 		 *
 		 * @param int $order_id Order ID.
 		 */
@@ -225,6 +251,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// Not going to do this for non-KP orders.
 			if ( 'klarna_payments' !== $order->payment_method ) {
+				return;
+			}
+
+			// Do nothing if Klarna order was already captured.
+			if ( get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) {
 				return;
 			}
 
@@ -237,7 +268,10 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				$response = $request->response();
 
 				if ( ! is_wp_error( $response ) ) {
-					$order->add_order_note( 'Klarna order captured.' );
+					$order->add_order_note( 'Klarna order captured. Capture ID: ' . $response );
+					add_post_meta( $order_id, '_wc_klarna_capture_id', $response, true );
+				} else {
+					$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() );
 				}
 			}
 		}
