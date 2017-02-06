@@ -39,7 +39,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 	public $order;
 
-	public $billing_country;
+	public $separate_sales_tax = false;
 
 	/**
 	 * WC_Klarna_Order_Management_Order_Lines constructor.
@@ -50,8 +50,10 @@ class WC_Klarna_Order_Management_Order_Lines {
 		$this->order_id = $order_id;
 		$this->order = wc_get_order( $this->order_id );
 
-		$billing_address = $this->order->get_address( 'billing' );
-		$this->billing_country = $billing_address['country'];
+		$order_env = get_post_meta( $order_id, '_wc_klarna_environment', true );
+		if ( 'us-test' === $order_env || 'us-live' === $order_env ) {
+			$this->separate_sales_tax = true;
+		}
 	}
 
 	/**
@@ -88,15 +90,11 @@ class WC_Klarna_Order_Management_Order_Lines {
 				'reference'             => $this->get_item_reference( $order_line_item ),
 				'name'                  => $this->get_item_name( $order_line_item ),
 				'quantity'              => $this->get_item_quantity( $order_line_item ),
-				// 'quantity_unit'
 				'unit_price'            => $this->get_item_unit_price( $order_line_item ),
 				'tax_rate'              => $this->get_item_tax_rate( $order_line_item ),
 				'total_amount'          => $this->get_item_total_amount( $order_line_item ),
 				'total_discount_amount' => $this->get_item_discount_amount( $order_line_item ),
 				'total_tax_amount'      => $this->get_item_tax_amount( $order_line_item ),
-				// 'merchant_data'
-				// 'product_url
-				// 'image_url'
 			);
 
 			$this->order_lines[] = $klarna_item;
@@ -110,7 +108,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @param int $order_id WooCommerce order ID.
 	 */
 	public function process_sales_tax() {
-		if ( 'US' === $this->billing_country ) {
+		if ( $this->separate_sales_tax ) {
 			$sales_tax_amount = round( ( $this->order->get_cart_tax() + $this->order->get_shipping_tax() ) * 100 );
 
 			// Add sales tax line item.
@@ -215,7 +213,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 */
 	public function get_item_unit_price( $order_line_item ) {
 		if ( 'shipping' === $order_line_item['type'] ) {
-			if ( 'US' === $this->billing_country ) {
+			if ( $this->separate_sales_tax ) {
 				$item_price = $this->order->get_total_shipping();
 			} else {
 				$item_price = $this->order->get_total_shipping() + $this->order->order_shipping_tax;
@@ -223,7 +221,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 			$item_quantity = 1;
 		} else {
-			if ( 'US' === $this->billing_country ) {
+			if ( $this->separate_sales_tax ) {
 				$item_price = $order_line_item['line_subtotal'];
 			} else {
 				$item_price = $order_line_item['line_subtotal'] + $order_line_item['line_subtotal_tax'];
@@ -251,7 +249,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	public function get_item_tax_rate( $order_line_item ) {
 		if ( $order_line_item['line_subtotal_tax'] > 0 ) {
 			// Calculate tax rate.
-			if ( 'US' === $this->billing_country ) {
+			if ( $this->separate_sales_tax ) {
 				$item_tax_rate = 00;
 			} else {
 				$item_tax_rate = round( $order_line_item['line_subtotal_tax'] / $order_line_item['line_subtotal'] * 100 * 100 );
@@ -276,13 +274,13 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 */
 	public function get_item_total_amount( $order_line_item ) {
 		if ( 'shipping' === $order_line_item['type'] ) {
-			if ( 'US' === $this->billing_country ) {
+			if ( $this->separate_sales_tax ) {
 				$item_total_amount = $this->order->get_total_shipping();
 			} else {
 				$item_total_amount = $this->order->get_total_shipping() + $this->order->order_shipping_tax;
 			}
 		} else {
-			if ( 'US' === $this->billing_country ) {
+			if ( $this->separate_sales_tax ) {
 				$item_total_amount = ( $order_line_item['line_total'] * 100 );
 			} else {
 				$item_total_amount = ( ( $order_line_item['line_total'] + $order_line_item['line_tax'] ) * 100 );
@@ -302,7 +300,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @return integer $item_tax_amount Item tax amount.
 	 */
 	public function get_item_tax_amount( $order_line_item ) {
-		if ( 'US' === $this->billing_country ) {
+		if ( $this->separate_sales_tax ) {
 			$item_tax_amount = 00;
 		} else {
 			$item_tax_amount = $order_line_item['line_tax'] * 100;
