@@ -205,7 +205,7 @@ class WC_Klarna_Order_Management_Request {
 	 * @return mixed
 	 */
 	public function get_klarna_order_id() {
-		return get_post_meta( $this->order_id, '_wc_klarna_payments_order_id', true );
+		return get_post_meta( $this->order_id, '_wc_klarna__order_id', true );
 	}
 
 	/**

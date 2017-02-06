@@ -27,7 +27,7 @@ class WC_Klarna_Pending_Orders {
 			if ( 'FRAUD_RISK_ACCEPTED' === $data['event_type'] ) {
 				$order->payment_complete( $data['order_id'] );
 				$order->add_order_note( 'Payment via Klarna Payments, order ID: ' . $data['order_id'] );
-				add_post_meta( $order_id, '_wc_klarna_payments_order_id', $data['order_id'], true );
+				add_post_meta( $order_id, '_wc_klarna_order_id', $data['order_id'], true );
 			} elseif ( 'FRAUD_RISK_REJECTED' === $data['event_type'] || 'FRAUD_RISK_STOPPED' === $data['event_type'] ) {
 				// Set meta field so order cancellation doesn't trigger Klarna API requests.
 				add_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true, true );
