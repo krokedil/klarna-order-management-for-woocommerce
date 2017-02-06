@@ -33,12 +33,22 @@ class WC_Klarna_Order_Management_Order_Lines {
 	/**
 	 * WooCommerce order ID.
 	 *
-	 * @var $order_lines
+	 * @var $order_id
 	 */
 	public $order_id;
 
+	/**
+	 * WooCommerce order.
+	 *
+	 * @var $order
+	 */
 	public $order;
 
+	/**
+	 * Send sales tax as separate item (US merchants).
+	 *
+	 * @var bool
+	 */
 	public $separate_sales_tax = false;
 
 	/**
@@ -57,9 +67,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	}
 
 	/**
-	 * Gets formatted order lines from WooCommerce order.
-	 *
-	 * @param int $order_id WooCommerce order ID.
+	 * Gets formatted order lines from WooCommerce order and returns them, with order amount and order tax amount.
 	 *
 	 * @return array
 	 */
@@ -77,8 +85,6 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 	/**
 	 * Process WooCommerce order items to Klarna Payments order lines.
-	 *
-	 * @param int $order_id WooCommerce order ID.
 	 */
 	public function process_order_line_items() {
 		$order = wc_get_order( $this->order_id );
@@ -86,7 +92,6 @@ class WC_Klarna_Order_Management_Order_Lines {
 		// @TODO: Add coupons as separate items (smart coupons etc).
 		foreach ( $order->get_items( array( 'line_item', 'shipping', 'fee' ) ) as $order_line_item_id => $order_line_item ) {
 			$klarna_item = array(
-				// 'type'
 				'reference'             => $this->get_item_reference( $order_line_item ),
 				'name'                  => $this->get_item_name( $order_line_item ),
 				'quantity'              => $this->get_item_quantity( $order_line_item ),
@@ -97,6 +102,10 @@ class WC_Klarna_Order_Management_Order_Lines {
 				'total_tax_amount'      => $this->get_item_tax_amount( $order_line_item ),
 			);
 
+			if ( 'shipping' === $order_line_item['type'] ) {
+				$klarna_item['type'] = 'shipping_fee';
+			}
+
 			$this->order_lines[] = $klarna_item;
 			$this->order_amount += $this->get_item_quantity( $order_line_item ) * $this->get_item_unit_price( $order_line_item );
 		}
@@ -104,8 +113,6 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 	/**
 	 * Process sales tax for US
-	 *
-	 * @param int $order_id WooCommerce order ID.
 	 */
 	public function process_sales_tax() {
 		if ( $this->separate_sales_tax ) {
@@ -130,10 +137,10 @@ class WC_Klarna_Order_Management_Order_Lines {
 		}
 	}
 
-	// Helpers.
-
 	/**
 	 * Get cart item reference.
+	 *
+	 * @param array $order_line_item WooCommerce order line item.
 	 *
 	 * @return string $item_reference Cart item reference.
 	 */
@@ -160,12 +167,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 	/**
 	 * Get cart item name.
 	 *
-	 * @since  1.0
-	 * @access public
-	 *
 	 * @param  array $order_line_item Order line item.
 	 *
-	 * @return string $item_name Cart item name.
+	 * @return string $order_line_item_name Order line item name.
 	 */
 	public function get_item_name( $order_line_item ) {
 		$order_line_item_name = $order_line_item['name'];
@@ -186,12 +190,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 	/**
 	 * Get cart item quantity.
 	 *
-	 * @since  1.0
-	 * @access public
+	 * @param array $order_line_item Order line item.
 	 *
-	 * @param  array $order_line_item Order line item.
-	 *
-	 * @return integer $item_quantity Cart item quantity.
+	 * @return integer Cart item quantity.
 	 */
 	public function get_item_quantity( $order_line_item ) {
 		if ( $order_line_item['qty'] ) {
@@ -203,9 +204,6 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 	/**
 	 * Get cart item price.
-	 *
-	 * @since  1.0
-	 * @access public
 	 *
 	 * @param  array $order_line_item Order line item.
 	 *
@@ -238,11 +236,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	/**
 	 * Calculate item tax percentage.
 	 *
-	 * @since  1.0
-	 * @access public
-	 *
-	 * @param  array  $order_line_item Order line item.
-	 * @param  object $product Product object.
+	 * @param array $order_line_item Order line item.
 	 *
 	 * @return integer $item_tax_rate Item tax percentage formatted for Klarna.
 	 */
@@ -265,9 +259,6 @@ class WC_Klarna_Order_Management_Order_Lines {
 	/**
 	 * Get order line item total amount.
 	 *
-	 * @since  1.0
-	 * @access public
-	 *
 	 * @param array $order_line_item Order line item.
 	 *
 	 * @return integer $item_total_amount Cart item total amount.
@@ -277,23 +268,21 @@ class WC_Klarna_Order_Management_Order_Lines {
 			if ( $this->separate_sales_tax ) {
 				$item_total_amount = $this->order->get_total_shipping();
 			} else {
-				$item_total_amount = $this->order->get_total_shipping() + $this->order->order_shipping_tax;
+				$item_total_amount = $this->order->get_total_shipping() + (float) $this->order->order_shipping_tax;
 			}
 		} else {
 			if ( $this->separate_sales_tax ) {
-				$item_total_amount = ( $order_line_item['line_total'] * 100 );
+				$item_total_amount = $order_line_item['line_total'];
 			} else {
-				$item_total_amount = ( ( $order_line_item['line_total'] + $order_line_item['line_tax'] ) * 100 );
+				$item_total_amount = $order_line_item['line_total'] + $order_line_item['line_tax'];
 			}
 		}
-		return round( $item_total_amount );
+
+		return round( $item_total_amount * 100 );
 	}
 
 	/**
 	 * Calculate item tax percentage.
-	 *
-	 * @since  1.0
-	 * @access public
 	 *
 	 * @param  array $order_line_item Order line item.
 	 *
@@ -310,9 +299,6 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 	/**
 	 * Get cart item discount.
-	 *
-	 * @since  1.0
-	 * @access public
 	 *
 	 * @param array $order_line_item Order line item.
 	 *

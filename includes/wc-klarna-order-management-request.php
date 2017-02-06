@@ -9,18 +9,88 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WC_Klarna_Order_Management_Request {
 
+	/**
+	 * Type of Klarna request to perform.
+	 *
+	 * @var string
+	 */
 	var $request;
+
+	/**
+	 * WooCommerce order ID.
+	 *
+	 * @var int
+	 */
 	var $order_id;
+
+	/**
+	 * Array of Klarna Payments settings
+	 *
+	 * @var array
+	 */
 	var $klarna_payments_settings;
-	var $klarna_capture_id;
+
+	/**
+	 * Klarna order object.
+	 *
+	 * @var object
+	 */
 	var $klarna_order;
+
+	/**
+	 * Klarna order ID.
+	 *
+	 * @var string
+	 */
 	var $klarna_order_id;
+
+	/**
+	 * Klarna merchant ID.
+	 *
+	 * @var string
+	 */
 	var $klarna_merchant_id;
+
+	/**
+	 * Klarna shared secret.
+	 *
+	 * @var string
+	 */
 	var $klarna_shared_secret;
+
+	/**
+	 * Klarna server base.
+	 *
+	 * @var string
+	 */
 	var $klarna_server_base;
+
+	/**
+	 * Klarna request URL.
+	 *
+	 * @var string
+	 */
 	var $klarna_request_url;
+
+	/**
+	 * Klarna request method (GET/POST/PATCH).
+	 *
+	 * @var string
+	 */
 	var $klarna_request_method;
+
+	/**
+	 * Klarna request body.
+	 *
+	 * @var string
+	 */
 	var $klarna_request_body;
+
+	/**
+	 * Klarna request authorization header.
+	 *
+	 * @var string
+	 */
 	var $klarna_authorization_header;
 
 	/**
@@ -31,11 +101,9 @@ class WC_Klarna_Order_Management_Request {
 	public function __construct( $args = array() ) {
 		$this->request                     = $args['request'];
 		$this->order_id                    = $args['order_id'];
-		$this->klarna_capture_id           = array_key_exists( 'klarna_capture_id', $args ) ? $args['klarna_capture_id'] : false;
 		$this->klarna_order                = array_key_exists( 'klarna_order', $args ) ? $args['klarna_order'] : false;
 		$this->refund_amount               = array_key_exists( 'refund_amount', $args ) ? $args['refund_amount'] : 0;
 		$this->refund_reason               = array_key_exists( 'refund_reason', $args ) ? $args['refund_reason'] : '';
-
 		$this->klarna_order_id             = $this->get_klarna_order_id();
 		$this->klarna_server_base          = $this->get_server_base();
 		$klarna_request_details            = $this->get_request_details();
@@ -49,6 +117,8 @@ class WC_Klarna_Order_Management_Request {
 	}
 
 	/**
+	 * Return processed Klarna order management request.
+	 *
 	 * @return array|mixed|object|WP_Error
 	 */
 	public function response() {
@@ -95,19 +165,14 @@ class WC_Klarna_Order_Management_Request {
 	/**
 	 * Get Klarna order management request authorization header for WooCommerce order.
 	 *
-	 * @param  integer $order_id WooCommerce order ID.
-	 *
 	 * @return string|WP_Error
 	 */
 	public function get_klarna_authorization_header() {
-		$order = wc_get_order( $this->order_id );
-
 		// @TODO: Once KCO is separate plugin, check which gateway was used to create the order
 		if ( 'yes' !== $this->klarna_payments_settings['enabled'] ) {
 			return new WP_Error( 'gateway_disabled', 'Klarna Payments gateway is currently disabled' );
 		}
 
-		// @TODO: Based on order country and testmode get appropriate fields here
 		if ( '' === $this->klarna_merchant_id || '' === $this->klarna_shared_secret ) {
 			return new WP_Error( 'missing_credentials', 'Klarna Payments credentials are missing' );
 		}
@@ -121,8 +186,6 @@ class WC_Klarna_Order_Management_Request {
 	 * @TODO: Consider other countries too, currently defaults to US.
 	 */
 	public function get_merchant_id() {
-		$order = wc_get_order( $this->order_id );
-
 		switch ( get_post_meta( $this->order_id, '_wc_klarna_environment', true ) ) {
 			case 'us-test':
 				$merchant_id = $this->klarna_payments_settings['test_merchant_id_us'];
@@ -149,8 +212,6 @@ class WC_Klarna_Order_Management_Request {
 	 * @TODO: Consider other countries too, currently defaults to US.
 	 */
 	public function get_shared_secret() {
-		$order = wc_get_order( $this->order_id );
-
 		switch ( get_post_meta( $this->order_id, '_wc_klarna_environment', true ) ) {
 			case 'us-test':
 				$shared_secret = $this->klarna_payments_settings['test_shared_secret_us'];
@@ -173,8 +234,6 @@ class WC_Klarna_Order_Management_Request {
 
 	/**
 	 * Gets Klarna server base WooCommerce order, based on environment and country.
-	 *
-	 * @TODO: Consider other countries too, currently defaults to US.
 	 */
 	public function get_server_base() {
 		switch ( get_post_meta( $this->order_id, '_wc_klarna_environment', true ) ) {
@@ -200,12 +259,10 @@ class WC_Klarna_Order_Management_Request {
 	/**
 	 * Gets Klarna order ID from WooCommerce order.
 	 *
-	 * @param int $order_id WooCommerce order ID.
-	 *
 	 * @return mixed
 	 */
 	public function get_klarna_order_id() {
-		return get_post_meta( $this->order_id, '_wc_klarna__order_id', true );
+		return get_post_meta( $this->order_id, '_wc_klarna_order_id', true );
 	}
 
 	/**
@@ -214,62 +271,27 @@ class WC_Klarna_Order_Management_Request {
 	public function get_request_details() {
 		$requests = array(
 			'update_order_lines' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/authorization',
+				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/authorization',
 				'method' => 'PATCH',
-				'body' => 'order_lines',
+				'body'   => 'order_lines',
 			),
 			'cancel' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/cancel',
+				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/cancel',
 				'method' => 'POST',
 			),
 			'retrieve' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id,
+				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id,
 				'method' => 'GET',
-			),
-			'update_address' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/customer-details',
-				'method' => 'PATCH',
-				'body' => 'addresses',
-			),
-			'update_merchant_reference' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/merchant-references',
-				'method' => 'PATCH',
-				'body' => 'merchant_reference',
 			),
 			'capture' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures',
+				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures',
 				'method' => 'POST',
-				'body' => 'capture',
-			),
-			'retrieve_captures' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures',
-				'method' => 'GET',
-			),
-			'retrieve_capture' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures/' . $this->klarna_capture_id,
-				'method' => 'GET',
-			),
-			'update_capture_billing_address' => array(
-				'url' => '',
-				'method' => '',
-			),
-			'add_shipping_info_to_capture' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . ' /captures/' . $this->klarna_capture_id . '/shipping-info',
-				'method' => 'POST',
-				'body' => 'shipping_info',
-			),
-			'trigger_communication' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures/' . $this->klarna_capture_id . '/trigger-send-out',
-				'method' => 'POST',
+				'body'   => 'capture',
 			),
 			'refund' => array(
-				'url' => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/refunds',
+				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/refunds',
 				'method' => 'POST',
-				'body' => 'refund',
-			),
-			'release' => array(
-				'url' => '',
-				'method' => '',
+				'body'   => 'refund',
 			),
 		);
 
@@ -299,8 +321,8 @@ class WC_Klarna_Order_Management_Request {
 
 			case 'capture':
 				if ( 201 === $response_code ) {
-					$response_headers = $response['headers']; // Captured ID is sent in headers.
-					$klarna_capture_id       = $response_headers['capture-id'];
+					$response_headers  = $response['headers']; // Capture ID is sent in headers.
+					$klarna_capture_id = $response_headers['capture-id'];
 
 					return $klarna_capture_id;
 				} else {
@@ -328,5 +350,7 @@ class WC_Klarna_Order_Management_Request {
 					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
 				}
 		}
+
+		return new WP_Error( 'invalid_request', 'Invalid request type.' );
 	}
 }

@@ -2,10 +2,10 @@
 /*
  * Plugin Name: Klarna Order Management for WooCommerce
  * Plugin URI: https://krokedil.se/
- * Description: Provides order management for Klarna plugins.
+ * Description: Provides order management for Klarna Payments plugins.
  * Author: Krokedil
  * Author URI: https://krokedil.se/
- * Version: 0.1-alpha
+ * Version: 1.0
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
 */
@@ -14,16 +14,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// @TODO: Make translateable
-
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '0.1-alpha' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '2.5.0' );
-define( 'WC_KLARNA_ORDER_MANAGEMENT_MAIN_FILE', __FILE__ );
-define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
 
 if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
@@ -61,7 +58,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * 3. (NOT NOW) Update billing address for a capture (do this when updating WC order after the capture)
 		 *    - Fields can be updated independently. To clear a field, set its value to "" (empty string), mandatory fields can not be cleared
 		 * 4. (NO) Trigger a new send out of customer communication (no need to do this right away)
-		 * 5. Refund an amount of a captured order
+		 * 5. (DONE) Refund an amount of a captured order
 		 *    - The refunded amount must not be higher than 'captured_amount'
 		 *    - The refunded amount can optionally be accompanied by a descriptive text and order lines
 		 * 6. (NO) Release the remaining authorization for an order (can't do this, because there's no partial captures)
@@ -74,12 +71,16 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 
 		/**
-		 * @var $instance reference the *Singleton* instance of this class
+		 * *Singleton* instance of this class
+		 *
+		 * @var $instance
 		 */
 		private static $instance;
 
 		/**
-		 * @var Reference to logging class.
+		 * Reference to logging class.
+		 *
+		 * @var @log
 		 *
 		 * @TODO: Add logging.
 		 */
@@ -119,8 +120,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		protected function __construct() {
 			add_action( 'plugins_loaded', array( $this, 'init' ) );
-
-			// add_action( 'wp_head', array( $this, 'test' ) );
 		}
 
 		/**
@@ -132,10 +131,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				return;
 			}
 
-			include_once( dirname( __FILE__ ) . '/includes/wc-klarna-order-management-request.php' );
-			include_once( dirname( __FILE__ ) . '/includes/wc-klarna-order-management-order-lines.php' );
-			include_once( dirname( __FILE__ ) . '/includes/wc-klarna-pending-orders.php' );
+			include_once( WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/wc-klarna-order-management-request.php' );
+			include_once( WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/wc-klarna-order-management-order-lines.php' );
+			include_once( WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/wc-klarna-pending-orders.php' );
 
+			// Add refunds support to Klarna Payments gateway.
 			add_action( 'wc_klarna_payments_supports', array( $this, 'add_gateway_support' ) );
 
 			// Cancel order.
@@ -149,9 +149,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// Refund an order.
 			add_filter( 'wc_klarna_payments_process_refund', array( $this, 'refund_klarna_order' ), 10, 4 );
-
-			// Update address, using filter because action is introduced in WC 2.7. Not doing this right now.
-			// add_filter( 'woocommerce_admin_billing_fields', array( $this, 'update_klarna_order_address' ) );
 
 			// Pending orders.
 			add_action( 'wc_klarna_notification_listener', array( 'WC_Klarna_Pending_Orders', 'notification_listener' ) );
@@ -227,8 +224,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		/**
 		 * Updates Klarna order items.
 		 *
-		 * @TODO: Check if error was due to merchant not having this feature enabled.
-		 *
 		 * @param int   $order_id Order ID.
 		 * @param array $items Order items.
 		 */
@@ -245,6 +240,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				return;
 			}
 
+			// Retrieve Klarna order first.
 			$request = new WC_Klarna_Order_Management_Request( array(
 				'request' => 'retrieve',
 				'order_id' => $order_id,
@@ -307,47 +303,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() . '.' );
 				}
 			}
-		}
-
-		/**
-		 * Updates Klarna order or capture address.
-		 *
-		 * @param array $posted Posted data on order save.
-		 *
-		 * @return array $posted Posted data on order save.
-		 */
-		public function update_klarna_order_address( $posted ) {
-			// The hook we're using is used when address meta box is loaded and saved, we only want to update Klarna address on save.
-			if ( empty( $_POST ) ) {
-				return $posted;
-			}
-
-			$order_id = $_POST['post_ID'];
-			$order = wc_get_order( $order_id );
-
-			if ( 'klarna_payments' !== $order->payment_method ) {
-				return;
-			}
-
-			// Retrieve Klarna order first.
-			$request = new WC_Klarna_Order_Management_Request( array(
-				'request' => 'retrieve',
-				'order_id' => $order_id,
-			) );
-			$klarna_order = $request->response();
-
-			// Don't update cancelled orders.
-			if ( 'CANCELLED' === $klarna_order->status ) {
-				return;
-			}
-
-			if ( ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
-				// If Klarna order is not CAPTURED, update its shipping and billing address.
-			} else {
-				// Otherwise update capture billing address.
-			}
-
-			return $posted;
 		}
 
 		/**
