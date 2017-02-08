@@ -148,7 +148,7 @@ class WC_Klarna_Order_Management_Request {
 			} elseif ( 'refund' === $this->klarna_request_body ) {
 				// @TODO: Send order lines as well. Not always possible, but should be done when it is.
 				$request_args['body'] = wp_json_encode( array(
-					'refunded_amount' => (int) $this->refund_amount * 100,
+					'refunded_amount' => round( $this->refund_amount * 100 ),
 					'description'     => $this->refund_reason,
 				) );
 			}
