@@ -90,7 +90,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 		$order = wc_get_order( $this->order_id );
 
 		// @TODO: Add coupons as separate items (smart coupons etc).
-		foreach ( $order->get_items( array( 'line_item', 'shipping', 'fee' ) ) as $order_line_item_id => $order_line_item ) {
+		foreach ( $order->get_items( array( 'line_item', 'shipping', 'coupon' ) ) as $order_line_item_id => $order_line_item ) {
 			$klarna_item = array(
 				'reference'             => $this->get_item_reference( $order_line_item ),
 				'name'                  => $this->get_item_name( $order_line_item ),
@@ -106,8 +106,24 @@ class WC_Klarna_Order_Management_Order_Lines {
 				$klarna_item['type'] = 'shipping_fee';
 			}
 
-			$this->order_lines[] = $klarna_item;
-			$this->order_amount += $this->get_item_quantity( $order_line_item ) * $this->get_item_unit_price( $order_line_item );
+			if ( 'coupon' === $order_line_item['type'] ) {
+				$coupon = new WC_Coupon( $order_line_item['name'] );
+
+				// @TODO: For now, only send smart coupons as separate items, needs to include all coupons for US
+				if ( 'smart_coupon' === $coupon->discount_type ) {
+					$klarna_item['type']                  = 'discount';
+					$klarna_item['total_discount_amount'] = 0;
+					$klarna_item['unit_price']            = - $order_line_item['discount_amount'] * 100;
+					$klarna_item['total_amount']          = - $order_line_item['discount_amount'] * 100;
+					$klarna_item['total_tax_amount']      = - $order_line_item['discount_amount_tax'] * 100;
+
+					$this->order_lines[] = $klarna_item;
+					$this->order_amount -= $order_line_item['discount_amount'] * 100;
+				}
+			} else {
+				$this->order_lines[] = $klarna_item;
+				$this->order_amount += $this->get_item_quantity( $order_line_item ) * $this->get_item_unit_price( $order_line_item );
+			}
 		}
 	}
 
@@ -156,7 +172,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 				$item_reference = $product->id;
 			}
 		} elseif ( 'shipping' === $order_line_item['type'] ) {
-			$item_reference = 'shipping';
+			$item_reference = 'Shipping';
+		} elseif ( 'coupon' === $order_line_item['type '] ) {
+			$item_reference = 'Discount';
 		} else {
 			$item_reference = $order_line_item['name'];
 		}
