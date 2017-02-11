@@ -111,18 +111,37 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 				// @TODO: For now, only send smart coupons as separate items, needs to include all coupons for US
 				if ( 'smart_coupon' === $coupon->discount_type ) {
-					$klarna_item['type']                  = 'discount';
-					$klarna_item['total_discount_amount'] = 0;
-					$klarna_item['unit_price']            = - $order_line_item['discount_amount'] * 100;
-					$klarna_item['total_amount']          = - $order_line_item['discount_amount'] * 100;
-					$klarna_item['total_tax_amount']      = - $order_line_item['discount_amount_tax'] * 100;
+					$coupon_amount     = - $order_line_item['discount_amount'] * 100;
+					$coupon_tax_amount = - $order_line_item['discount_amount_tax'] * 100;
+					$coupon_reference  = 'Discount';
+				} else {
+					$coupon_amount     = 0;
+					$coupon_tax_amount = 0;
 
-					$this->order_lines[] = $klarna_item;
-					$this->order_amount -= $order_line_item['discount_amount'] * 100;
+					if ( $coupon->is_type( 'fixed_cart' ) || $coupon->is_type( 'percent' ) ) {
+						$coupon_type = 'Cart discount';
+					} elseif ( $coupon->is_type( 'fixed_product' ) || $coupon->is_type( 'percent_product' ) ) {
+						$coupon_type = 'Product discount';
+					} else {
+						$coupon_type = 'Discount';
+					}
+
+					$coupon_reference = $coupon_type . ' (amount: ' . $order_line_item['discount_amount'] . ', tax amount: ' . $order_line_item['discount_amount_tax'] . ')';
 				}
+
+				$klarna_item['type']                  = 'discount';
+				$klarna_item['reference']             = $coupon_reference;
+				$klarna_item['total_discount_amount'] = 0;
+				$klarna_item['unit_price']            = $coupon_amount;
+				$klarna_item['total_amount']          = $coupon_amount;
+				$klarna_item['total_tax_amount']      = $coupon_tax_amount;
+
+				$this->order_lines[]     = $klarna_item;
+				$this->order_amount     += $coupon_amount;
+				$this->order_tax_amount += $coupon_tax_amount;
 			} else {
 				$this->order_lines[] = $klarna_item;
-				$this->order_amount += $this->get_item_quantity( $order_line_item ) * $this->get_item_unit_price( $order_line_item );
+				$this->order_amount += $this->get_item_total_amount( $order_line_item );
 			}
 		}
 	}
@@ -292,7 +311,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			if ( $this->separate_sales_tax ) {
 				$item_total_amount = $order_line_item['line_total'];
 			} else {
-				$item_total_amount = $order_line_item['line_total'] + $order_line_item['line_tax'];
+				$item_total_amount = $order_line_item['line_total'] + $order_line_item['line_total_tax'];
 			}
 		}
 
@@ -324,7 +343,11 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 */
 	public function get_item_discount_amount( $order_line_item ) {
 		if ( $order_line_item['line_subtotal'] > $order_line_item['line_total'] ) {
-			$item_discount_amount = ( $order_line_item['line_subtotal'] + $order_line_item['line_subtotal_tax'] - $order_line_item['line_total'] - $order_line_item['line_tax'] ) * 100;
+			if ( $this->separate_sales_tax ) {
+				$item_discount_amount = ( $order_line_item['line_subtotal'] - $order_line_item['line_total'] ) * 100;
+			} else {
+				$item_discount_amount = ( $order_line_item['line_subtotal'] + $order_line_item['line_subtotal_tax'] - $order_line_item['line_total'] - $order_line_item['line_tax'] ) * 100;
+			}
 		} else {
 			$item_discount_amount = 0;
 		}
