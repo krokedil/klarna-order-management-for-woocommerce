@@ -228,6 +228,10 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @param array $items Order items.
 		 */
 		public function update_klarna_order_items( $order_id, $items ) {
+			if ( ! is_ajax() ) {
+				return;
+			}
+
 			$order = wc_get_order( $order_id );
 
 			// Not going to do this for non-KP orders.
@@ -258,7 +262,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				if ( ! is_wp_error( $response ) ) {
 					$order->add_order_note( 'Klarna order updated.' );
 				} else {
-					$order->add_order_note( 'Could not update Klarna order lines. ' . $response->get_error_message() . '.' );
+					$order_note = 'Could not update Klarna order lines.';
+					if ( '' !== $response->get_error_message() ) {
+						$order_note .= ' ' . $response->get_error_message() . '.';
+					}
+					$order->add_order_note( $order_note );
 				}
 			}
 		}
@@ -281,6 +289,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				return;
 			}
 
+			// Do nothing if we don't have Klarna order ID.
+			if ( ! get_post_meta( $order_id, '_wc_klarna_order_id', true ) ) {
+				return;
+			}
+
 			// Retrieve Klarna order first.
 			$request = new WC_Klarna_Order_Management_Request( array(
 				'request' => 'retrieve',
@@ -288,7 +301,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			) );
 			$klarna_order = $request->response();
 
-			if ( ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
+			if ( ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) && 'ACCEPTED' === $klarna_order->fraud_status ) {
 				$request = new WC_Klarna_Order_Management_Request( array(
 					'request' => 'capture',
 					'order_id' => $order_id,

@@ -340,7 +340,7 @@ class WC_Klarna_Order_Management_Request {
 				if ( 204 === $response_code ) {
 					return true;
 				} else {
-					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
+					return new WP_Error( $response['response']['code'], $response['response']['message'] );
 				}
 
 			case 'refund':
