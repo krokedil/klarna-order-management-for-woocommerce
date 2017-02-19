@@ -301,6 +301,12 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			) );
 			$klarna_order = $request->response();
 
+			// Check if order is pending review.
+			if ( 'PENDING' === $klarna_order->fraud_status ) {
+				$order->add_order_note( 'Klarna order is pending review and could not be captured at this time.' );
+				return;
+			}
+
 			if ( ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) && 'ACCEPTED' === $klarna_order->fraud_status ) {
 				$request = new WC_Klarna_Order_Management_Request( array(
 					'request' => 'capture',
