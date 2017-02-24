@@ -191,7 +191,7 @@ class WC_Klarna_Order_Management_Request {
 				$merchant_id = $this->klarna_payments_settings['test_merchant_id_us'];
 				break;
 			case 'us-live':
-				$merchant_id = $this->klarna_payments_settings['merchant_id'];
+				$merchant_id = $this->klarna_payments_settings['merchant_id_us'];
 				break;
 			case 'eu-test':
 				$merchant_id = $this->klarna_payments_settings['test_merchant_id_eu'];
