@@ -198,7 +198,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			$item_reference = $order_line_item['name'];
 		}
 
-		return strval( $item_reference );
+		return (string) $item_reference;
 	}
 
 	/**
@@ -221,7 +221,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			}
 		}
 
-		return strip_tags( $order_line_item_name );
+		return (string) strip_tags( $order_line_item_name );
 	}
 
 	/**
@@ -267,7 +267,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 		$item_price = number_format( $item_price * 100, 0, '', '' ) / $item_quantity;
 
-		return round( $item_price );
+		return (int) $item_price;
 	}
 
 	/**
@@ -289,7 +289,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			$item_tax_rate = 00;
 		}
 
-		return intval( $item_tax_rate );
+		return (int) $item_tax_rate;
 	}
 
 
@@ -315,7 +315,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 			}
 		}
 
-		return round( $item_total_amount * 100 );
+		$item_total_amount = $item_total_amount * 100;
+
+		return (int) $item_total_amount;
 	}
 
 	/**
@@ -331,7 +333,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 		} else {
 			$item_tax_amount = $order_line_item['line_tax'] * 100;
 		}
-		return round( $item_tax_amount );
+		return (int) $item_tax_amount;
 	}
 
 	/**
@@ -352,7 +354,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			$item_discount_amount = 0;
 		}
 
-		return round( $item_discount_amount );
+		return (int) $item_discount_amount;
 	}
 
 }
