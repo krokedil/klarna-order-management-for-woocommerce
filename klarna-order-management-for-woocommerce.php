@@ -159,11 +159,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			}
 
 			// Retrieve Klarna order first.
-			$request = new WC_Klarna_Order_Management_Request( array(
-				'request' => 'retrieve',
-				'order_id' => $order_id,
-			) );
-			$klarna_order = $request->response();
+			$klarna_order = $this->retrieve_klarna_order( $order_id );
 
 			if ( ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
 				$request = new WC_Klarna_Order_Management_Request( array(
@@ -206,11 +202,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			}
 
 			// Retrieve Klarna order first.
-			$request = new WC_Klarna_Order_Management_Request( array(
-				'request' => 'retrieve',
-				'order_id' => $order_id,
-			) );
-			$klarna_order = $request->response();
+			$klarna_order = $this->retrieve_klarna_order( $order_id );
 
 			if ( ! in_array( $klarna_order->status, array( 'CANCELLED', 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
 				$request = new WC_Klarna_Order_Management_Request( array(
@@ -256,11 +248,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			}
 
 			// Retrieve Klarna order first.
-			$request = new WC_Klarna_Order_Management_Request( array(
-				'request' => 'retrieve',
-				'order_id' => $order_id,
-			) );
-			$klarna_order = $request->response();
+			$klarna_order = $this->retrieve_klarna_order( $order_id );
 
 			// Check if order is pending review.
 			if ( 'PENDING' === $klarna_order->fraud_status ) {
@@ -309,11 +297,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			}
 
 			// Retrieve Klarna order first.
-			$request = new WC_Klarna_Order_Management_Request( array(
-				'request' => 'retrieve',
-				'order_id' => $order_id,
-			) );
-			$klarna_order = $request->response();
+			$klarna_order = $this->retrieve_klarna_order( $order_id );
 
 			if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
 				$request = new WC_Klarna_Order_Management_Request( array(
@@ -336,6 +320,23 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			}
 
 			return false;
+		}
+
+		/**
+		 * Retrieve a Klarna order.
+		 *
+		 * @param int $order_id WooCommerce order ID.
+		 *
+		 * @return bool $klarna_order Klarna Order.
+		 */
+		public function retrieve_klarna_order( $order_id ) {
+			$request = new WC_Klarna_Order_Management_Request( array(
+				'request' => 'retrieve',
+				'order_id' => $order_id,
+			) );
+			$klarna_order = $request->response();
+
+			return $klarna_order;
 		}
 
 	}
