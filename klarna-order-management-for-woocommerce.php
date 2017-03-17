@@ -30,47 +30,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 	class WC_Klarna_Order_Management {
 
 		/**
-		 * What this class needs to do:
-		 *
-		 *    Pre-delivery
-		 *    ============
-		 * 1. Update order amount
-		 *    - Updated 'order_amount' must not be negative
-		 *    - Updated 'order_amount' must not be less than current 'captured_amount'
-		 * 2. (DONE) Cancel an authorized order
-		 * 3. (DONE) Retrieve an order
-		 * 4. (NOT NOW) Update billing and/or shipping address
-		 *    - Fields can be updated independently. To clear a field, set its value to "" (empty string), mandatory fields can not be cleared
-		 * 5. (NOT NOW) Update merchant references (update order ID, probably not needed)
-		 *    - Update one or both merchant references. To clear a reference, set its value to "" (empty string)
-		 *
-		 *    Delivery
-		 *    ========
-		 * 1. (DONE) Capture full amount (and store capture ID as order meta field)
-		 *    - 'captured_amount' must be equal to or less than the order's 'remaining_authorized_amount'
-		 *    - Shipping address (for the capture) is inherited from the order
-		 * 2. (NO) Capture part of the order amount (can't do this in WooCommerce)
-		 *
-		 *    Post delivery
-		 *    =============
-		 * 1. (NO) Retrieve a capture
-		 * 2. (NO) Add new shipping information ('shipping_info', not address) to a capture (can't do this with WooCommerce alone)
-		 * 3. (NOT NOW) Update billing address for a capture (do this when updating WC order after the capture)
-		 *    - Fields can be updated independently. To clear a field, set its value to "" (empty string), mandatory fields can not be cleared
-		 * 4. (NO) Trigger a new send out of customer communication (no need to do this right away)
-		 * 5. (DONE) Refund an amount of a captured order
-		 *    - The refunded amount must not be higher than 'captured_amount'
-		 *    - The refunded amount can optionally be accompanied by a descriptive text and order lines
-		 * 6. (NO) Release the remaining authorization for an order (can't do this, because there's no partial captures)
-		 *
-		 *    Pending orders
-		 *    ==============
-		 *  - notification_url is used for callbacks
-		 *  - Orders should be set to on hold during checkout if fraud_status: PENDING
-		 */
-
-
-		/**
 		 * *Singleton* instance of this class
 		 *
 		 * @var $instance
@@ -81,8 +40,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * Reference to logging class.
 		 *
 		 * @var @log
-		 *
-		 * @TODO: Add logging.
 		 */
 		private static $log;
 
@@ -126,8 +83,12 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * Init the plugin at plugins_loaded.
 		 */
 		public function init() {
-			// Do nothing if Klarna Payments plugin is not active.
-			if ( ! class_exists( 'WC_Klarna_Payments' ) ) {
+			// Check if we have KP settings, so we can retrieve credentials.
+			if ( ! get_option( 'woocommerce_klarna_payments_settings' ) ) {
+				return;
+			}
+
+			if ( ! is_array( get_option( 'woocommerce_klarna_payments_settings' ) ) ) {
 				return;
 			}
 
