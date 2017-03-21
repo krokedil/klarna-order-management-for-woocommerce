@@ -28,9 +28,24 @@ class WC_Klarna_Pending_Orders {
 				$order->payment_complete( $data['order_id'] );
 				$order->add_order_note( 'Payment via Klarna Payments.' );
 			} elseif ( 'FRAUD_RISK_REJECTED' === $data['event_type'] || 'FRAUD_RISK_STOPPED' === $data['event_type'] ) {
+				$request = new WC_Klarna_Order_Management_Request( array(
+					'request' => 'retrieve',
+					'order_id' => $order_id,
+				) );
+				$klarna_order = $request->response();
+
 				// Set meta field so order cancellation doesn't trigger Klarna API requests.
 				add_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true, true );
-				$order->cancel_order( 'Klarna order rejected.' );
+				
+				wc_mail(
+					get_option( 'admin_email' ),
+					'Klarna order rejected',
+					sprintf(
+						'Klarna has identified order %1$s, Klarna Reference %2$s as high risk and request that you do not ship this order. Please contact the Klarna Fraud Team to resolve.',
+						$order->get_order_number(),
+						$klarna_order->order_id
+					)
+				);
 			}
 		}
 	}
