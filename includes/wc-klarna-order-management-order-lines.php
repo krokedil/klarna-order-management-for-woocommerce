@@ -102,6 +102,18 @@ class WC_Klarna_Order_Management_Order_Lines {
 				'total_tax_amount'      => $this->get_item_tax_amount( $order_line_item ),
 			);
 
+			if ( 'line_item' === $order_line_item['type'] ) {
+				$klarna_payment_settings = get_option( 'woocommerce_klarna_payments_settings' );
+				if ( 'yes' === $klarna_payment_settings['send_product_urls'] ) {
+					$product = $order_line_item['variation_id'] ? wc_get_product( $order_line_item['variation_id'] ) : wc_get_product( $order_line_item['product_id'] );
+					$klarna_item['product_url'] = $product->get_permalink();
+					if ( $product->get_image_id() > 0 ) {
+						$image_id = $product->get_image_id();
+						$klarna_item['image_url'] = wp_get_attachment_image_url( $image_id, $size = 'shop_thumbnail', false );
+					}
+				}
+			}
+
 			if ( 'shipping' === $order_line_item['type'] ) {
 				$klarna_item['type'] = 'shipping_fee';
 			}
@@ -188,7 +200,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			} elseif ( $product->variation_id ) {
 				$item_reference = $product->variation_id;
 			} else {
-				$item_reference = $product->id;
+				$item_reference = $product->get_id();
 			}
 		} elseif ( 'shipping' === $order_line_item['type'] ) {
 			$item_reference = 'Shipping';
@@ -249,17 +261,17 @@ class WC_Klarna_Order_Management_Order_Lines {
 	public function get_item_unit_price( $order_line_item ) {
 		if ( 'shipping' === $order_line_item['type'] ) {
 			if ( $this->separate_sales_tax ) {
-				$item_price = $this->order->get_total_shipping();
+				$item_price = $this->order->get_shipping_total();
 			} else {
-				$item_price = $this->order->get_total_shipping() + $this->order->order_shipping_tax;
+				$item_price = $this->order->get_shipping_total() + $this->order->order_shipping_tax;
 			}
 
 			$item_quantity = 1;
 		} else {
 			if ( $this->separate_sales_tax ) {
-				$item_price = $order_line_item['line_subtotal'];
+				$item_price = $order_line_item['subtotal'];
 			} else {
-				$item_price = $order_line_item['line_subtotal'] + $order_line_item['line_subtotal_tax'];
+				$item_price = $order_line_item['subtotal'] + $order_line_item['subtotal_tax'];
 			}
 
 			$item_quantity = $order_line_item['qty'] ? $order_line_item['qty'] : 1;
@@ -278,12 +290,12 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @return integer $item_tax_rate Item tax percentage formatted for Klarna.
 	 */
 	public function get_item_tax_rate( $order_line_item ) {
-		if ( $order_line_item['line_subtotal_tax'] > 0 ) {
+		if ( $order_line_item['total_tax'] > 0 ) {
 			// Calculate tax rate.
 			if ( $this->separate_sales_tax ) {
 				$item_tax_rate = 00;
 			} else {
-				$item_tax_rate = round( $order_line_item['line_subtotal_tax'] / $order_line_item['line_subtotal'] * 100 * 100 );
+				$item_tax_rate = round( $order_line_item['total_tax'] / $order_line_item['total'] * 100 * 100 );
 			}
 		} else {
 			$item_tax_rate = 00;
@@ -303,15 +315,15 @@ class WC_Klarna_Order_Management_Order_Lines {
 	public function get_item_total_amount( $order_line_item ) {
 		if ( 'shipping' === $order_line_item['type'] ) {
 			if ( $this->separate_sales_tax ) {
-				$item_total_amount = $this->order->get_total_shipping();
+				$item_total_amount = $this->order->get_shipping_total();
 			} else {
-				$item_total_amount = $this->order->get_total_shipping() + (float) $this->order->order_shipping_tax;
+				$item_total_amount = $this->order->get_shipping_total() + (float) $this->order->order_shipping_tax;
 			}
 		} else {
 			if ( $this->separate_sales_tax ) {
-				$item_total_amount = $order_line_item['line_total'];
+				$item_total_amount = $order_line_item['subtotal'];
 			} else {
-				$item_total_amount = $order_line_item['line_total'] + $order_line_item['line_total_tax'];
+				$item_total_amount = $order_line_item['total'] + $order_line_item['total_tax'];
 			}
 		}
 
@@ -331,7 +343,13 @@ class WC_Klarna_Order_Management_Order_Lines {
 		if ( $this->separate_sales_tax ) {
 			$item_tax_amount = 00;
 		} else {
-			$item_tax_amount = $order_line_item['line_tax'] * 100;
+			if ( 'line_item' === $order_line_item['type'] ) {
+				$item_tax_amount = $order_line_item['total_tax'] * 100;
+			} elseif ( 'shipping' === $order_line_item['type'] ) {
+				$item_tax_amount = $order_line_item['total_total_tax'] * 100;
+			} else {
+				$item_tax_amount = 00;
+			}
 		}
 		return (int) $item_tax_amount;
 	}
@@ -344,11 +362,11 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @return integer $item_discount_amount Cart item discount.
 	 */
 	public function get_item_discount_amount( $order_line_item ) {
-		if ( $order_line_item['line_subtotal'] > $order_line_item['line_total'] ) {
+		if ( $order_line_item['subtotal'] > $order_line_item['total'] ) {
 			if ( $this->separate_sales_tax ) {
-				$item_discount_amount = ( $order_line_item['line_subtotal'] - $order_line_item['line_total'] ) * 100;
+				$item_discount_amount = ( $order_line_item['subtotal'] - $order_line_item['total'] ) * 100;
 			} else {
-				$item_discount_amount = ( $order_line_item['line_subtotal'] + $order_line_item['line_subtotal_tax'] - $order_line_item['line_total'] - $order_line_item['line_tax'] ) * 100;
+				$item_discount_amount = ( $order_line_item['subtotal'] + $order_line_item['subtotal_tax'] - $order_line_item['total'] - $order_line_item['total_tax'] ) * 100;
 			}
 		} else {
 			$item_discount_amount = 0;
