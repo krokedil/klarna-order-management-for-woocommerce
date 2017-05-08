@@ -229,7 +229,7 @@ class WC_Klarna_Order_Management_Request {
 				$shared_secret = '';
 		}
 
-		return $shared_secret;
+		return utf8_encode( $shared_secret );
 	}
 
 	/**
