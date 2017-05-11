@@ -203,7 +203,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 				$item_reference = $product->get_id();
 			}
 		} elseif ( 'shipping' === $order_line_item['type'] ) {
-			$item_reference = 'Shipping';
+			$item_reference = $order_line_item['method_id'];
 		} elseif ( 'coupon' === $order_line_item['type '] ) {
 			$item_reference = 'Discount';
 		} else {
@@ -346,7 +346,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			if ( 'line_item' === $order_line_item['type'] ) {
 				$item_tax_amount = $order_line_item['total_tax'] * 100;
 			} elseif ( 'shipping' === $order_line_item['type'] ) {
-				$item_tax_amount = $order_line_item['total_total_tax'] * 100;
+				$item_tax_amount = $order_line_item['total_tax'] * 100;
 			} else {
 				$item_tax_amount = 00;
 			}
