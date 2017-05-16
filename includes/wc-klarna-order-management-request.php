@@ -181,53 +181,68 @@ class WC_Klarna_Order_Management_Request {
 	}
 
 	/**
-	 * Gets merchant ID from WooCommerce order, based on environment and country.
+	 * Gets country used for Klarna purchase.
 	 *
-	 * @TODO: Consider other countries too, currently defaults to US.
+	 * @return mixed
+	 */
+	public function get_klarna_country() {
+		$country = '';
+		if ( get_post_meta( $this->order_id, '_wc_klarna_country', true ) ) {
+			$country = get_post_meta( $this->order_id, '_wc_klarna_country', true );
+		}
+		return $country;
+	}
+
+	/**
+	 * Gets environment (test/live) used for Klarna purchase.
+	 *
+	 * @return mixed
+	 */
+	public function get_klarna_environment() {
+		$env = '';
+		if ( get_post_meta( $this->order_id, '_wc_klarna_environment', true ) ) {
+			// Getting last four characters before this field was stored as 'eu-live' etc. now it's only 'live'.
+			$env = substr( get_post_meta( $this->order_id, '_wc_klarna_environment', true ), -4 );
+		}
+		return $env;
+	}
+
+	/**
+	 * Gets merchant ID from WooCommerce order, based on environment and country.
 	 */
 	public function get_merchant_id() {
-		switch ( get_post_meta( $this->order_id, '_wc_klarna_environment', true ) ) {
-			case 'us-test':
-				$merchant_id = $this->klarna_payments_settings['test_merchant_id_us'];
-				break;
-			case 'us-live':
-				$merchant_id = $this->klarna_payments_settings['merchant_id_us'];
-				break;
-			case 'eu-test':
-				$merchant_id = $this->klarna_payments_settings['test_merchant_id_eu'];
-				break;
-			case 'eu-live':
-				$merchant_id = $this->klarna_payments_settings['merchant_id_eu'];
-				break;
-			default:
-				$merchant_id = '';
+		$env = $this->get_klarna_environment();
+		$country = $this->get_klarna_country();
+
+		if ( 'live' === $env ) {
+			$env_string = '';
+		} else {
+			$env_string = 'test';
 		}
+
+		$country_string = strtolower( $country );
+
+		$merchant_id = $this->klarna_payments_settings[ $env_string . '_merchant_id_' . $country_string ];
 
 		return $merchant_id;
 	}
 
 	/**
 	 * Gets merchant ID from WooCommerce order, based on environment and country.
-	 *
-	 * @TODO: Consider other countries too, currently defaults to US.
 	 */
 	public function get_shared_secret() {
-		switch ( get_post_meta( $this->order_id, '_wc_klarna_environment', true ) ) {
-			case 'us-test':
-				$shared_secret = $this->klarna_payments_settings['test_shared_secret_us'];
-				break;
-			case 'us-live':
-				$shared_secret = $this->klarna_payments_settings['shared_secret_us'];
-				break;
-			case 'eu-test':
-				$shared_secret = $this->klarna_payments_settings['test_shared_secret_eu'];
-				break;
-			case 'eu-live':
-				$shared_secret = $this->klarna_payments_settings['shared_secret_eu'];
-				break;
-			default:
-				$shared_secret = '';
+		$env = $this->get_klarna_environment();
+		$country = $this->get_klarna_country();
+
+		if ( 'live' === $env ) {
+			$env_string = '';
+		} else {
+			$env_string = 'test';
 		}
+
+		$country_string = strtolower( $country );
+
+		$shared_secret = $this->klarna_payments_settings[ $env_string . '_shared_secret_' . $country_string ];
 
 		return utf8_encode( $shared_secret );
 	}
@@ -236,21 +251,18 @@ class WC_Klarna_Order_Management_Request {
 	 * Gets Klarna server base WooCommerce order, based on environment and country.
 	 */
 	public function get_server_base() {
-		switch ( get_post_meta( $this->order_id, '_wc_klarna_environment', true ) ) {
-			case 'us-test':
-				$server_base = 'https://api-na.playground.klarna.com';
-				break;
-			case 'us-live':
+		if ( 'us' === $this->get_klarna_country() ) {
+			if ( 'live' === $this->get_klarna_environment() ) {
 				$server_base = 'https://api-na.klarna.com';
-				break;
-			case 'eu-test':
-				$server_base = 'https://api.playground.klarna.com';
-				break;
-			case 'eu-live':
+			} else {
+				$server_base = 'https://api-na.playground.klarna.com';
+			}
+		} else {
+			if ( 'live' === $this->get_klarna_environment() ) {
 				$server_base = 'https://api.klarna.com';
-				break;
-			default:
-				$server_base = '';
+			} else {
+				$server_base = 'https://api.playground.klarna.com';
+			}
 		}
 
 		return $server_base;
