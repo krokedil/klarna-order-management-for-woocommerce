@@ -60,8 +60,10 @@ class WC_Klarna_Order_Management_Order_Lines {
 		$this->order_id = $order_id;
 		$this->order = wc_get_order( $this->order_id );
 
-		$order_env = get_post_meta( $order_id, '_wc_klarna_environment', true );
-		if ( 'us-test' === $order_env || 'us-live' === $order_env ) {
+		$base_location = wc_get_base_location();
+		$shop_country = $base_location['country'];
+
+		if ( 'US' === $shop_country ) {
 			$this->separate_sales_tax = true;
 		}
 	}
@@ -210,7 +212,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			$item_reference = $order_line_item['name'];
 		}
 
-		return (string) $item_reference;
+		return substr( strval( $item_reference ), 0, 64 );
 	}
 
 	/**

@@ -177,7 +177,7 @@ class WC_Klarna_Order_Management_Request {
 			return new WP_Error( 'missing_credentials', 'Klarna Payments credentials are missing' );
 		}
 
-		return 'Basic ' . base64_encode( $this->klarna_merchant_id . ':' . $this->klarna_shared_secret );
+		return 'Basic ' . base64_encode( $this->klarna_merchant_id . ':' . htmlspecialchars_decode( $this->klarna_shared_secret ) );
 	}
 
 	/**
