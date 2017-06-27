@@ -45,6 +45,13 @@ class WC_Klarna_Order_Management_Order_Lines {
 	public $order;
 
 	/**
+	 * Klarna country used for creating this order.
+	 *
+	 * @var string
+	 */
+	public $klarna_country = 'US';
+
+	/**
 	 * Send sales tax as separate item (US merchants).
 	 *
 	 * @var bool
@@ -66,6 +73,8 @@ class WC_Klarna_Order_Management_Order_Lines {
 		if ( 'US' === $shop_country ) {
 			$this->separate_sales_tax = true;
 		}
+
+		$this->klarna_country = strtoupper( get_post_meta( $order_id, '_wc_klarna_country', true ) );
 	}
 
 	/**
@@ -111,7 +120,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 					$klarna_item['product_url'] = $product->get_permalink();
 					if ( $product->get_image_id() > 0 ) {
 						$image_id = $product->get_image_id();
-						$klarna_item['image_url'] = wp_get_attachment_image_url( $image_id, $size = 'shop_thumbnail', false );
+						$klarna_item['image_url'] = wp_get_attachment_image_url( $image_id, 'shop_thumbnail', false );
 					}
 				}
 			}
@@ -129,35 +138,40 @@ class WC_Klarna_Order_Management_Order_Lines {
 					$coupon_tax_amount = - $order_line_item['discount_amount_tax'] * 100;
 					$coupon_reference  = 'Discount';
 				} else {
-					$coupon_amount     = 0;
-					$coupon_tax_amount = 0;
+					if ( 'US' === $this->klarna_country ) {
+						$coupon_amount     = 0;
+						$coupon_tax_amount = 0;
 
-					if ( $coupon->is_type( 'fixed_cart' ) || $coupon->is_type( 'percent' ) ) {
-						$coupon_type = 'Cart discount';
-					} elseif ( $coupon->is_type( 'fixed_product' ) || $coupon->is_type( 'percent_product' ) ) {
-						$coupon_type = 'Product discount';
-					} else {
-						$coupon_type = 'Discount';
+						if ( $coupon->is_type( 'fixed_cart' ) || $coupon->is_type( 'percent' ) ) {
+							$coupon_type = 'Cart discount';
+						} elseif ( $coupon->is_type( 'fixed_product' ) || $coupon->is_type( 'percent_product' ) ) {
+							$coupon_type = 'Product discount';
+						} else {
+							$coupon_type = 'Discount';
+						}
+
+						$coupon_reference = $coupon_type . ' (amount: ' . $order_line_item['discount_amount'] . ', tax amount: ' . $order_line_item['discount_amount_tax'] . ')';
 					}
-
-					$coupon_reference = $coupon_type . ' (amount: ' . $order_line_item['discount_amount'] . ', tax amount: ' . $order_line_item['discount_amount_tax'] . ')';
 				}
 
-				$klarna_item['type']                  = 'discount';
-				$klarna_item['reference']             = $coupon_reference;
-				$klarna_item['total_discount_amount'] = 0;
-				$klarna_item['unit_price']            = $coupon_amount;
-				$klarna_item['total_amount']          = $coupon_amount;
-				$klarna_item['total_tax_amount']      = $coupon_tax_amount;
+				// Add discount line item, only if it's a smart coupon or purchase country was US.
+				if ( 'smart_coupon' === $coupon->discount_type || 'US' === $this->klarna_country ) {
+					$klarna_item['type']                  = 'discount';
+					$klarna_item['reference']             = $coupon_reference;
+					$klarna_item['total_discount_amount'] = 0;
+					$klarna_item['unit_price']            = $coupon_amount;
+					$klarna_item['total_amount']          = $coupon_amount;
+					$klarna_item['total_tax_amount']      = $coupon_tax_amount;
 
-				$this->order_lines[]     = $klarna_item;
-				$this->order_amount     += $coupon_amount;
-				$this->order_tax_amount += $coupon_tax_amount;
+					$this->order_lines[]    = $klarna_item;
+					$this->order_amount     += $coupon_amount;
+					$this->order_tax_amount += $coupon_tax_amount;
+				}
 			} else {
 				$this->order_lines[] = $klarna_item;
 				$this->order_amount += $this->get_item_total_amount( $order_line_item );
-			}
-		}
+			} // End if().
+		} // End foreach().
 	}
 
 	/**
