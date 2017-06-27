@@ -233,21 +233,23 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$order = wc_get_order( $order_id );
 
 			// Not going to do this for non-KP orders.
-			if ( 'klarna_payments' !== $order->payment_method ) {
+			if ( 'klarna_payments' !== $order->get_payment_method() ) {
 				return;
 			}
 
 			// Do nothing if Klarna order was already captured.
 			if ( get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) {
+				$order->add_order_note( 'Klarna order has already been captured.' );
 				return;
 			}
 
 			// Do nothing if we don't have Klarna order ID.
 			if ( ! get_post_meta( $order_id, '_wc_klarna_order_id', true ) ) {
+				$order->add_order_note( 'Klarna order ID is missing, Klarna order could not be captured at this time.' );
 				return;
 			}
 
-			// Retrieve Klarna order first.
+			// Retrieve Klarna order.
 			$klarna_order = $this->retrieve_klarna_order( $order_id );
 
 			// Check if order is pending review.
@@ -256,7 +258,17 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				return;
 			}
 
-			if ( ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) && 'ACCEPTED' === $klarna_order->fraud_status ) {
+			// Check if Klarna order has already been captured or cancelled.
+			if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
+				$order->add_order_note( 'Klarna order could not be captured at this time.' );
+				return;
+			}
+
+			// Only send capture request if Klarna order fraud status is accepted.
+			if ( 'ACCEPTED' !== $klarna_order->fraud_status ) {
+				$order->add_order_note( 'Klarna order could not be captured at this time.' );
+				return;
+			} else {
 				$request = new WC_Klarna_Order_Management_Request( array(
 					'request' => 'capture',
 					'order_id' => $order_id,
@@ -293,6 +305,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// Do nothing if Klarna order was already captured.
 			if ( ! get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) {
+				$order->add_order_note( 'Klarna order has already been captured and cannot be refunded.' );
 				return false;
 			}
 
