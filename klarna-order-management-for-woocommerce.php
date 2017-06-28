@@ -161,7 +161,12 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			// Retrieve Klarna order first.
 			$klarna_order = $this->retrieve_klarna_order( $order_id );
 
-			if ( ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
+			// Captured, part-captured and cancelled orders cannot be cancelled.
+			if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
+				$order->add_order_note( 'Klarna order has been captured previously and could not be cancelled.' );
+			} elseif ( in_array( $klarna_order->status, array( 'CANCELLED' ), true ) ) {
+				$order->add_order_note( 'Klarna order has already been cancelled.' );
+			} else {
 				$request = new WC_Klarna_Order_Management_Request( array(
 					'request' => 'cancel',
 					'order_id' => $order_id,
