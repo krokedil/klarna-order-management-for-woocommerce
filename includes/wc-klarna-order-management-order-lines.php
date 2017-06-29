@@ -213,8 +213,6 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 			if ( $product->get_sku() ) {
 				$item_reference = $product->get_sku();
-			} elseif ( $product->variation_id ) {
-				$item_reference = $product->variation_id;
 			} else {
 				$item_reference = $product->get_id();
 			}
