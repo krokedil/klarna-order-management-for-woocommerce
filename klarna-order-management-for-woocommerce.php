@@ -149,7 +149,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$order = wc_get_order( $order_id );
 
 			// Not going to do this for non-KP orders.
-			if ( 'klarna_payments' !== $order->payment_method ) {
+			if ( 'klarna_payments' !== $order->get_payment_method() ) {
 				return;
 			}
 
@@ -197,7 +197,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$order = wc_get_order( $order_id );
 
 			// Not going to do this for non-KP orders.
-			if ( 'klarna_payments' !== $order->payment_method ) {
+			if ( 'klarna_payments' !== $order->get_payment_method() ) {
 				return;
 			}
 

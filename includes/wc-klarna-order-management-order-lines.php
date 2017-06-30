@@ -133,7 +133,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 				$coupon = new WC_Coupon( $order_line_item['name'] );
 
 				// @TODO: For now, only send smart coupons as separate items, needs to include all coupons for US
-				if ( 'smart_coupon' === $coupon->discount_type ) {
+				if ( 'smart_coupon' === $coupon->get_discount_type() ) {
 					$coupon_amount     = - $order_line_item['discount_amount'] * 100;
 					$coupon_tax_amount = - $order_line_item['discount_amount_tax'] * 100;
 					$coupon_reference  = 'Discount';
@@ -155,7 +155,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 				}
 
 				// Add discount line item, only if it's a smart coupon or purchase country was US.
-				if ( 'smart_coupon' === $coupon->discount_type || 'US' === $this->klarna_country ) {
+				if ( 'smart_coupon' === $coupon->get_discount_type() || 'US' === $this->klarna_country ) {
 					$klarna_item['type']                  = 'discount';
 					$klarna_item['reference']             = $coupon_reference;
 					$klarna_item['total_discount_amount'] = 0;
@@ -277,7 +277,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			if ( $this->separate_sales_tax ) {
 				$item_price = $this->order->get_shipping_total();
 			} else {
-				$item_price = $this->order->get_shipping_total() + $this->order->order_shipping_tax;
+				$item_price = $this->order->get_shipping_total() + $this->order->get_shipping_tax();
 			}
 
 			$item_quantity = 1;
@@ -331,7 +331,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			if ( $this->separate_sales_tax ) {
 				$item_total_amount = $this->order->get_shipping_total();
 			} else {
-				$item_total_amount = $this->order->get_shipping_total() + (float) $this->order->order_shipping_tax;
+				$item_total_amount = $this->order->get_shipping_total() + (float) $this->order->get_shipping_tax();
 			}
 		} else {
 			if ( $this->separate_sales_tax ) {
