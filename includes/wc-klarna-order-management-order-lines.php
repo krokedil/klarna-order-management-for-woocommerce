@@ -265,7 +265,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 */
 	public function get_item_quantity( $order_line_item ) {
 		if ( $order_line_item['qty'] ) {
-			return (int) $order_line_item['qty'];
+			return $order_line_item['qty'];
 		} else {
 			return 1;
 		}
@@ -302,7 +302,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 		$item_price = number_format( $item_price * 100, 0, '', '' ) / $item_quantity;
 
-		return (int) $item_price;
+		return round( $item_price );
 	}
 
 	/**
@@ -324,7 +324,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			$item_tax_rate = 00;
 		}
 
-		return (int) $item_tax_rate;
+		return round( $item_tax_rate );
 	}
 
 
@@ -354,7 +354,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 		$item_total_amount = $item_total_amount * 100;
 
-		return (int) $item_total_amount;
+		return round( $item_total_amount );
 	}
 
 	/**
@@ -376,7 +376,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 				$item_tax_amount = 00;
 			}
 		}
-		return (int) $item_tax_amount;
+		return round( $item_tax_amount );
 	}
 
 	/**
@@ -397,7 +397,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			$item_discount_amount = 0;
 		}
 
-		return (int) $item_discount_amount;
+		return round( $item_discount_amount );
 	}
 
 }
