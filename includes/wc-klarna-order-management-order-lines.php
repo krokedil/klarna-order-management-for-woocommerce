@@ -101,7 +101,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 		$order = wc_get_order( $this->order_id );
 
 		// @TODO: Add coupons as separate items (smart coupons etc).
-		foreach ( $order->get_items( array( 'line_item', 'shipping', 'coupon' ) ) as $order_line_item_id => $order_line_item ) {
+		foreach ( $order->get_items( array( 'line_item', 'shipping', 'coupon', 'fee' ) ) as $order_line_item_id => $order_line_item ) {
 			$klarna_item = array(
 				'reference'             => $this->get_item_reference( $order_line_item ),
 				'name'                  => $this->get_item_name( $order_line_item ),
@@ -127,6 +127,10 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 			if ( 'shipping' === $order_line_item['type'] ) {
 				$klarna_item['type'] = 'shipping_fee';
+			}
+
+			if ( 'fee' === $order_line_item['type'] ) {
+				$klarna_item['type'] = 'surcharge';
 			}
 
 			if ( 'coupon' === $order_line_item['type'] ) {
@@ -218,8 +222,10 @@ class WC_Klarna_Order_Management_Order_Lines {
 			}
 		} elseif ( 'shipping' === $order_line_item['type'] ) {
 			$item_reference = $order_line_item['method_id'];
-		} elseif ( 'coupon' === $order_line_item['type '] ) {
+		} elseif ( 'coupon' === $order_line_item['type'] ) {
 			$item_reference = 'Discount';
+		} elseif ( 'fee' === $order_line_item['type'] ) {
+			$item_reference = 'Fee';
 		} else {
 			$item_reference = $order_line_item['name'];
 		}
@@ -281,6 +287,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 			}
 
 			$item_quantity = 1;
+		} elseif ( 'fee' === $order_line_item['type'] ) {
+			$item_price = $order_line_item['total'];
+			$item_quantity = 1;
 		} else {
 			if ( $this->separate_sales_tax ) {
 				$item_price = $order_line_item['subtotal'];
@@ -333,6 +342,8 @@ class WC_Klarna_Order_Management_Order_Lines {
 			} else {
 				$item_total_amount = $this->order->get_shipping_total() + (float) $this->order->get_shipping_tax();
 			}
+		} elseif ( 'fee' === $order_line_item['type'] ) {
+			$item_total_amount = $order_line_item['total'];
 		} else {
 			if ( $this->separate_sales_tax ) {
 				$item_total_amount = $order_line_item['subtotal'];
