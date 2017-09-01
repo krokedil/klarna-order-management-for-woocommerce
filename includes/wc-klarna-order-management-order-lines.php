@@ -2,6 +2,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
 /**
  * WC_Klarna_Order_Management_Order_Lines class.
  *
@@ -65,10 +66,10 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 */
 	public function __construct( $order_id ) {
 		$this->order_id = $order_id;
-		$this->order = wc_get_order( $this->order_id );
+		$this->order    = wc_get_order( $this->order_id );
 
 		$base_location = wc_get_base_location();
-		$shop_country = $base_location['country'];
+		$shop_country  = $base_location['country'];
 
 		if ( 'US' === $shop_country ) {
 			$this->separate_sales_tax = true;
@@ -101,7 +102,14 @@ class WC_Klarna_Order_Management_Order_Lines {
 		$order = wc_get_order( $this->order_id );
 
 		// @TODO: Add coupons as separate items (smart coupons etc).
-		foreach ( $order->get_items( array( 'line_item', 'shipping', 'coupon', 'fee' ) ) as $order_line_item_id => $order_line_item ) {
+		foreach (
+			$order->get_items( array(
+				'line_item',
+				'shipping',
+				'coupon',
+				'fee',
+			) ) as $order_line_item_id => $order_line_item
+		) {
 			$klarna_item = array(
 				'reference'             => $this->get_item_reference( $order_line_item ),
 				'name'                  => $this->get_item_name( $order_line_item ),
@@ -116,10 +124,10 @@ class WC_Klarna_Order_Management_Order_Lines {
 			if ( 'line_item' === $order_line_item['type'] ) {
 				$klarna_payment_settings = get_option( 'woocommerce_klarna_payments_settings' );
 				if ( 'yes' === $klarna_payment_settings['send_product_urls'] ) {
-					$product = $order_line_item['variation_id'] ? wc_get_product( $order_line_item['variation_id'] ) : wc_get_product( $order_line_item['product_id'] );
+					$product                    = $order_line_item['variation_id'] ? wc_get_product( $order_line_item['variation_id'] ) : wc_get_product( $order_line_item['product_id'] );
 					$klarna_item['product_url'] = $product->get_permalink();
 					if ( $product->get_image_id() > 0 ) {
-						$image_id = $product->get_image_id();
+						$image_id                 = $product->get_image_id();
 						$klarna_item['image_url'] = wp_get_attachment_image_url( $image_id, 'shop_thumbnail', false );
 					}
 				}
@@ -173,7 +181,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 				}
 			} else {
 				$this->order_lines[] = $klarna_item;
-				$this->order_amount += $this->get_item_total_amount( $order_line_item );
+				$this->order_amount  += $this->get_item_total_amount( $order_line_item );
 			} // End if().
 		} // End foreach().
 	}
@@ -198,9 +206,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 				'total_tax_amount'      => 0,
 			);
 
-			$this->order_lines[]     = $sales_tax;
+			$this->order_lines[]    = $sales_tax;
 			$this->order_amount     += $sales_tax_amount;
-			$this->order_tax_amount  = $sales_tax_amount;
+			$this->order_tax_amount = $sales_tax_amount;
 		}
 	}
 
@@ -244,10 +252,11 @@ class WC_Klarna_Order_Management_Order_Lines {
 		$order_line_item_name = $order_line_item['name'];
 
 		// Append item meta to the title, if it exists.
-		if ( 'line_item' == $order_line_item['type'] ) {
+		if ( 'line_item' === $order_line_item['type'] ) {
 			if ( isset( $order_line_item['item_meta'] ) ) {
 				$item_meta = new WC_Order_Item_Meta( $order_line_item['item_meta'] );
-				if ( $meta = $item_meta->display( true, true ) ) {
+				if ( $item_meta->display( true, true ) ) {
+					$meta = $item_meta->display( true, true );
 					$order_line_item_name .= ' [' . $meta . ']';
 				}
 			}
@@ -288,7 +297,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 			$item_quantity = 1;
 		} elseif ( 'fee' === $order_line_item['type'] ) {
-			$item_price = $order_line_item['total'];
+			$item_price    = $order_line_item['total'];
 			$item_quantity = 1;
 		} else {
 			if ( $this->separate_sales_tax ) {
@@ -376,6 +385,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 				$item_tax_amount = 00;
 			}
 		}
+
 		return round( $item_tax_amount );
 	}
 
