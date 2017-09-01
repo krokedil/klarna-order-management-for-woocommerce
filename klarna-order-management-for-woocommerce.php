@@ -293,7 +293,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				$response = $request->response();
 
 				if ( ! is_wp_error( $response ) ) {
-					$order->add_order_note( 'Klarna order captured. Capture ID: ' . $response );
+					$order->add_order_note( 'Klarna order captured. Capture amount: ' . $order->get_formatted_order_total( '', false ) . '. Capture ID: ' . $response );
 					add_post_meta( $order_id, '_wc_klarna_capture_id', $response, true );
 				} else {
 					$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() . '.' );
