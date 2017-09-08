@@ -31,6 +31,13 @@ class WC_Klarna_Order_Management_Request {
 	var $klarna_payments_settings;
 
 	/**
+	 * Array of Klarna Checkout settings
+	 *
+	 * @var array
+	 */
+	var $klarna_checkout_settings;
+
+	/**
 	 * Klarna order object.
 	 *
 	 * @var object
@@ -94,6 +101,20 @@ class WC_Klarna_Order_Management_Request {
 	var $klarna_authorization_header;
 
 	/**
+	 * Refund amount.
+	 *
+	 * @var integer
+	 */
+	var $refund_amount;
+
+	/**
+	 * Refund reason.
+	 *
+	 * @var string
+	 */
+	var $refund_reason;
+
+	/**
 	 * WC_Klarna_Order_Management_Request constructor.
 	 *
 	 * @param array $args Klarna request arguments.
@@ -106,12 +127,14 @@ class WC_Klarna_Order_Management_Request {
 		$this->refund_reason               = array_key_exists( 'refund_reason', $args ) ? $args['refund_reason'] : '';
 		$this->klarna_order_id             = $this->get_klarna_order_id();
 		$this->klarna_server_base          = $this->get_server_base();
+
 		$klarna_request_details            = $this->get_request_details();
 		$this->klarna_request_url          = $this->klarna_server_base . $klarna_request_details['url'];
 		$this->klarna_request_method       = $klarna_request_details['method'];
 		$this->klarna_request_body         = array_key_exists( 'body', $klarna_request_details ) ? $klarna_request_details['body'] : false;
 		$this->klarna_authorization_header = $this->get_klarna_authorization_header();
 		$this->klarna_payments_settings    = get_option( 'woocommerce_klarna_payments_settings' );
+		$this->klarna_checkout_settings    = get_option( 'woocommerce_klarna_checkout_for_woocommerce_settings' );
 		$this->klarna_merchant_id          = $this->get_merchant_id();
 		$this->klarna_shared_secret        = $this->get_shared_secret();
 	}
@@ -169,16 +192,29 @@ class WC_Klarna_Order_Management_Request {
 	 * @return string|WP_Error
 	 */
 	public function get_klarna_authorization_header() {
+		$order = wc_get_order( $this->order_id );
+		$payment_method = $order->get_payment_method();
+
+		if ( 'klarna_payments' === $payment_method ) {
+			$gateway_settings = get_option( 'woocommerce_klarna_payments_settings' );
+		} elseif ( 'klarna_checkout_for_woocommerce' === $payment_method ) {
+			$gateway_settings = get_option( 'woocommerce_klarna_checkout_for_woocommerce_settings' );
+		}
+
+		if ( ! isset( $gateway_settings ) ) {
+			return new WP_Error( 'wrong_gateway', 'This order was not create via Klarna Payments or Klarna Checkout for WooCommerce.' );
+		}
+
 		// @TODO: Once KCO is separate plugin, check which gateway was used to create the order
-		if ( 'yes' !== $this->klarna_payments_settings['enabled'] ) {
+		if ( 'yes' !== $gateway_settings['enabled'] ) {
 			return new WP_Error( 'gateway_disabled', 'Klarna Payments gateway is currently disabled' );
 		}
 
-		if ( '' === $this->klarna_merchant_id || '' === $this->klarna_shared_secret ) {
+		if ( '' === $this->get_merchant_id() || '' === $this->get_shared_secret() ) {
 			return new WP_Error( 'missing_credentials', 'Klarna Payments credentials are missing' );
 		}
 
-		return 'Basic ' . base64_encode( $this->klarna_merchant_id . ':' . htmlspecialchars_decode( $this->klarna_shared_secret ) );
+		return 'Basic ' . base64_encode( $this->get_merchant_id() . ':' . htmlspecialchars_decode( $this->get_shared_secret() ) );
 	}
 
 	/**
@@ -212,6 +248,15 @@ class WC_Klarna_Order_Management_Request {
 	 * Gets merchant ID from WooCommerce order, based on environment and country.
 	 */
 	public function get_merchant_id() {
+		$order = wc_get_order( $this->order_id );
+		$payment_method = $order->get_payment_method();
+
+		if ( 'klarna_payments' === $payment_method ) {
+			$gateway_settings = $this->klarna_payments_settings;
+		} elseif ( 'klarna_checkout_for_woocommerce' === $payment_method ) {
+			$gateway_settings = $this->klarna_checkout_settings;
+		}
+
 		$env = $this->get_klarna_environment();
 		$country = $this->get_klarna_country();
 
@@ -223,7 +268,7 @@ class WC_Klarna_Order_Management_Request {
 
 		$country_string = strtolower( $country );
 
-		$merchant_id = $this->klarna_payments_settings[ $env_string . '_merchant_id_' . $country_string ];
+		$merchant_id = $gateway_settings[ $env_string . '_merchant_id_' . $country_string ];
 
 		return $merchant_id;
 	}
@@ -232,6 +277,15 @@ class WC_Klarna_Order_Management_Request {
 	 * Gets merchant ID from WooCommerce order, based on environment and country.
 	 */
 	public function get_shared_secret() {
+		$order = wc_get_order( $this->order_id );
+		$payment_method = $order->get_payment_method();
+
+		if ( 'klarna_payments' === $payment_method ) {
+			$gateway_settings = $this->klarna_payments_settings;
+		} elseif ( 'klarna_checkout_for_woocommerce' === $payment_method ) {
+			$gateway_settings = $this->klarna_checkout_settings;
+		}
+
 		$env = $this->get_klarna_environment();
 		$country = $this->get_klarna_country();
 
@@ -243,7 +297,7 @@ class WC_Klarna_Order_Management_Request {
 
 		$country_string = strtolower( $country );
 
-		$shared_secret = $this->klarna_payments_settings[ $env_string . '_shared_secret_' . $country_string ];
+		$shared_secret = $gateway_settings[ $env_string . '_shared_secret_' . $country_string ];
 
 		return utf8_encode( $shared_secret );
 	}

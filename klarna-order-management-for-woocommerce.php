@@ -80,7 +80,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 *
 		 * @return void
 		 */
-		private function __wakeup() {}
+		public function __wakeup() {}
 
 		/**
 		 * Protected constructor to prevent creating a new instance of the
@@ -159,8 +159,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		public function cancel_klarna_order( $order_id ) {
 			$order = wc_get_order( $order_id );
 
-			// Not going to do this for non-KP orders.
-			if ( 'klarna_payments' !== $order->get_payment_method() ) {
+			// Not going to do this for non-KP and non-KCO orders.
+			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'klarna_checkout_for_woocommerce' ) ) ) {
 				return;
 			}
 
@@ -207,8 +207,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			$order = wc_get_order( $order_id );
 
-			// Not going to do this for non-KP orders.
-			if ( 'klarna_payments' !== $order->get_payment_method() ) {
+			// Not going to do this for non-KP and non-KCO orders.
+			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'klarna_checkout_for_woocommerce' ) ) ) {
 				return;
 			}
 
@@ -248,8 +248,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		public function capture_klarna_order( $order_id ) {
 			$order = wc_get_order( $order_id );
 
-			// Not going to do this for non-KP orders.
-			if ( 'klarna_payments' !== $order->get_payment_method() ) {
+			// Not going to do this for non-KP and non-KCO orders.
+			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'klarna_checkout_for_woocommerce' ) ) ) {
 				return;
 			}
 
@@ -314,8 +314,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		public function refund_klarna_order( $result, $order_id, $amount = null, $reason = '' ) {
 			$order = wc_get_order( $order_id );
 
-			// Not going to do this for non-KP orders.
-			if ( 'klarna_payments' !== $order->payment_method ) {
+			// Not going to do this for non-KP and non-KCO orders.
+			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'klarna_checkout_for_woocommerce' ) ) ) {
 				return false;
 			}
 
