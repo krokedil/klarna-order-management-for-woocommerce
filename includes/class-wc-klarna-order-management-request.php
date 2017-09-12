@@ -1,7 +1,17 @@
 <?php
+/**
+ * API requests
+ *
+ * Defines Klarna API requests.
+ *
+ * @package WC_Klarna_Order_Management
+ * @since   1.0.0
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
 /**
  * WC_Klarna_Order_Management_Request class.
  *
@@ -14,84 +24,84 @@ class WC_Klarna_Order_Management_Request {
 	 *
 	 * @var string
 	 */
-	var $request;
+	public $request;
 
 	/**
 	 * WooCommerce order ID.
 	 *
 	 * @var int
 	 */
-	var $order_id;
+	public $order_id;
 
 	/**
 	 * Array of Klarna Payments settings
 	 *
 	 * @var array
 	 */
-	var $klarna_payments_settings;
+	public $klarna_payments_settings;
 
 	/**
 	 * Klarna order object.
 	 *
 	 * @var object
 	 */
-	var $klarna_order;
+	public $klarna_order;
 
 	/**
 	 * Klarna order ID.
 	 *
 	 * @var string
 	 */
-	var $klarna_order_id;
+	public $klarna_order_id;
 
 	/**
 	 * Klarna merchant ID.
 	 *
 	 * @var string
 	 */
-	var $klarna_merchant_id;
+	public $klarna_merchant_id;
 
 	/**
 	 * Klarna shared secret.
 	 *
 	 * @var string
 	 */
-	var $klarna_shared_secret;
+	public $klarna_shared_secret;
 
 	/**
 	 * Klarna server base.
 	 *
 	 * @var string
 	 */
-	var $klarna_server_base;
+	public $klarna_server_base;
 
 	/**
 	 * Klarna request URL.
 	 *
 	 * @var string
 	 */
-	var $klarna_request_url;
+	public $klarna_request_url;
 
 	/**
 	 * Klarna request method (GET/POST/PATCH).
 	 *
 	 * @var string
 	 */
-	var $klarna_request_method;
+	public $klarna_request_method;
 
 	/**
 	 * Klarna request body.
 	 *
 	 * @var string
 	 */
-	var $klarna_request_body;
+	public $klarna_request_body;
 
 	/**
 	 * Klarna request authorization header.
 	 *
 	 * @var string
 	 */
-	var $klarna_authorization_header;
+	public $klarna_authorization_header;
 
 	/**
 	 * WC_Klarna_Order_Management_Request constructor.
@@ -160,6 +170,10 @@ class WC_Klarna_Order_Management_Request {
 			$request_args
 		);
 
+		if ( is_wp_error( $response ) ) {
+			WC_Klarna_Order_Management::log( var_export( $response, true ) );
+		}
+
 		return $this->process_response( $response );
 	}
 
@@ -200,11 +214,18 @@ class WC_Klarna_Order_Management_Request {
 	 * @return mixed
 	 */
 	public function get_klarna_environment() {
-		$env = '';
-		if ( get_post_meta( $this->order_id, '_wc_klarna_environment', true ) ) {
-			// Getting last four characters before this field was stored as 'eu-live' etc. now it's only 'live'.
-			$env = substr( get_post_meta( $this->order_id, '_wc_klarna_environment', true ), -4 );
+		$env = 'test';
+		$order = wc_get_order( $this->order_id );
+
+		if ( $order ) {
+			$order_payment_method = $order->get_payment_method();
+			$payment_method_settings = get_option( 'woocommerce_' . $order_payment_method . '_settings' );
+
+			if ( 'yes' !== $payment_method_settings['testmode'] ) {
+				$env = 'live';
+			}
 		}
+
 		return $env;
 	}
 

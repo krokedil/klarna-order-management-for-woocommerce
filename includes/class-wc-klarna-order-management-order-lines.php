@@ -1,4 +1,13 @@
 <?php
+/**
+ * Order lines formatter
+ *
+ * Formats WooCommerce cart items for Klarna API.
+ *
+ * @package WC_Klarna_Order_Management
+ * @since   1.0.0
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -128,7 +137,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 					$klarna_item['product_url'] = $product->get_permalink();
 					if ( $product->get_image_id() > 0 ) {
 						$image_id                 = $product->get_image_id();
-						$klarna_item['image_url'] = wp_get_attachment_image_url( $image_id, 'shop_thumbnail', false );
+						$klarna_item['image_url'] = wp_get_attachment_image_url( $image_id, 'shop_thumbnail' );
 					}
 				}
 			}
@@ -238,7 +247,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			$item_reference = $order_line_item['name'];
 		}
 
-		return substr( strval( $item_reference ), 0, 64 );
+		return substr( (string) $item_reference, 0, 64 );
 	}
 
 	/**
