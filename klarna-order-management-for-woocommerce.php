@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * Plugin Name: Klarna Order Management for WooCommerce
  * Plugin URI: https://krokedil.se/
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
@@ -15,23 +15,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Plugin updates
- */
-require 'includes/plugin_update_check.php';
-new PluginUpdateChecker_2_0(
-	'https://kernl.us/api/v1/updates/59a8f95109a75b04be02c6aa/',
-	__FILE__,
-	'klarna-order-management-for-woocommerce',
-	1
-);
-
-/**
  * Required minimums and constants
  */
 define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.0.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '2.5.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
+
+/**
+ * Plugin updates
+ */
+include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/plugin_update_check.php';
+new PluginUpdateChecker_2_0(
+	'https://kernl.us/api/v1/updates/59a8f95109a75b04be02c6aa/',
+	__FILE__,
+	'klarna-order-management-for-woocommerce',
+	1
+);
 
 if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
@@ -50,9 +50,9 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		/**
 		 * Reference to logging class.
 		 *
-		 * @var @log
+		 * @var $logger
 		 */
-		private static $log;
+		private static $logger;
 
 		/**
 		 * Returns the *Singleton* instance of this class.
@@ -103,9 +103,9 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				return;
 			}
 
-			include_once( WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/wc-klarna-order-management-request.php' );
-			include_once( WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/wc-klarna-order-management-order-lines.php' );
-			include_once( WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/wc-klarna-pending-orders.php' );
+			include_once( WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-order-management-request.php' );
+			include_once( WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-order-management-order-lines.php' );
+			include_once( WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-pending-orders.php' );
 
 			// Add refunds support to Klarna Payments gateway.
 			add_action( 'wc_klarna_payments_supports', array( $this, 'add_gateway_support' ) );
@@ -145,10 +145,10 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @param string $message Log message.
 		 */
 		public static function log( $message ) {
-			if ( empty( self::$log ) ) {
-				self::$log = new WC_Logger();
+			if ( empty( self::$logger ) ) {
+				self::$logger = new WC_Logger();
 			}
-			self::$log->add( 'klarna-order-management-for-woocommerce', $message );
+			self::$logger->add( 'klarna-order-management-for-woocommerce', $message );
 		}
 
 		/**
@@ -175,7 +175,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			// Captured, part-captured and cancelled orders cannot be cancelled.
 			if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
 				$order->add_order_note( 'Klarna order has been captured previously and could not be cancelled.' );
-			} elseif ( in_array( $klarna_order->status, array( 'CANCELLED' ), true ) ) {
+			} elseif ( 'CANCELLED' === $klarna_order->status ) {
 				$order->add_order_note( 'Klarna order has already been cancelled.' );
 			} else {
 				$request = new WC_Klarna_Order_Management_Request( array(
@@ -334,7 +334,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					'order_id'      => $order_id,
 					'klarna_order'  => $klarna_order,
 					'refund_amount' => $amount,
-					'refund_reason' => $reason,
+					'refund_reason' => $reason
 				) );
 				$response = $request->response();
 
@@ -372,4 +372,4 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 	WC_Klarna_Order_Management::get_instance();
 
-}
+} // End if().

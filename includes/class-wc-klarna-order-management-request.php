@@ -183,6 +183,10 @@ class WC_Klarna_Order_Management_Request {
 			$request_args
 		);
 
+		if ( is_wp_error( $response ) ) {
+			WC_Klarna_Order_Management::log( var_export( $response, true ) );
+		}
+
 		return $this->process_response( $response );
 	}
 
@@ -236,11 +240,18 @@ class WC_Klarna_Order_Management_Request {
 	 * @return mixed
 	 */
 	public function get_klarna_environment() {
-		$env = '';
-		if ( get_post_meta( $this->order_id, '_wc_klarna_environment', true ) ) {
-			// Getting last four characters before this field was stored as 'eu-live' etc. now it's only 'live'.
-			$env = substr( get_post_meta( $this->order_id, '_wc_klarna_environment', true ), -4 );
+		$env = 'test';
+		$order = wc_get_order( $this->order_id );
+
+		if ( $order ) {
+			$order_payment_method = $order->get_payment_method();
+			$payment_method_settings = get_option( 'woocommerce_' . $order_payment_method . '_settings' );
+
+			if ( 'yes' !== $payment_method_settings['testmode'] ) {
+				$env = 'live';
+			}
 		}
+
 		return $env;
 	}
 
@@ -263,12 +274,12 @@ class WC_Klarna_Order_Management_Request {
 		if ( 'live' === $env ) {
 			$env_string = '';
 		} else {
-			$env_string = 'test';
+			$env_string = 'test_';
 		}
 
 		$country_string = strtolower( $country );
 
-		$merchant_id = $gateway_settings[ $env_string . '_merchant_id_' . $country_string ];
+		$merchant_id = $gateway_settings[ $env_string . 'merchant_id_' . $country_string ];
 
 		return $merchant_id;
 	}
@@ -292,12 +303,12 @@ class WC_Klarna_Order_Management_Request {
 		if ( 'live' === $env ) {
 			$env_string = '';
 		} else {
-			$env_string = 'test';
+			$env_string = 'test_';
 		}
 
 		$country_string = strtolower( $country );
 
-		$shared_secret = $gateway_settings[ $env_string . '_shared_secret_' . $country_string ];
+		$shared_secret = $gateway_settings[ $env_string . 'shared_secret_' . $country_string ];
 
 		return utf8_encode( $shared_secret );
 	}
