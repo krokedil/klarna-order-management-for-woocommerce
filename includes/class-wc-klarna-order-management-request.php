@@ -239,12 +239,12 @@ class WC_Klarna_Order_Management_Request {
 		if ( 'live' === $env ) {
 			$env_string = '';
 		} else {
-			$env_string = 'test';
+			$env_string = 'test_';
 		}
 
 		$country_string = strtolower( $country );
 
-		$merchant_id = $this->klarna_payments_settings[ $env_string . '_merchant_id_' . $country_string ];
+		$merchant_id = $this->klarna_payments_settings[ $env_string . 'merchant_id_' . $country_string ];
 
 		return $merchant_id;
 	}
@@ -259,12 +259,12 @@ class WC_Klarna_Order_Management_Request {
 		if ( 'live' === $env ) {
 			$env_string = '';
 		} else {
-			$env_string = 'test';
+			$env_string = 'test_';
 		}
 
 		$country_string = strtolower( $country );
 
-		$shared_secret = $this->klarna_payments_settings[ $env_string . '_shared_secret_' . $country_string ];
+		$shared_secret = $this->klarna_payments_settings[ $env_string . 'shared_secret_' . $country_string ];
 
 		return utf8_encode( $shared_secret );
 	}
