@@ -1,7 +1,17 @@
 <?php
+/**
+ * Pending orders
+ *
+ * Provides Klarna pending orders functionality.
+ *
+ * @package WC_Klarna_Order_Management
+ * @since   1.0.0
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
 /**
  * WC_Klarna_Pending_Orders class.
  *
@@ -18,7 +28,7 @@ class WC_Klarna_Pending_Orders {
 	 */
 	public static function notification_listener() {
 		if ( $_GET['order_id'] ) { // Input var okay.
-			$order_id = intval( $_GET['order_id'] ); // Input var okay.
+			$order_id = (int) $_GET['order_id']; // Input var okay.
 			$order = wc_get_order( $order_id );
 
 			$post_body = file_get_contents( 'php://input' );
