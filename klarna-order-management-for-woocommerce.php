@@ -268,6 +268,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			// Retrieve Klarna order.
 			$klarna_order = $this->retrieve_klarna_order( $order_id );
 
+			if ( is_wp_error( $klarna_order ) ) {
+				$order->add_order_note( 'Klarna order could not be captured due to an error.' );
+				return;
+			}
+
 			// Check if order is pending review.
 			if ( 'PENDING' === $klarna_order->fraud_status ) {
 				$order->add_order_note( 'Klarna order is pending review and could not be captured at this time.' );

@@ -145,6 +145,10 @@ class WC_Klarna_Order_Management_Request {
 	 * @return array|mixed|object|WP_Error
 	 */
 	public function response() {
+		if ( is_wp_error( $this->get_klarna_authorization_header() ) ) {
+			return new WP_Error( 'missing_credentials', 'Klarna Payments credentials are missing' );
+		}
+
 		$request_args = array(
 			'headers' => array(
 				'Authorization' => $this->get_klarna_authorization_header(),
@@ -185,6 +189,7 @@ class WC_Klarna_Order_Management_Request {
 
 		if ( is_wp_error( $response ) ) {
 			WC_Klarna_Order_Management::log( var_export( $response, true ) );
+			return new WP_Error( 'error', 'Klarna Payments API request could not be completed due to an error.' );
 		}
 
 		return $this->process_response( $response );
