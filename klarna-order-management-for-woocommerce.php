@@ -5,7 +5,7 @@
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
  * Author: Krokedil
  * Author URI: https://krokedil.se/
- * Version: 1.0.0
+ * Version: 1.1.0
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
 */
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.0.0' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.1.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '2.5.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -160,7 +160,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$order = wc_get_order( $order_id );
 
 			// Not going to do this for non-KP and non-KCO orders.
-			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'klarna_checkout_for_woocommerce' ) ) ) {
+			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'klarna_checkout_for_woocommerce' ), true ) ) {
 				return;
 			}
 
@@ -171,6 +171,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// Retrieve Klarna order first.
 			$klarna_order = $this->retrieve_klarna_order( $order_id );
+
+			if ( is_wp_error( $klarna_order ) ) {
+				$order->add_order_note( 'Klarna order could not be cancelled due to an error.' );
+				return;
+			}
 
 			// Captured, part-captured and cancelled orders cannot be cancelled.
 			if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
@@ -208,7 +213,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$order = wc_get_order( $order_id );
 
 			// Not going to do this for non-KP and non-KCO orders.
-			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'klarna_checkout_for_woocommerce' ) ) ) {
+			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'klarna_checkout_for_woocommerce' ), true ) ) {
 				return;
 			}
 
@@ -219,6 +224,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// Retrieve Klarna order first.
 			$klarna_order = $this->retrieve_klarna_order( $order_id );
+
+			if ( is_wp_error( $klarna_order ) ) {
+				$order->add_order_note( 'Klarna order could not be updated due to an error.' );
+				return;
+			}
 
 			if ( ! in_array( $klarna_order->status, array( 'CANCELLED', 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
 				$request = new WC_Klarna_Order_Management_Request( array(
@@ -332,6 +342,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// Retrieve Klarna order first.
 			$klarna_order = $this->retrieve_klarna_order( $order_id );
+
+			if ( is_wp_error( $klarna_order ) ) {
+				$order->add_order_note( 'Could not capture Klarna order. ' . $klarna_order->get_error_message() . '.' );
+				return false;
+			}
 
 			if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
 				$request = new WC_Klarna_Order_Management_Request( array(
