@@ -1,1 +1,5 @@
-{}
+{
+  "1.1.0" : {
+    "upgrade_notice" : "Improved error handling in API requests."
+  }
+}
