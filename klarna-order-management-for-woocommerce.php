@@ -121,9 +121,10 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// Refund an order.
 			add_filter( 'wc_klarna_payments_process_refund', array( $this, 'refund_klarna_order' ), 10, 4 );
+			add_filter( 'wc_klarna_checkout_process_refund', array( $this, 'refund_klarna_order' ), 10, 4 );
 
 			// Pending orders.
-			add_action( 'wc_klarna_notification_listener', array( 'WC_Klarna_Pending_Orders', 'notification_listener' ) );
+			add_action( 'wc_klarna_notification_listener', array( 'WC_Klarna_Pending_Orders', 'notification_listener' ), 10, 2 );
 		}
 
 		/**
@@ -330,7 +331,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$order = wc_get_order( $order_id );
 
 			// Not going to do this for non-KP and non-KCO orders.
-			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'klarna_checkout_for_woocommerce' ) ) ) {
+			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'klarna_checkout_for_woocommerce' ), true ) ) {
 				return false;
 			}
 

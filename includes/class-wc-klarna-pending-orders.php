@@ -16,23 +16,39 @@ if ( ! defined( 'ABSPATH' ) ) {
  * WC_Klarna_Pending_Orders class.
  *
  * Handles pending orders.
- *
- * @TODO: Move stuff here from Klarna Payments plugin.
  */
 class WC_Klarna_Pending_Orders {
 
 	/**
 	 * Notification listener for Pending orders.
 	 *
+	 * @param string $klarna_order_id Klarna order ID
+	 *
 	 * @link https://developers.klarna.com/en/us/kco-v3/pending-orders
 	 */
-	public static function notification_listener() {
-		if ( $_GET['order_id'] ) { // Input var okay.
-			$order_id = (int) $_GET['order_id']; // Input var okay.
+	public static function notification_listener( $klarna_order_id = null, $data = null ) {
+		$order_id = '';
+
+		if ( $_GET['order_id'] ) { // KP.
+			$order_id = $_GET['order_id'];
+		} else {
+			if ( $_GET['kco_wc_order_id'] ) { // KCO.
+				$klarna_order_id = $_GET['kco_wc_order_id'];
+				$order_id = self::get_order_id_from_klarna_order_id( $klarna_order_id );
+			} elseif ( $klarna_order_id ) {
+				$order_id = self::get_order_id_from_klarna_order_id( $klarna_order_id );
+			}
+		}
+
+		if ( '' !== $order_id ) {
 			$order = wc_get_order( $order_id );
 
-			$post_body = file_get_contents( 'php://input' );
-			$data = json_decode( $post_body, true );
+			// There's no incoming contents in punted notification, so we had to send it as argument.
+			if ( ! $data ) {
+				// In regular notification, grab the incoming data.
+				$post_body = file_get_contents( 'php://input' );
+				$data      = json_decode( $post_body, true );
+			}
 
 			if ( 'FRAUD_RISK_ACCEPTED' === $data['event_type'] ) {
 				$order->payment_complete( $data['order_id'] );
@@ -58,6 +74,33 @@ class WC_Klarna_Pending_Orders {
 				);
 			}
 		}
+	}
+
+	/**
+	 * Gets WooCommerce order ID from Klarna order ID.
+	 *
+	 * @param $klarna_order_id
+	 *
+	 * @return $order_id
+	 */
+	private static function get_order_id_from_klarna_order_id( $klarna_order_id ) {
+		$query_args = array(
+			'post_type'   => wc_get_order_types(),
+			'post_status' => array_keys( wc_get_order_statuses() ),
+			'meta_key'    => '_wc_klarna_order_id',
+			'meta_value'  => $klarna_order_id,
+		);
+
+		$orders = get_posts( $query_args );
+
+		// If zero matching orders were found, return.
+		if ( empty( $orders ) ) {
+			return;
+		}
+
+		$order_id = $orders[0]->ID;
+
+		return $order_id;
 	}
 
 }
