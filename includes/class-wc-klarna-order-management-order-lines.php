@@ -131,8 +131,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 			);
 
 			if ( 'line_item' === $order_line_item['type'] ) {
-				$klarna_payment_settings = get_option( 'woocommerce_klarna_payments_settings' );
-				if ( 'yes' === $klarna_payment_settings['send_product_urls'] ) {
+				$order_payment_method    = $order->get_payment_method();
+				$payment_method_settings = get_option( 'woocommerce_' . $order_payment_method . '_settings' );
+				if ( 'yes' === $payment_method_settings['send_product_urls'] ) {
 					$product                    = $order_line_item['variation_id'] ? wc_get_product( $order_line_item['variation_id'] ) : wc_get_product( $order_line_item['product_id'] );
 					$klarna_item['product_url'] = $product->get_permalink();
 					if ( $product->get_image_id() > 0 ) {
@@ -265,7 +266,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			if ( isset( $order_line_item['item_meta'] ) ) {
 				$item_meta = new WC_Order_Item_Meta( $order_line_item['item_meta'] );
 				if ( $item_meta->display( true, true ) ) {
-					$meta = $item_meta->display( true, true );
+					$meta                 = $item_meta->display( true, true );
 					$order_line_item_name .= ' [' . $meta . ']';
 				}
 			}

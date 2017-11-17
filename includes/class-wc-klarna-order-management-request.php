@@ -132,9 +132,9 @@ class WC_Klarna_Order_Management_Request {
 		$this->klarna_request_url          = $this->klarna_server_base . $klarna_request_details['url'];
 		$this->klarna_request_method       = $klarna_request_details['method'];
 		$this->klarna_request_body         = array_key_exists( 'body', $klarna_request_details ) ? $klarna_request_details['body'] : false;
-		$this->klarna_authorization_header = $this->get_klarna_authorization_header();
 		$this->klarna_payments_settings    = get_option( 'woocommerce_klarna_payments_settings' );
 		$this->klarna_checkout_settings    = get_option( 'woocommerce_klarna_checkout_for_woocommerce_settings' );
+		$this->klarna_authorization_header = $this->get_klarna_authorization_header();
 		$this->klarna_merchant_id          = $this->get_merchant_id();
 		$this->klarna_shared_secret        = $this->get_shared_secret();
 	}
@@ -206,21 +206,22 @@ class WC_Klarna_Order_Management_Request {
 
 		if ( 'klarna_payments' === $payment_method ) {
 			$gateway_settings = get_option( 'woocommerce_klarna_payments_settings' );
+			$gateway_title = 'Klarna Payments';
 		} elseif ( 'klarna_checkout_for_woocommerce' === $payment_method ) {
 			$gateway_settings = get_option( 'woocommerce_klarna_checkout_for_woocommerce_settings' );
+			$gateway_title = 'Klarna Checkout';
 		}
 
 		if ( ! isset( $gateway_settings ) ) {
 			return new WP_Error( 'wrong_gateway', 'This order was not create via Klarna Payments or Klarna Checkout for WooCommerce.' );
 		}
 
-		// @TODO: Once KCO is separate plugin, check which gateway was used to create the order
 		if ( 'yes' !== $gateway_settings['enabled'] ) {
-			return new WP_Error( 'gateway_disabled', 'Klarna Payments gateway is currently disabled' );
+			return new WP_Error( 'gateway_disabled', $gateway_title , ' gateway is currently disabled' );
 		}
 
 		if ( '' === $this->get_merchant_id() || '' === $this->get_shared_secret() ) {
-			return new WP_Error( 'missing_credentials', 'Klarna Payments credentials are missing' );
+			return new WP_Error( 'missing_credentials', $gateway_title . ' credentials are missing' );
 		}
 
 		return 'Basic ' . base64_encode( $this->get_merchant_id() . ':' . htmlspecialchars_decode( $this->get_shared_secret() ) );
@@ -282,7 +283,15 @@ class WC_Klarna_Order_Management_Request {
 			$env_string = 'test_';
 		}
 
-		$country_string = strtolower( $country );
+		if ( 'klarna_payments' === $payment_method ) {
+			$country_string = strtolower( $country );
+		} else {
+			if ( 'US' === $country ) {
+				$country_string = 'us';
+			} else {
+				$country_string = 'eu';
+			}
+		}
 
 		$merchant_id = $gateway_settings[ $env_string . 'merchant_id_' . $country_string ];
 
@@ -311,7 +320,15 @@ class WC_Klarna_Order_Management_Request {
 			$env_string = 'test_';
 		}
 
-		$country_string = strtolower( $country );
+		if ( 'klarna_payments' === $payment_method ) {
+			$country_string = strtolower( $country );
+		} else {
+			if ( 'US' === $country ) {
+				$country_string = 'us';
+			} else {
+				$country_string = 'eu';
+			}
+		}
 
 		$shared_secret = $gateway_settings[ $env_string . 'shared_secret_' . $country_string ];
 

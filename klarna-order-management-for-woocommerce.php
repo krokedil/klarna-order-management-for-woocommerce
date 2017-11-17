@@ -95,11 +95,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		public function init() {
 			// Check if we have KP settings, so we can retrieve credentials.
-			if ( ! get_option( 'woocommerce_klarna_payments_settings' ) ) {
+			if ( ! get_option( 'woocommerce_klarna_payments_settings' ) && ! get_option( 'woocommerce_klarna_checkout_for_woocommerce_settings' ) ) {
 				return;
 			}
 
-			if ( ! is_array( get_option( 'woocommerce_klarna_payments_settings' ) ) ) {
+			if ( ! is_array( get_option( 'woocommerce_klarna_payments_settings' ) ) && ! is_array( get_option( 'woocommerce_checkout_for_woocommerce_settings' ) ) ) {
 				return;
 			}
 
@@ -107,8 +107,9 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			include_once( WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-order-management-order-lines.php' );
 			include_once( WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-pending-orders.php' );
 
-			// Add refunds support to Klarna Payments gateway.
+			// Add refunds support to Klarna Payments and Klarna Checkout gateways.
 			add_action( 'wc_klarna_payments_supports', array( $this, 'add_gateway_support' ) );
+			add_action( 'kco_wc_supports', array( $this, 'add_gateway_support' ) );
 
 			// Cancel order.
 			add_action( 'woocommerce_order_status_cancelled', array( $this, 'cancel_klarna_order' ) );
@@ -260,7 +261,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$order = wc_get_order( $order_id );
 
 			// Not going to do this for non-KP and non-KCO orders.
-			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'klarna_checkout_for_woocommerce' ) ) ) {
+			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'klarna_checkout_for_woocommerce' ), true ) ) {
 				return;
 			}
 
