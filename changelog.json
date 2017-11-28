@@ -1,8 +1,5 @@
 {
   "1.1.0" : {
     "upgrade_notice" : "Improved error handling in API requests."
-  },
-  "1.1.1" : {
-    "upgrade_notice" : "Adds Klarna Checkout for WooCommerce compatibility."
   }
 }
