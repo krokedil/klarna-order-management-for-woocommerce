@@ -22,19 +22,19 @@ class WC_Klarna_Pending_Orders {
 	/**
 	 * Notification listener for Pending orders.
 	 *
-	 * @param string $klarna_order_id Klarna order ID
+	 * @param string $klarna_order_id Klarna order ID.
 	 *
 	 * @link https://developers.klarna.com/en/us/kco-v3/pending-orders
 	 */
 	public static function notification_listener( $klarna_order_id = null, $data = null ) {
 		$order_id = '';
 
-		if ( $_GET['order_id'] ) { // KP.
-			$order_id = $_GET['order_id'];
+		if ( isset( $_GET['order_id'] ) ) { // KP, Input var okay.
+			$order_id = sanitize_key( $_GET['order_id'] ); // Input var okay.
 		} else {
-			if ( $_GET['kco_wc_order_id'] ) { // KCO.
-				$klarna_order_id = $_GET['kco_wc_order_id'];
-				$order_id = self::get_order_id_from_klarna_order_id( $klarna_order_id );
+			if ( isset( $_GET['kco_wc_order_id'] ) ) { // KCO, Input var okay.
+				$klarna_order_id = sanitize_key( $_GET['kco_wc_order_id'] ); // Input var okay.
+				$order_id        = self::get_order_id_from_klarna_order_id( $klarna_order_id );
 			} elseif ( $klarna_order_id ) {
 				$order_id = self::get_order_id_from_klarna_order_id( $klarna_order_id );
 			}
@@ -50,12 +50,15 @@ class WC_Klarna_Pending_Orders {
 				$data      = json_decode( $post_body, true );
 			}
 
-			if ( 'FRAUD_RISK_ACCEPTED' === $data['event_type'] ) {
-				$order->payment_complete( $data['order_id'] );
+			$event_type = sanitize_text_field( $data['event_type'] );
+			$order_id   = sanitize_key( $data['order_id'] );
+
+			if ( 'FRAUD_RISK_ACCEPTED' === $event_type ) {
+				$order->payment_complete( $order_id );
 				$order->add_order_note( 'Payment via Klarna Payments.' );
-			} elseif ( 'FRAUD_RISK_REJECTED' === $data['event_type'] || 'FRAUD_RISK_STOPPED' === $data['event_type'] ) {
-				$request = new WC_Klarna_Order_Management_Request( array(
-					'request' => 'retrieve',
+			} elseif ( 'FRAUD_RISK_REJECTED' === $event_type || 'FRAUD_RISK_STOPPED' === $event_type ) {
+				$request      = new WC_Klarna_Order_Management_Request( array(
+					'request'  => 'retrieve',
 					'order_id' => $order_id,
 				) );
 				$klarna_order = $request->response();

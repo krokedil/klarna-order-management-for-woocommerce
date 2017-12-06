@@ -2,6 +2,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
 /**
  * WC_Klarna_Order_Management_Request class.
  *
@@ -120,13 +121,13 @@ class WC_Klarna_Order_Management_Request {
 	 * @param array $args Klarna request arguments.
 	 */
 	public function __construct( $args = array() ) {
-		$this->request                     = $args['request'];
-		$this->order_id                    = $args['order_id'];
-		$this->klarna_order                = array_key_exists( 'klarna_order', $args ) ? $args['klarna_order'] : false;
-		$this->refund_amount               = array_key_exists( 'refund_amount', $args ) ? $args['refund_amount'] : 0;
-		$this->refund_reason               = array_key_exists( 'refund_reason', $args ) ? $args['refund_reason'] : '';
-		$this->klarna_order_id             = $this->get_klarna_order_id();
-		$this->klarna_server_base          = $this->get_server_base();
+		$this->request            = $args['request'];
+		$this->order_id           = $args['order_id'];
+		$this->klarna_order       = array_key_exists( 'klarna_order', $args ) ? $args['klarna_order'] : false;
+		$this->refund_amount      = array_key_exists( 'refund_amount', $args ) ? $args['refund_amount'] : 0;
+		$this->refund_reason      = array_key_exists( 'refund_reason', $args ) ? $args['refund_reason'] : '';
+		$this->klarna_order_id    = $this->get_klarna_order_id();
+		$this->klarna_server_base = $this->get_server_base();
 
 		$klarna_request_details            = $this->get_request_details();
 		$this->klarna_request_url          = $this->klarna_server_base . $klarna_request_details['url'];
@@ -150,18 +151,18 @@ class WC_Klarna_Order_Management_Request {
 		}
 
 		$request_args = array(
-			'headers' => array(
+			'headers'    => array(
 				'Authorization' => $this->get_klarna_authorization_header(),
 				'Content-Type'  => 'application/json',
 			),
 			'user-agent' => apply_filters( 'http_headers_useragent', 'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ) ) . ' - OM:' . WC_KLARNA_ORDER_MANAGEMENT_VERSION,
-			'method' => $this->klarna_request_method,
+			'method'     => $this->klarna_request_method,
 		);
 
 		if ( $this->klarna_request_body ) {
 			if ( 'order_lines' === $this->klarna_request_body ) {
 				$order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( $this->order_id );
-				$order_lines = $order_lines_processor->order_lines();
+				$order_lines           = $order_lines_processor->order_lines();
 
 				$request_args['body'] = wp_json_encode( array(
 					'order_lines'      => $order_lines['order_lines'],
@@ -169,7 +170,7 @@ class WC_Klarna_Order_Management_Request {
 					'order_tax_amount' => $order_lines['order_tax_amount'],
 				) );
 			} elseif ( 'capture' === $this->klarna_request_body ) {
-				$order = wc_get_order( $this->order_id );
+				$order                = wc_get_order( $this->order_id );
 				$request_args['body'] = wp_json_encode( array(
 					'captured_amount' => $order->get_total() * 100,
 				) );
@@ -189,6 +190,7 @@ class WC_Klarna_Order_Management_Request {
 
 		if ( is_wp_error( $response ) ) {
 			WC_Klarna_Order_Management::log( var_export( $response, true ) );
+
 			return new WP_Error( 'error', 'Klarna Payments API request could not be completed due to an error.' );
 		}
 
@@ -201,15 +203,15 @@ class WC_Klarna_Order_Management_Request {
 	 * @return string|WP_Error
 	 */
 	public function get_klarna_authorization_header() {
-		$order = wc_get_order( $this->order_id );
+		$order          = wc_get_order( $this->order_id );
 		$payment_method = $order->get_payment_method();
 
 		if ( 'klarna_payments' === $payment_method ) {
 			$gateway_settings = get_option( 'woocommerce_klarna_payments_settings' );
-			$gateway_title = 'Klarna Payments';
+			$gateway_title    = 'Klarna Payments';
 		} elseif ( 'klarna_checkout_for_woocommerce' === $payment_method ) {
 			$gateway_settings = get_option( 'woocommerce_klarna_checkout_for_woocommerce_settings' );
-			$gateway_title = 'Klarna Checkout';
+			$gateway_title    = 'Klarna Checkout';
 		}
 
 		if ( ! isset( $gateway_settings ) ) {
@@ -217,7 +219,7 @@ class WC_Klarna_Order_Management_Request {
 		}
 
 		if ( 'yes' !== $gateway_settings['enabled'] ) {
-			return new WP_Error( 'gateway_disabled', $gateway_title , ' gateway is currently disabled' );
+			return new WP_Error( 'gateway_disabled', $gateway_title, ' gateway is currently disabled' );
 		}
 
 		if ( '' === $this->get_merchant_id() || '' === $this->get_shared_secret() ) {
@@ -237,6 +239,7 @@ class WC_Klarna_Order_Management_Request {
 		if ( get_post_meta( $this->order_id, '_wc_klarna_country', true ) ) {
 			$country = get_post_meta( $this->order_id, '_wc_klarna_country', true );
 		}
+
 		return $country;
 	}
 
@@ -246,11 +249,11 @@ class WC_Klarna_Order_Management_Request {
 	 * @return mixed
 	 */
 	public function get_klarna_environment() {
-		$env = 'test';
+		$env   = 'test';
 		$order = wc_get_order( $this->order_id );
 
 		if ( $order ) {
-			$order_payment_method = $order->get_payment_method();
+			$order_payment_method    = $order->get_payment_method();
 			$payment_method_settings = get_option( 'woocommerce_' . $order_payment_method . '_settings' );
 
 			if ( 'yes' !== $payment_method_settings['testmode'] ) {
@@ -265,7 +268,7 @@ class WC_Klarna_Order_Management_Request {
 	 * Gets merchant ID from WooCommerce order, based on environment and country.
 	 */
 	public function get_merchant_id() {
-		$order = wc_get_order( $this->order_id );
+		$order          = wc_get_order( $this->order_id );
 		$payment_method = $order->get_payment_method();
 
 		if ( 'klarna_payments' === $payment_method ) {
@@ -274,7 +277,7 @@ class WC_Klarna_Order_Management_Request {
 			$gateway_settings = $this->klarna_checkout_settings;
 		}
 
-		$env = $this->get_klarna_environment();
+		$env     = $this->get_klarna_environment();
 		$country = $this->get_klarna_country();
 
 		if ( 'live' === $env ) {
@@ -302,7 +305,7 @@ class WC_Klarna_Order_Management_Request {
 	 * Gets merchant ID from WooCommerce order, based on environment and country.
 	 */
 	public function get_shared_secret() {
-		$order = wc_get_order( $this->order_id );
+		$order          = wc_get_order( $this->order_id );
 		$payment_method = $order->get_payment_method();
 
 		if ( 'klarna_payments' === $payment_method ) {
@@ -311,7 +314,7 @@ class WC_Klarna_Order_Management_Request {
 			$gateway_settings = $this->klarna_checkout_settings;
 		}
 
-		$env = $this->get_klarna_environment();
+		$env     = $this->get_klarna_environment();
 		$country = $this->get_klarna_country();
 
 		if ( 'live' === $env ) {
@@ -375,20 +378,20 @@ class WC_Klarna_Order_Management_Request {
 				'method' => 'PATCH',
 				'body'   => 'order_lines',
 			),
-			'cancel' => array(
+			'cancel'             => array(
 				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/cancel',
 				'method' => 'POST',
 			),
-			'retrieve' => array(
+			'retrieve'           => array(
 				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id,
 				'method' => 'GET',
 			),
-			'capture' => array(
+			'capture'            => array(
 				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures',
 				'method' => 'POST',
 				'body'   => 'capture',
 			),
-			'refund' => array(
+			'refund'             => array(
 				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/refunds',
 				'method' => 'POST',
 				'body'   => 'refund',
@@ -407,8 +410,8 @@ class WC_Klarna_Order_Management_Request {
 	 * @return array|mixed|object|WP_Error
 	 */
 	private function process_response( $response ) {
-		$response_body    = json_decode( wp_remote_retrieve_body( $response ) );
-		$response_code    = wp_remote_retrieve_response_code( $response );
+		$response_body = json_decode( wp_remote_retrieve_body( $response ) );
+		$response_code = wp_remote_retrieve_response_code( $response );
 
 		switch ( $this->request ) {
 			case 'retrieve':
@@ -424,7 +427,7 @@ class WC_Klarna_Order_Management_Request {
 					$response_headers  = $response['headers']; // Capture ID is sent in headers.
 					$klarna_capture_id = $response_headers['capture-id'];
 
-					return $klarna_capture_id;
+					return sanitize_key( $klarna_capture_id );
 				} else {
 					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
 				}
