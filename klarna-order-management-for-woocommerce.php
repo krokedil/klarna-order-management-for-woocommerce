@@ -87,7 +87,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		public function init() {
 			// Check if we have KP settings, so we can retrieve credentials.
-			if ( ! get_option( 'woocommerce_klarna_payments_settings' ) && ! get_option( 'woocommerce_klarna_checkout_for_woocommerce_settings' ) ) {
+			if ( ! get_option( 'woocommerce_klarna_payments_settings' ) && ! get_option( 'woocommerce_kco_settings' ) ) {
 				return;
 			}
 
@@ -159,7 +159,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			// Not going to do this for non-KP and non-KCO orders.
 			if ( ! in_array( $order->get_payment_method(), array(
 				'klarna_payments',
-				'klarna_checkout_for_woocommerce',
+				'kco',
 			), true ) ) {
 				return;
 			}
@@ -216,7 +216,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			// Not going to do this for non-KP and non-KCO orders.
 			if ( ! in_array( $order->get_payment_method(), array(
 				'klarna_payments',
-				'klarna_checkout_for_woocommerce'
+				'kco'
 			), true ) ) {
 				return;
 			}
@@ -266,7 +266,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			// Not going to do this for non-KP and non-KCO orders.
 			if ( ! in_array( $order->get_payment_method(), array(
 				'klarna_payments',
-				'klarna_checkout_for_woocommerce'
+				'kco'
 			), true ) ) {
 				return;
 			}
@@ -346,7 +346,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			// Not going to do this for non-KP and non-KCO orders.
 			if ( ! in_array( $order->get_payment_method(), array(
 				'klarna_payments',
-				'klarna_checkout_for_woocommerce'
+				'kco'
 			), true ) ) {
 				return false;
 			}

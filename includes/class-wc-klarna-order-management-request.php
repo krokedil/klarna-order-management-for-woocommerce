@@ -134,7 +134,7 @@ class WC_Klarna_Order_Management_Request {
 		$this->klarna_request_method       = $klarna_request_details['method'];
 		$this->klarna_request_body         = array_key_exists( 'body', $klarna_request_details ) ? $klarna_request_details['body'] : false;
 		$this->klarna_payments_settings    = get_option( 'woocommerce_klarna_payments_settings' );
-		$this->klarna_checkout_settings    = get_option( 'woocommerce_klarna_checkout_for_woocommerce_settings' );
+		$this->klarna_checkout_settings    = get_option( 'woocommerce_kco_settings' );
 		$this->klarna_authorization_header = $this->get_klarna_authorization_header();
 		$this->klarna_merchant_id          = $this->get_merchant_id();
 		$this->klarna_shared_secret        = $this->get_shared_secret();
@@ -209,8 +209,8 @@ class WC_Klarna_Order_Management_Request {
 		if ( 'klarna_payments' === $payment_method ) {
 			$gateway_settings = get_option( 'woocommerce_klarna_payments_settings' );
 			$gateway_title    = 'Klarna Payments';
-		} elseif ( 'klarna_checkout_for_woocommerce' === $payment_method ) {
-			$gateway_settings = get_option( 'woocommerce_klarna_checkout_for_woocommerce_settings' );
+		} elseif ( 'kco' === $payment_method ) {
+			$gateway_settings = get_option( 'woocommerce_kco_settings' );
 			$gateway_title    = 'Klarna Checkout';
 		}
 
@@ -273,7 +273,7 @@ class WC_Klarna_Order_Management_Request {
 
 		if ( 'klarna_payments' === $payment_method ) {
 			$gateway_settings = $this->klarna_payments_settings;
-		} elseif ( 'klarna_checkout_for_woocommerce' === $payment_method ) {
+		} elseif ( 'kco' === $payment_method ) {
 			$gateway_settings = $this->klarna_checkout_settings;
 		}
 
@@ -310,7 +310,7 @@ class WC_Klarna_Order_Management_Request {
 
 		if ( 'klarna_payments' === $payment_method ) {
 			$gateway_settings = $this->klarna_payments_settings;
-		} elseif ( 'klarna_checkout_for_woocommerce' === $payment_method ) {
+		} elseif ( 'kco' === $payment_method ) {
 			$gateway_settings = $this->klarna_checkout_settings;
 		}
 
