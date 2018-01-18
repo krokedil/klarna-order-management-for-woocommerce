@@ -16,5 +16,9 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 2. Activate the plugin through the "Plugins" menu in WordPress.
 
 == Changelog ==
+
+= 1.2.1 =
+* Fixed compatibility with Klarna Checkout plugin.
+
 = 1.1.1 =
 * Initial release.
