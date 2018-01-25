@@ -365,6 +365,10 @@ class WC_Klarna_Order_Management_Request {
 	 * @return mixed
 	 */
 	public function get_klarna_order_id() {
+		if ( get_post_meta( $this->order_id, '_transaction_id', true ) ) {
+			return get_post_meta( $this->order_id, '_transaction_id', true );
+		}
+
 		return get_post_meta( $this->order_id, '_wc_klarna_order_id', true );
 	}
 

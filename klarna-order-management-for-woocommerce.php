@@ -193,7 +193,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				if ( ! is_wp_error( $response ) ) {
 					$order->add_order_note( 'Klarna order cancelled.' );
-					add_post_meta( $order_id, '_wc_klarna_cancelled', 'yes', true );
+					update_post_meta( $order_id, '_wc_klarna_cancelled', 'yes', true );
 				} else {
 					$order->add_order_note( 'Could not cancel Klarna order. ' . $response->get_error_message() . '.' );
 				}
@@ -279,7 +279,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			}
 
 			// Do nothing if we don't have Klarna order ID.
-			if ( ! get_post_meta( $order_id, '_wc_klarna_order_id', true ) ) {
+			if ( ! get_post_meta( $order_id, '_wc_klarna_order_id', true ) && ! get_post_meta( $order_id, '_transaction_id', true ) ) {
 				$order->add_order_note( 'Klarna order ID is missing, Klarna order could not be captured at this time.' );
 
 				return;
@@ -323,7 +323,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				if ( ! is_wp_error( $response ) ) {
 					$order->add_order_note( 'Klarna order captured. Capture amount: ' . $order->get_formatted_order_total( '', false ) . '. Capture ID: ' . $response );
-					add_post_meta( $order_id, '_wc_klarna_capture_id', $response, true );
+					update_post_meta( $order_id, '_wc_klarna_capture_id', $response, true );
 				} else {
 					$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() . '.' );
 				}
@@ -379,7 +379,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				if ( ! is_wp_error( $response ) ) {
 					$order->add_order_note( wc_price( $amount, array( 'currency' => get_post_meta( $order_id, '_order_currency', true ) ) ) . ' refunded via Klarna.' );
-					add_post_meta( $order_id, '_wc_klarna_capture_id', $response, true );
+					update_post_meta( $order_id, '_wc_klarna_capture_id', $response, true );
 
 					return true;
 				} else {

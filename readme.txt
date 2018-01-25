@@ -17,6 +17,9 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 
 == Changelog ==
 
+= 2018.01.25.  	- version 1.2.2 =
+* Fix           - Fixes WC 3.3 notices.
+
 = 1.2.1 =
 * Fixed compatibility with Klarna Checkout plugin.
 

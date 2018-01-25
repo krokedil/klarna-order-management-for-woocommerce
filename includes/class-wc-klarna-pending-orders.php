@@ -64,7 +64,7 @@ class WC_Klarna_Pending_Orders {
 				$klarna_order = $request->response();
 
 				// Set meta field so order cancellation doesn't trigger Klarna API requests.
-				add_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true, true );
+				update_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true, true );
 				$order->update_status( 'cancelled', 'Klarna order rejected.' );
 				wc_mail(
 					get_option( 'admin_email' ),
