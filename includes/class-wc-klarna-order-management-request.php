@@ -218,9 +218,9 @@ class WC_Klarna_Order_Management_Request {
 			return new WP_Error( 'wrong_gateway', 'This order was not create via Klarna Payments or Klarna Checkout for WooCommerce.' );
 		}
 
-		if ( 'yes' !== $gateway_settings['enabled'] ) {
+		/*if ( 'yes' !== $gateway_settings['enabled'] ) {
 			return new WP_Error( 'gateway_disabled', $gateway_title, ' gateway is currently disabled' );
-		}
+		}*/
 
 		if ( '' === $this->get_merchant_id() || '' === $this->get_shared_secret() ) {
 			return new WP_Error( 'missing_credentials', $gateway_title . ' credentials are missing' );
