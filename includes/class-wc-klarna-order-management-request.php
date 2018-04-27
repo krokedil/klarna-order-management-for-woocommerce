@@ -155,7 +155,7 @@ class WC_Klarna_Order_Management_Request {
 				'Authorization' => $this->get_klarna_authorization_header(),
 				'Content-Type'  => 'application/json',
 			),
-			'user-agent' => apply_filters( 'http_headers_useragent', 'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ) ) . ' - OM:' . WC_KLARNA_ORDER_MANAGEMENT_VERSION,
+			'user-agent' => apply_filters( 'http_headers_useragent', 'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ) ) . ' - OM:' . WC_KLARNA_ORDER_MANAGEMENT_VERSION . ' - PHP Version: ' . phpversion() . ' - Krokedil',
 			'method'     => $this->klarna_request_method,
 		);
 
