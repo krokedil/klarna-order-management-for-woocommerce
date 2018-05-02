@@ -16,6 +16,10 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 2. Activate the plugin through the "Plugins" menu in WordPress.
 
 == Changelog ==
+= 2018.05.02  	- version 1.2.4 =
+* Fix           - Added rounding to refund amount to prevent float value.
+
+
 = 2018.04.27  	- version 1.2.3 =
 * Tweak         - Adds support for making order management requests possible even if payment method is disabled in frontend.
 * Tweak         - Added PHP version and Krokedil to useragent.
