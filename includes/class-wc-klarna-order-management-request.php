@@ -172,7 +172,7 @@ class WC_Klarna_Order_Management_Request {
 			} elseif ( 'capture' === $this->klarna_request_body ) {
 				$order                = wc_get_order( $this->order_id );
 				$request_args['body'] = wp_json_encode( array(
-					'captured_amount' => $order->get_total() * 100,
+					'captured_amount' => round( $order->get_total() * 100, 0 ),
 				) );
 			} elseif ( 'refund' === $this->klarna_request_body ) {
 				// @TODO: Send order lines as well. Not always possible, but should be done when it is.
