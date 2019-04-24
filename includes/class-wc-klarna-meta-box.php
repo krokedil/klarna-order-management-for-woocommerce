@@ -36,7 +36,7 @@ class WC_Klarna_Meta_Box {
 		if ( 'shop_order' === $post_type ) {
 			$order_id = get_the_ID();
 			$order    = wc_get_order( $order_id );
-			if ( in_array( $order->get_payment_method(), array( 'kco', 'klarna_payments' ) ) && ! empty( get_post_meta( $order_id, '_transaction_id', true ) ) && ! empty( get_post_meta( $order_id, '_wc_klarna_order_id', true ) ) ) {
+			if ( in_array( $order->get_payment_method(), array( 'kco', 'klarna_payments' ) ) ) {
 				add_meta_box( 'kom_meta_box', __( 'Klarna Order Management', 'klarna-order-management-for-woocommerce' ), array( $this, 'kom_meta_box_content' ), 'shop_order', 'side', 'core' );
 			}
 		}
@@ -49,13 +49,18 @@ class WC_Klarna_Meta_Box {
 	 */
 	public function kom_meta_box_content() {
 		$order_id     = get_the_ID();
-		$klarna_order = WC_Klarna_Order_Management::get_instance()->retrieve_klarna_order( $order_id );
-
+		$klarna_order = null;
+		if ( ! empty( get_post_meta( $order_id, '_transaction_id', true ) ) && ! empty( get_post_meta( $order_id, '_wc_klarna_order_id', true ) ) ) {
+			$klarna_order = WC_Klarna_Order_Management::get_instance()->retrieve_klarna_order( $order_id );
+		}
 		// Show klarna order information.
 		?>
 		<div class="kom-meta-box-content">
+		<?php if ( $klarna_order ) { ?>
 		<strong><?php _e( 'Klarna order status: ', 'klarna-order-management-for-woocommerce' ); ?> </strong> <?php echo $klarna_order->status; ?><br/>
+		<?php } ?>
 		<ul class="kom_order_actions_wrapper submitbox">
+		<?php if ( $klarna_order ) { ?>
 		<li class="wide" id="kom-capture">
 			<select class="kco_order_actions" name="kom_order_actions" id="kom_order_actions">
 				<option value=""><?php echo esc_attr( __( 'Choose an action...', 'woocommerce' ) ); ?></option>
@@ -77,6 +82,12 @@ class WC_Klarna_Meta_Box {
 			</select>
 			<button class="button wc-reload"><span><?php esc_html_e( 'Apply', 'woocommerce' ); ?></span></button>
 		</li>
+		<?php } else { ?>
+		<li class="wide" id="kom-capture">
+			<input type="text" id="klarna_order_id" name="klarna_order_id" class="klarna_order_id" placeholder="Klarna order ID">
+			<button class="button wc-reload"><span><?php esc_html_e( 'Apply', 'woocommerce' ); ?></span></button>
+		</li>
+		<?php } ?>
 		</ul>
 		</div>
 		<?php
@@ -90,10 +101,14 @@ class WC_Klarna_Meta_Box {
 	 */
 	public function process_kom_actions( $post_id, $post ) {
 		$order = wc_get_order( $post_id );
-
 		// Bail if not a valid order.
 		if ( ! $order ) {
 			return;
+		}
+		if ( isset( $_POST['klarna_order_id'] ) && ! empty( $_POST['klarna_order_id'] ) ) {
+			update_post_meta( $post_id, '_wc_klarna_order_id', $_POST['klarna_order_id'] );
+			$order->set_transaction_id( $_POST['klarna_order_id'] );
+			$order->save();
 		}
 
 		// If the KOM order actions is not set, or is empty bail.
