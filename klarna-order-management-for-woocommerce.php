@@ -99,6 +99,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-order-management-order-lines.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-pending-orders.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-sellers-app.php';
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-meta-box.php';
 
 			// Add refunds support to Klarna Payments and Klarna Checkout gateways.
 			add_action( 'wc_klarna_payments_supports', array( $this, 'add_gateway_support' ) );

@@ -94,7 +94,7 @@ class WC_Klarna_Sellers_App {
 
 		$order->save();
 
-		$order->add_order_note( __( 'Order created and address fields populated by Klarna Order Management.', 'klarna-order-management-for-woocommerce' ) );
+		$order->add_order_note( __( 'Order address updated by Klarna Order management.', 'klarna-order-management-for-woocommerce' ) );
 	}
 
 	/**
