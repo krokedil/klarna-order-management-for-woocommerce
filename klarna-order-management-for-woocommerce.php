@@ -372,7 +372,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// Do nothing if Klarna order was already captured.
 			if ( ! get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) {
-				$order->add_order_note( 'Klarna order has already been captured and cannot be refunded.' );
+				$order->add_order_note( 'Klarna order has not been captured and cannot be refunded.' );
 
 				return false;
 			}
