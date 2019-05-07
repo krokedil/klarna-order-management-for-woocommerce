@@ -3,7 +3,7 @@
  * Plugin Name: Klarna Order Management for WooCommerce
  * Plugin URI: https://krokedil.se/klarna/
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
- * Author: klarna, krokedil, automattic
+ * Author: klarna, krokedil
  * Author URI: https://krokedil.se/
  * Version: 1.2.2
  * Text Domain: klarna-order-management-for-woocommerce
