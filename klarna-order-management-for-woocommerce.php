@@ -3,9 +3,9 @@
  * Plugin Name: Klarna Order Management for WooCommerce
  * Plugin URI: https://krokedil.se/klarna/
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
- * Author: klarna, krokedil, automattic
+ * Author: klarna, krokedil
  * Author URI: https://krokedil.se/
- * Version: 1.2.2
+ * Version: 1.2.5
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
  */
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.2.2' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.2.5' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '2.5.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -318,7 +318,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			// Check if Klarna order has already been captured or cancelled.
 			if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
 				$order->add_order_note( 'Klarna order could not be captured at this time.' );
-
+				$order->set_status( 'on-hold' );
+				$order->save();
 				return;
 			}
 
@@ -342,6 +343,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					update_post_meta( $order_id, '_wc_klarna_capture_id', $response, true );
 				} else {
 					$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() . '.' );
+					$order->set_status( 'on-hold' );
+					$order->save();
 				}
 			}
 		}
@@ -371,7 +374,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// Do nothing if Klarna order was already captured.
 			if ( ! get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) {
-				$order->add_order_note( 'Klarna order has already been captured and cannot be refunded.' );
+				$order->add_order_note( 'Klarna order has not been captured and cannot be refunded.' );
 
 				return false;
 			}
