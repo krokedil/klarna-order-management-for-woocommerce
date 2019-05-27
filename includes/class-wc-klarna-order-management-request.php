@@ -278,6 +278,12 @@ class WC_Klarna_Order_Management_Request {
 		$order          = wc_get_order( $this->order_id );
 		$payment_method = $order->get_payment_method();
 
+		// If merchant id is stored in the order - use that.
+		$merchant_id = get_post_meta( $this->order_id, '_wc_klarna_merchant_id', true );
+		if ( ! empty( $merchant_id ) ) {
+			return $merchant_id;
+		}
+
 		if ( 'klarna_payments' === $payment_method ) {
 			$gateway_settings = $this->klarna_payments_settings;
 		} elseif ( 'kco' === $payment_method ) {
@@ -314,6 +320,12 @@ class WC_Klarna_Order_Management_Request {
 	public function get_shared_secret() {
 		$order          = wc_get_order( $this->order_id );
 		$payment_method = $order->get_payment_method();
+
+		// If shared secret id is stored in the order - use that.
+		$shared_secret = get_post_meta( $this->order_id, '_wc_klarna_shared_secret', true );
+		if ( ! empty( $shared_secret ) ) {
+			return utf8_encode( $shared_secret );
+		}
 
 		if ( 'klarna_payments' === $payment_method ) {
 			$gateway_settings = $this->klarna_payments_settings;
