@@ -158,9 +158,9 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 *
 		 * @param int $order_id Order ID.
 		 */
-		public function cancel_klarna_order( $order_id ) {
+		public function cancel_klarna_order( $order_id, $action = false ) {
 			$options = get_option( 'kom_settings' );
-			if ( ! isset( $options['kom_auto_cancel'] ) || 'yes' === $options['kom_auto_cancel'] ) {
+			if ( ! isset( $options['kom_auto_cancel'] ) || 'yes' === $options['kom_auto_cancel'] || $action ) {
 				$order = wc_get_order( $order_id );
 
 				// Not going to do this for non-KP and non-KCO orders.
@@ -218,13 +218,13 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @param int   $order_id Order ID.
 		 * @param array $items Order items.
 		 */
-		public function update_klarna_order_items( $order_id, $items ) {
+		public function update_klarna_order_items( $order_id, $items, $action = false ) {
 			if ( ! is_ajax() ) {
 				return;
 			}
 
 			$options = get_option( 'kom_settings' );
-			if ( ! isset( $options['kom_auto_update'] ) || 'yes' === $options['kom_auto_update'] ) {
+			if ( ! isset( $options['kom_auto_update'] ) || 'yes' === $options['kom_auto_update'] || $action ) {
 
 				$order = wc_get_order( $order_id );
 
@@ -280,9 +280,9 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 *
 		 * @param int $order_id Order ID.
 		 */
-		public function capture_klarna_order( $order_id ) {
+		public function capture_klarna_order( $order_id, $action = false ) {
 			$options = get_option( 'kom_settings' );
-			if ( ! isset( $options['kom_auto_capture'] ) || 'yes' === $options['kom_auto_capture'] ) {
+			if ( ! isset( $options['kom_auto_capture'] ) || 'yes' === $options['kom_auto_capture'] || $action ) {
 				$order = wc_get_order( $order_id );
 
 				// Not going to do this for non-KP and non-KCO orders.

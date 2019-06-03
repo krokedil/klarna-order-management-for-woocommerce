@@ -119,11 +119,11 @@ class WC_Klarna_Meta_Box {
 		// If we get here, process the action.
 		// Capture order
 		if ( 'kom_capture' === $_POST['kom_order_actions'] ) {
-			WC_Klarna_Order_Management::get_instance()->capture_klarna_order( $post_id );
+			WC_Klarna_Order_Management::get_instance()->capture_klarna_order( $post_id, true );
 		}
 		// Cancel order
 		if ( 'kom_cancel' === $_POST['kom_order_actions'] ) {
-			WC_Klarna_Order_Management::get_instance()->cancel_klarna_order( $post_id );
+			WC_Klarna_Order_Management::get_instance()->cancel_klarna_order( $post_id, true );
 		}
 		// Sync order
 		if ( 'kom_sync' === $_POST['kom_order_actions'] ) {
