@@ -14,7 +14,7 @@ class WC_Klarna_Order_Management_Settings {
 		add_action( 'admin_menu', array( $this, 'add_menu' ), 101 );
 		add_filter( 'klarna_addons_settings_pages', array( $this, 'register_settings_page' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
-		add_action( 'klarna_addons_settings_tab', array( $this, 'redirect_to_settings_page' ), 1 );
+		add_action( 'klarna_addons_settings_tab', array( $this, 'redirect_to_settings_page' ), 999999 );
 	}
 
 	/**
@@ -83,28 +83,28 @@ class WC_Klarna_Order_Management_Settings {
 
 		add_settings_field(
 			'kom_auto_capture',
-			'Enable automatic capture of Klarna order',
+			'On order completion',
 			array( $this, 'field_auto_capture_render' ),
 			'kom-settings',
 			'kom_settings_section'
 		);
 		add_settings_field(
 			'kom_auto_cancel',
-			'Enable automatic cancel of Klarna order',
+			'On order cancel',
 			array( $this, 'field_auto_cancel_render' ),
 			'kom-settings',
 			'kom_settings_section'
 		);
 		add_settings_field(
 			'kom_auto_update',
-			'Enable automatic update of Klarna order',
+			'On order update',
 			array( $this, 'field_auto_update_render' ),
 			'kom-settings',
 			'kom_settings_section'
 		);
 		add_settings_field(
 			'kom_auto_order_sync',
-			'Enable automatic order syncing on new orders',
+			'On order creation ( manual )',
 			array( $this, 'field_order_sync_render' ),
 			'kom-settings',
 			'kom_settings_section'
@@ -130,7 +130,10 @@ class WC_Klarna_Order_Management_Settings {
 		$val     = ( isset( $options['kom_auto_capture'] ) ) ? $options['kom_auto_capture'] : 'yes';
 		?>
 		<input type="hidden" name="kom_settings[kom_auto_capture]" value="no" />
-		<input type='checkbox' name='kom_settings[kom_auto_capture]' value='yes' <?php checked( $val, 'yes' ); ?>>
+		<label for="kom_settings[kom_auto_capture]" >
+			<input type='checkbox' name='kom_settings[kom_auto_capture]' value='yes' <?php checked( $val, 'yes' ); ?>>
+			<?php _e( 'Activate Klarna order automatically when WooCommerce order is marked complete.', 'klarna-order-management-for-woocommerce' ); ?>
+		</label>
 		<?php
 	}
 
@@ -144,7 +147,10 @@ class WC_Klarna_Order_Management_Settings {
 		$val     = ( isset( $options['kom_auto_cancel'] ) ) ? $options['kom_auto_cancel'] : 'yes';
 		?>
 		<input type="hidden" name="kom_settings[kom_auto_cancel]" value="no" />
+		<label for="kom_settings[kom_auto_cancel]" >
 		<input type='checkbox' name='kom_settings[kom_auto_cancel]' value='yes' <?php checked( $val, 'yes' ); ?>>
+		<?php _e( 'Cancel Klarna order automatically when WooCommerce order is marked canceled.', 'klarna-order-management-for-woocommerce' ); ?>
+		</label>
 		<?php
 	}
 
@@ -158,7 +164,10 @@ class WC_Klarna_Order_Management_Settings {
 		$val     = ( isset( $options['kom_auto_update'] ) ) ? $options['kom_auto_update'] : 'yes';
 		?>
 		<input type="hidden" name="kom_settings[kom_auto_update]" value="no" />
+		<label for="kom_settings[kom_auto_update]" >
 		<input type='checkbox' name='kom_settings[kom_auto_update]' value='yes' <?php checked( $val, 'yes' ); ?>>
+		<?php _e( 'Update Klarna order automatically when WooCommerce order is updated.', 'klarna-order-management-for-woocommerce' ); ?>
+		</label>
 		<?php
 	}
 
@@ -172,7 +181,10 @@ class WC_Klarna_Order_Management_Settings {
 		$val     = ( isset( $options['kom_auto_order_sync'] ) ) ? $options['kom_auto_order_sync'] : 'yes';
 		?>
 		<input type="hidden" name="kom_settings[kom_auto_order_sync]" value="no" />
+		<label for="kom_settings[kom_auto_order_sync]">
 		<input type='checkbox' name='kom_settings[kom_auto_order_sync]' value='yes' <?php checked( $val, 'yes' ); ?>>
+		<?php _e( 'Gets the customer information from Klarna when creating a manual admin order and adding a Klarna order id as a transaction id.', 'klarna-order-management-for-woocommerce' ); ?>
+		</label>
 		<?php
 	}
 
