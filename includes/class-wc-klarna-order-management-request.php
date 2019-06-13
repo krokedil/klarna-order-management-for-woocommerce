@@ -164,22 +164,28 @@ class WC_Klarna_Order_Management_Request {
 				$order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( $this->order_id );
 				$order_lines           = $order_lines_processor->order_lines();
 
-				$request_args['body'] = wp_json_encode( array(
-					'order_lines'      => $order_lines['order_lines'],
-					'order_amount'     => $order_lines['order_amount'],
-					'order_tax_amount' => $order_lines['order_tax_amount'],
-				) );
+				$request_args['body'] = wp_json_encode(
+					array(
+						'order_lines'      => $order_lines['order_lines'],
+						'order_amount'     => $order_lines['order_amount'],
+						'order_tax_amount' => $order_lines['order_tax_amount'],
+					)
+				);
 			} elseif ( 'capture' === $this->klarna_request_body ) {
 				$order                = wc_get_order( $this->order_id );
-				$request_args['body'] = wp_json_encode( array(
-					'captured_amount' => round( $order->get_total() * 100, 0 ),
-				) );
+				$request_args['body'] = wp_json_encode(
+					array(
+						'captured_amount' => round( $order->get_total() * 100, 0 ),
+					)
+				);
 			} elseif ( 'refund' === $this->klarna_request_body ) {
 				// @TODO: Send order lines as well. Not always possible, but should be done when it is.
-				$request_args['body'] = wp_json_encode( array(
-					'refunded_amount' => round( $this->refund_amount * 100 ),
-					'description'     => $this->refund_reason,
-				) );
+				$request_args['body'] = wp_json_encode(
+					array(
+						'refunded_amount' => round( $this->refund_amount * 100 ),
+						'description'     => $this->refund_reason,
+					)
+				);
 			}
 		}
 
@@ -218,7 +224,8 @@ class WC_Klarna_Order_Management_Request {
 			return new WP_Error( 'wrong_gateway', 'This order was not create via Klarna Payments or Klarna Checkout for WooCommerce.' );
 		}
 
-		/*if ( 'yes' !== $gateway_settings['enabled'] ) {
+		/*
+		if ( 'yes' !== $gateway_settings['enabled'] ) {
 			return new WP_Error( 'gateway_disabled', $gateway_title, ' gateway is currently disabled' );
 		}*/
 
@@ -271,6 +278,12 @@ class WC_Klarna_Order_Management_Request {
 		$order          = wc_get_order( $this->order_id );
 		$payment_method = $order->get_payment_method();
 
+		// If merchant id is stored in the order - use that.
+		$merchant_id = get_post_meta( $this->order_id, '_wc_klarna_merchant_id', true );
+		if ( ! empty( $merchant_id ) ) {
+			return $merchant_id;
+		}
+
 		if ( 'klarna_payments' === $payment_method ) {
 			$gateway_settings = $this->klarna_payments_settings;
 		} elseif ( 'kco' === $payment_method ) {
@@ -307,6 +320,12 @@ class WC_Klarna_Order_Management_Request {
 	public function get_shared_secret() {
 		$order          = wc_get_order( $this->order_id );
 		$payment_method = $order->get_payment_method();
+
+		// If shared secret id is stored in the order - use that.
+		$shared_secret = get_post_meta( $this->order_id, '_wc_klarna_shared_secret', true );
+		if ( ! empty( $shared_secret ) ) {
+			return utf8_encode( $shared_secret );
+		}
 
 		if ( 'klarna_payments' === $payment_method ) {
 			$gateway_settings = $this->klarna_payments_settings;
