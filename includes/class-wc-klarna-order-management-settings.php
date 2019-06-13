@@ -11,9 +11,12 @@ class WC_Klarna_Order_Management_Settings {
 	 * Class constructor.
 	 */
 	public function __construct() {
+		// WP Settings API.
 		add_action( 'admin_menu', array( $this, 'add_menu' ), 101 );
-		add_filter( 'klarna_addons_settings_pages', array( $this, 'register_settings_page' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+
+		// Klarna add-on.
+		add_filter( 'klarna_addons_settings_pages', array( $this, 'register_settings_page', 1 ) );
 		add_action( 'klarna_addons_settings_tab', array( $this, 'redirect_to_settings_page' ), 999999 );
 	}
 
@@ -32,6 +35,11 @@ class WC_Klarna_Order_Management_Settings {
 		wp_die();
 	}
 
+	/**
+	 * Adds the submenue to the checkout addons page.
+	 *
+	 * @return void
+	 */
 	public function add_menu() {
 		$submenu = add_submenu_page(
 			'checkout-addons',
