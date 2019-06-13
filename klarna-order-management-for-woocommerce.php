@@ -321,15 +321,22 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				// Check if order is pending review.
 				if ( 'PENDING' === $klarna_order->fraud_status ) {
 					$order->add_order_note( 'Klarna order is pending review and could not be captured at this time.' );
-
+					$order->set_status( 'on-hold' );
+					$order->save();
 					return;
 				}
 
-				// Check if Klarna order has already been captured or cancelled.
-				if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
-					$order->add_order_note( 'Klarna order could not be captured at this time.' );
-					$order->set_status( 'on-hold' );
-					$order->save();
+				// Check if Klarna order has already been captured.
+				if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
+					$order->add_order_note( 'Klarna order has already been captured on ' . $klarna_order->captures[0]->captured_at );
+					update_post_meta( $order_id, '_wc_klarna_capture_id', $klarna_order->captures[0]->capture_id );
+					return;
+				}
+
+				// Check if Klarna order has already been canceled.
+				if ( 'CANCELLED' === $klarna_order->status ) {
+					$order->add_order_note( 'Klarna order failed to capture, the order has already been canceled' );
+
 					return;
 				}
 
