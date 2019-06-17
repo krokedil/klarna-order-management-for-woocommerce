@@ -16,7 +16,7 @@ class WC_Klarna_Order_Management_Settings {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 
 		// Klarna add-on.
-		add_filter( 'klarna_addons_settings_pages', array( $this, 'register_settings_page', 1 ) );
+		add_filter( 'klarna_addons_settings_pages', array( $this, 'register_settings_page' ), 1 );
 		add_action( 'klarna_addons_settings_tab', array( $this, 'redirect_to_settings_page' ), 999999 );
 	}
 
