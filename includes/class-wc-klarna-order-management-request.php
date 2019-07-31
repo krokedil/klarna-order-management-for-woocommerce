@@ -258,51 +258,74 @@ class WC_Klarna_Order_Management_Request {
 		
 		if ( null !== $refund_id ) {
 			$refund_order   	   = wc_get_order( $refund_id );
+			$order   	   		   = wc_get_order( $this->order_id );
+			$order_items           = $order->get_items();
 			$refunded_items 	   = $refund_order->get_items();
 			$refunded_shipping     = $refund_order->get_shipping_method();
-
+			
 			if ( $refunded_items ) {
 				$data 		   = array();
 				$order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( $refund_id );
 				foreach ( $refunded_items as $item ) {
-					$type               = $refund_order->get_type();
-					$reference          = $order_lines_processor->get_item_reference( $item );
-					$name               = $order_lines_processor->get_item_name( $item );
-					$quantity           = $order_lines_processor->get_item_quantity( $item );
-					$unit_price   		= $order_lines_processor->get_item_unit_price( $item );
-					$tax_rate           = $order_lines_processor->get_item_tax_rate( $item );
-					$total              = $order_lines_processor->get_item_total_amount( $item );
-					$total_discount	    = $order_lines_processor->get_item_discount_amount( $item );
-					$total_tax			= $order_lines_processor->get_item_tax_amount( $item );
-					$data[]             = array(
+
+					// gets the order line total from order for calculation
+					foreach ( $order_items as $order_item ) {
+						if ( $item->get_product_id() === $order_item->get_product_id() ) {
+							$order_line_total     = round( ( $order->get_line_subtotal( $order_item, false ) * 100 ) );
+							$order_line_tax 	  = round( ( $order->get_line_tax( $order_item ) * 100 ) );
+							$order_line_tax_rate  = round( ( $order_line_tax / $order_line_total ) * 100 * 100 );
+						}
+					}
+					$type                = $refund_order->get_type();
+					$reference           = $order_lines_processor->get_item_reference( $item );
+					$name                = $order_lines_processor->get_item_name( $item );
+					$quantity            = abs( $order_lines_processor->get_item_quantity( $item ) );
+					$refund_price_amount = round( abs( $refund_order->get_line_subtotal( $item, false ) ) * 100 );
+					$total_discount  	 = $order_lines_processor->get_item_discount_amount( $item );
+					$refund_tax_amount   = abs( $order_lines_processor->get_item_tax_amount( $item ) );
+					$total_tax  		 = round( $order_line_tax - $refund_tax_amount );
+					$unit_price          = round( ( $order_line_total - $refund_price_amount ) + $total_tax );
+					$total           	 = round( ( $quantity * $unit_price ) - $total_discount );
+					$data[]          	 = array(
 						'type' 		  			=> $type,
 						'reference'   			=> $reference,
 						'name'					=> $name,
-						'quantity'    			=> abs( $quantity ),
-						'unit_price'  			=> abs( $unit_price ),
-						'tax_rate'    			=> abs( $tax_rate ),
-						'total_amount'          => abs( $total ),
-						'total_discount_amount' => abs( $total_discount ),
-						'total_tax_amount'  	=> abs( $total_tax ),
+						'quantity'    			=> $quantity,
+						'unit_price'  			=> $unit_price,
+						'tax_rate'    			=> $order_line_tax_rate,
+						'total_amount'          => $total,
+						'total_discount_amount' => $total_discount,
+						'total_tax_amount'  	=> $total_tax,
 					);
 				}
 			}
+			// if shipping is refunded
 			if ( $refunded_shipping ) {
-				$type               = $refund_order->get_type();
-				$name               = $refund_order->get_shipping_method();
-				$unit_price   		= $refund_order->get_shipping_total();
-				$total              = $refund_order->get_shipping_total();
-				$total_tax			= $refund_order->get_shipping_tax();
-				$shipping_data[]    = array(
+				$order_shipping_total    = round( $order->get_shipping_total() * 100 );
+				$order_shipping_tax      = round( $order->get_shipping_tax() * 100 );
+				$order_shipping_tax_rate = round( ( $order_shipping_tax / $order_shipping_total ) * 100 * 100 );
+
+				$type                = $refund_order->get_type();
+				$name                = $refund_order->get_shipping_method();
+				$quantity		     = 1;
+				$total_discount      = $refund_order->get_total_discount( false );
+				$refund_tax_amount	 = round( abs( $refund_order->get_shipping_tax() ) * 100 ); 
+				$refund_price_amount = round( abs( $refund_order->get_shipping_total() ) * 100 );
+				$total_tax           = round( $order_shipping_tax - $refund_tax_amount );
+				$unit_price          = round( ( $order_shipping_total - $refund_price_amount ) + $total_tax );
+				$total               = round( ( $quantity * $unit_price ) - $total_discount );
+				$shipping_data[]     = array(
 					'type' 		  			=> $type,
 					'name'					=> $name,
-					'quantity'    			=> 1,
-					'unit_price'  			=> abs( $unit_price ),
-					'tax_rate'    			=> 0,
-					'total_amount'          => abs( $total ),
-					'total_tax_amount'  	=> abs( $total_tax ),
+					'quantity'    			=> $quantity,
+					'unit_price'  			=> $unit_price,
+					'tax_rate'    			=> $order_shipping_tax_rate,
+					'total_amount'          => $total,
+					'total_discount_amount' => $total_discount,
+					'total_tax_amount'  	=> $total_tax,
 				);
 			}
+			
 			if ( ! empty( $data ) && ! empty( $shipping_data ) ) {
 				$data = array_merge( $data, $shipping_data );
 			} elseif ( empty( $data ) && ! empty( $shipping_data ) ) {
