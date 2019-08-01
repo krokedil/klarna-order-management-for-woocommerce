@@ -220,7 +220,6 @@ class WC_Klarna_Order_Management_Request {
 		if ( ! empty( $order_lines ) && isset( $order_lines ) ) {
 			$data = array_merge( json_decode( $order_lines, true ), $data );
 		}
-
 		return $encoded_data = wp_json_encode( $data );
 	}
 
