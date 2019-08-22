@@ -162,13 +162,13 @@ class WC_Klarna_Order_Management_Request {
 		if ( $this->klarna_request_body ) {
 			if ( 'order_lines' === $this->klarna_request_body ) {
 				$request_args['body'] = $this->get_order_lines();
-				
+				WC_Klarna_Order_Management::log( 'Update order lines request - ' . stripslashes_deep( json_encode( $request_args ) ) );
 			} elseif ( 'capture' === $this->klarna_request_body ) {
 				$request_args['body'] = $this->order_capture();
-
+				WC_Klarna_Order_Management::log( 'Capture request - ' . stripslashes_deep( json_encode( $request_args ) ) );
 			} elseif ( 'refund' === $this->klarna_request_body ) {
 				$request_args['body'] = $this->order_refund();
-
+				WC_Klarna_Order_Management::log( 'Refund request - ' . stripslashes_deep( json_encode( $request_args ) ) );
 			}
 		}
 
@@ -176,6 +176,8 @@ class WC_Klarna_Order_Management_Request {
 			$this->klarna_request_url,
 			$request_args
 		);
+		$code = wp_remote_retrieve_response_code( $response );
+		WC_Klarna_Order_Management::log( 'HTTP-Status Code: ' . $code . ' | Response body: ' . stripslashes_deep( json_encode( wp_remote_retrieve_body( $response ) ) ) );
 		if ( is_wp_error( $response ) ) {
 			WC_Klarna_Order_Management::log( var_export( $response, true ) );
 
