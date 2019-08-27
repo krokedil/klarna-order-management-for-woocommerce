@@ -215,14 +215,16 @@ class WC_Klarna_Order_Management_Request {
 		$order = wc_get_order( $this->order_id );
 		$data  = array(
 				'captured_amount' => round( $order->get_total() * 100, 0 ),
-			);
+	    );
 
 		$order_lines = $this->get_order_lines();
 
-		if ( ! empty( $order_lines ) && isset( $order_lines ) ) {
+		if ( isset( $order_lines ) && ! empty( $order_lines ) ) {
 			$data = array_merge( json_decode( $order_lines, true ), $data );
 		}
-		return $encoded_data = wp_json_encode( $data );
+		$encoded_data = wp_json_encode( $data );
+
+		return $encoded_data;
 	}
 
 	/**
@@ -248,7 +250,7 @@ class WC_Klarna_Order_Management_Request {
 		}
 		return $refund_id;
 	}
-	
+
 	/**
 	 * Returns the refund order lines.
 	 *
@@ -256,18 +258,20 @@ class WC_Klarna_Order_Management_Request {
 	 */
 	public function get_refund_order_lines() {
 		$refund_id = $this->get_refunded_order_id( $this->order_id );
-		
+
 		if ( null !== $refund_id ) {
-			$refund_order   	   = wc_get_order( $refund_id );
-			$order   	   		   = wc_get_order( $this->order_id );
-			$order_items           = $order->get_items();
-			$refunded_items 	   = $refund_order->get_items();
-			$refunded_shipping     = $refund_order->get_shipping_method();
-			
+			$refund_order   	     = wc_get_order( $refund_id );
+			$order   	   		     = wc_get_order( $this->order_id );
+			$order_items             = $order->get_items();
+			$refunded_items 	     = $refund_order->get_items();
+			$refunded_shipping       = $refund_order->get_shipping_method();
+			$refunded_shipping_items = $refund_order->get_items( 'shipping' );
+
 			if ( $refunded_items ) {
 				$data 		   = array();
 				$order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( $refund_id );
 				foreach ( $refunded_items as $item ) {
+					$product = wc_get_product( $item->get_product_id() );
 
 					// gets the order line total from order for calculation
 					foreach ( $order_items as $order_item ) {
@@ -277,7 +281,8 @@ class WC_Klarna_Order_Management_Request {
 							$order_line_tax_rate  = round( ( $order_line_tax / $order_line_total ) * 100 * 100 );
 						}
 					}
-					$type                = $refund_order->get_type();
+
+					$type                = $product->is_downloadable() || $product->is_virtual() ? 'digital' : 'physical';
 					$reference           = $order_lines_processor->get_item_reference( $item );
 					$name                = $order_lines_processor->get_item_name( $item );
 					$quantity            = abs( $order_lines_processor->get_item_quantity( $item ) );
@@ -302,31 +307,35 @@ class WC_Klarna_Order_Management_Request {
 			}
 			// if shipping is refunded
 			if ( $refunded_shipping ) {
-				$order_shipping_total    = round( $order->get_shipping_total() * 100 );
-				$order_shipping_tax      = round( $order->get_shipping_tax() * 100 );
-				$order_shipping_tax_rate = round( ( $order_shipping_tax / $order_shipping_total ) * 100 * 100 );
+				foreach ( $refunded_shipping_items as $shipping_item ) {
+					$order_shipping_total    = round( $order->get_shipping_total() * 100 );
+					$order_shipping_tax      = round( $order->get_shipping_tax() * 100 );
+					$order_shipping_tax_rate = round( ( $order_shipping_tax / $order_shipping_total ) * 100 * 100 );
 
-				$type                = $refund_order->get_type();
-				$name                = $refund_order->get_shipping_method();
-				$quantity		     = 1;
-				$total_discount      = $refund_order->get_total_discount( false );
-				$refund_tax_amount	 = round( abs( $refund_order->get_shipping_tax() ) * 100 ); 
-				$refund_price_amount = round( abs( $refund_order->get_shipping_total() ) * 100 );
-				$total_tax           = round( $order_shipping_tax - $refund_tax_amount );
-				$unit_price          = round( ( $order_shipping_total - $refund_price_amount ) + $total_tax );
-				$total               = round( ( $quantity * $unit_price ) - $total_discount );
-				$shipping_data[]     = array(
-					'type' 		  			=> $type,
-					'name'					=> $name,
-					'quantity'    			=> $quantity,
-					'unit_price'  			=> $unit_price,
-					'tax_rate'    			=> $order_shipping_tax_rate,
-					'total_amount'          => $total,
-					'total_discount_amount' => $total_discount,
-					'total_tax_amount'  	=> $total_tax,
-				);
+					$type      = 'shipping_fee';
+					$reference = $shipping_item->get_method_id() . ':' . $shipping_item->get_instance_id();
+					$name      = $shipping_item->get_name();
+					$quantity  = 1;
+					$total_discount       = $refund_order->get_total_discount( false );
+					$refund_tax_amount = round( abs( $shipping_item->get_total_tax() ) * 100 );
+					$refund_price_amount = round( abs( $shipping_item->get_total() ) * 100 );
+					$total_tax           = round( $order_shipping_tax - $refund_tax_amount );
+					$unit_price          = round( ( $order_shipping_total - $refund_price_amount ) + $total_tax );
+					$total               = round( ( $quantity * $unit_price ) - $total_discount );
+					$shipping_data[]     = array(
+						'type' 		  			=> $type,
+						'reference'				=> $reference,
+						'name'					=> $name,
+						'quantity'    			=> $quantity,
+						'unit_price'  			=> $unit_price,
+						'tax_rate'    			=> $order_shipping_tax_rate,
+						'total_amount'          => $total,
+						'total_discount_amount' => $total_discount,
+						'total_tax_amount'  	=> $total_tax,
+					);
+				}
 			}
-			
+
 			if ( ! empty( $data ) && ! empty( $shipping_data ) ) {
 				$data = array_merge( $data, $shipping_data );
 			} elseif ( empty( $data ) && ! empty( $shipping_data ) ) {
@@ -348,13 +357,14 @@ class WC_Klarna_Order_Management_Request {
 			'description'     => $this->refund_reason,
 		);
 
-		$get_refund_order_lines = $this->get_refund_order_lines();
+		$refund_order_lines = $this->get_refund_order_lines();
 
-		if ( ! empty( $get_refund_order_lines ) && isset( $get_refund_order_lines ) ) {
-			$data = array_merge( $get_refund_order_lines, $data );
+		if ( isset( $refund_order_lines ) && ! empty( $refund_order_lines ) ) {
+			$data['order_lines'] = $refund_order_lines;
 		}
+		$encoded_data = wp_json_encode( $data );
 
-		return $encoded_data = wp_json_encode( $data );
+		return $encoded_data;
 	}
 
 	/**
