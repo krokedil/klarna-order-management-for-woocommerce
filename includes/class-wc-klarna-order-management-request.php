@@ -266,10 +266,11 @@ class WC_Klarna_Order_Management_Request {
 			$refunded_items 	     = $refund_order->get_items();
 			$refunded_shipping       = $refund_order->get_shipping_method();
 			$refunded_shipping_items = $refund_order->get_items( 'shipping' );
+			$order_lines_processor   = new WC_Klarna_Order_Management_Order_Lines( $refund_id );
+			$separate_sales_tax      = $order_lines_processor->separate_sales_tax;
+			$data 		             = array();
 
 			if ( $refunded_items ) {
-				$data 		   = array();
-				$order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( $refund_id );
 				foreach ( $refunded_items as $item ) {
 					$product = wc_get_product( $item->get_product_id() );
 
@@ -288,11 +289,11 @@ class WC_Klarna_Order_Management_Request {
 					$quantity            = abs( $order_lines_processor->get_item_quantity( $item ) );
 					$refund_price_amount = round( abs( $refund_order->get_line_subtotal( $item, false ) ) * 100 );
 					$total_discount  	 = $order_lines_processor->get_item_discount_amount( $item );
-					$refund_tax_amount   = abs( $order_lines_processor->get_item_tax_amount( $item ) );
-					$total_tax  		 = round( $order_line_tax - $refund_tax_amount );
-					$unit_price          = round( ( $order_line_total - $refund_price_amount ) + $total_tax );
-					$total           	 = round( ( $quantity * $unit_price ) - $total_discount );
-					$data[]          	 = array(
+					$refund_tax_amount   = $separate_sales_tax ? 0 : abs( $order_lines_processor->get_item_tax_amount( $item ) );
+					$total_tax  		 = $separate_sales_tax ? 0 : round( $order_line_tax );
+					$unit_price          = round( $order_line_total + $total_tax );
+					$total           	 = round( $quantity * $unit_price );
+					$item_data        	 = array(
 						'type' 		  			=> $type,
 						'reference'   			=> $reference,
 						'name'					=> $name,
@@ -303,26 +304,31 @@ class WC_Klarna_Order_Management_Request {
 						'total_discount_amount' => $total_discount,
 						'total_tax_amount'  	=> $total_tax,
 					);
+					// Do not add order lines if separate sales tax and no refund amount entered.
+					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) {
+						$data[] = $item_data;
+					}
 				}
 			}
 			// if shipping is refunded
 			if ( $refunded_shipping ) {
 				foreach ( $refunded_shipping_items as $shipping_item ) {
+
 					$order_shipping_total    = round( $order->get_shipping_total() * 100 );
 					$order_shipping_tax      = round( $order->get_shipping_tax() * 100 );
 					$order_shipping_tax_rate = round( ( $order_shipping_tax / $order_shipping_total ) * 100 * 100 );
 
-					$type      = 'shipping_fee';
-					$reference = $shipping_item->get_method_id() . ':' . $shipping_item->get_instance_id();
-					$name      = $shipping_item->get_name();
-					$quantity  = 1;
-					$total_discount       = $refund_order->get_total_discount( false );
-					$refund_tax_amount = round( abs( $shipping_item->get_total_tax() ) * 100 );
+					$type      			 = 'shipping_fee';
+					$reference 			 = $shipping_item->get_method_id() . ':' . $shipping_item->get_instance_id();
+					$name      			 = $shipping_item->get_name();
+					$quantity  			 = 1;
+					$total_discount      = $refund_order->get_total_discount( false );
 					$refund_price_amount = round( abs( $shipping_item->get_total() ) * 100 );
-					$total_tax           = round( $order_shipping_tax - $refund_tax_amount );
-					$unit_price          = round( ( $order_shipping_total - $refund_price_amount ) + $total_tax );
-					$total               = round( ( $quantity * $unit_price ) - $total_discount );
-					$shipping_data[]     = array(
+					$refund_tax_amount   = $separate_sales_tax ? 0 : round( abs( $shipping_item->get_total_tax() ) * 100 );
+					$total_tax           = $separate_sales_tax ? 0 : round( $order_shipping_tax );
+					$unit_price          = round( $order_shipping_total + $total_tax );
+					$total               = round( $quantity * $unit_price );
+					$shipping_data       = array(
 						'type' 		  			=> $type,
 						'reference'				=> $reference,
 						'name'					=> $name,
@@ -333,15 +339,34 @@ class WC_Klarna_Order_Management_Request {
 						'total_discount_amount' => $total_discount,
 						'total_tax_amount'  	=> $total_tax,
 					);
+					// Do not add order lines if separate sales tax and no refund amount entered.
+					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) {
+						$data[] = $shipping_data;
+					}
 				}
 			}
+			// If separate sales tax and if tax is being refunded.
+			if ( $separate_sales_tax && '0' != $refund_order->get_total_tax() ) {
+				$sales_tax_amount = round( $order->get_total_tax() * 100 );
 
-			if ( ! empty( $data ) && ! empty( $shipping_data ) ) {
-				$data = array_merge( $data, $shipping_data );
-			} elseif ( empty( $data ) && ! empty( $shipping_data ) ) {
-				$data = $shipping_data;
+				// Add sales tax line item.
+				$sales_tax = array(
+					'type'                  => 'sales_tax',
+					'reference'             => __( 'Sales Tax', 'klarna-payments-for-woocommerce' ),
+					'name'                  => __( 'Sales Tax', 'klarna-payments-for-woocommerce' ),
+					'quantity'              => 1,
+					'unit_price'            => $sales_tax_amount,
+					'tax_rate'              => 0,
+					'total_amount'          => $sales_tax_amount,
+					'total_discount_amount' => 0,
+					'total_tax_amount'      => 0,
+				);
+
+				$data[] = $sales_tax;
 			}
+
 		}
+
 		return $data;
 	}
 
