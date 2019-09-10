@@ -290,8 +290,7 @@ class WC_Klarna_Order_Management_Request {
 					$refund_price_amount = round( abs( $refund_order->get_line_subtotal( $item, false ) ) * 100 );
 					$total_discount      = $order_lines_processor->get_item_discount_amount( $item );
 					$refund_tax_amount   = $separate_sales_tax ? 0 : abs( $order_lines_processor->get_item_tax_amount( $item ) );
-					$total_tax           = $separate_sales_tax ? 0 : round( $order_line_tax );
-					$unit_price          = round( $order_line_total + $total_tax );
+					$unit_price          = round( $refund_price_amount + $refund_tax_amount );
 					$total               = round( $quantity * $unit_price );
 					$item_data           = array(
 						'type'                  => $type,
@@ -302,7 +301,7 @@ class WC_Klarna_Order_Management_Request {
 						'tax_rate'              => $order_line_tax_rate,
 						'total_amount'          => $total,
 						'total_discount_amount' => $total_discount,
-						'total_tax_amount'      => $total_tax,
+						'total_tax_amount'      => $refund_tax_amount,
 					);
 					// Do not add order lines if separate sales tax and no refund amount entered.
 					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) {
@@ -325,8 +324,7 @@ class WC_Klarna_Order_Management_Request {
 					$total_discount      = $refund_order->get_total_discount( false );
 					$refund_price_amount = round( abs( $shipping_item->get_total() ) * 100 );
 					$refund_tax_amount   = $separate_sales_tax ? 0 : round( abs( $shipping_item->get_total_tax() ) * 100 );
-					$total_tax           = $separate_sales_tax ? 0 : round( $order_shipping_tax );
-					$unit_price          = round( $order_shipping_total + $total_tax );
+					$unit_price          = round( $refund_price_amount + $refund_tax_amount );
 					$total               = round( $quantity * $unit_price );
 					$shipping_data       = array(
 						'type'                  => $type,
@@ -337,7 +335,7 @@ class WC_Klarna_Order_Management_Request {
 						'tax_rate'              => $order_shipping_tax_rate,
 						'total_amount'          => $total,
 						'total_discount_amount' => $total_discount,
-						'total_tax_amount'      => $total_tax,
+						'total_tax_amount'      => $refund_tax_amount,
 					);
 					// Do not add order lines if separate sales tax and no refund amount entered.
 					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) {
@@ -347,7 +345,7 @@ class WC_Klarna_Order_Management_Request {
 			}
 			// If separate sales tax and if tax is being refunded.
 			if ( $separate_sales_tax && '0' != $refund_order->get_total_tax() ) {
-				$sales_tax_amount = round( $order->get_total_tax() * 100 );
+				$sales_tax_amount = round( abs( $refund_order->get_total_tax() ) * 100 );
 
 				// Add sales tax line item.
 				$sales_tax = array(
@@ -387,6 +385,7 @@ class WC_Klarna_Order_Management_Request {
 			$data['order_lines'] = $refund_order_lines;
 		}
 		$encoded_data = wp_json_encode( $data );
+		error_log( var_export( $encoded_data, true ) );
 		return $encoded_data;
 	}
 
