@@ -385,7 +385,7 @@ class WC_Klarna_Order_Management_Request {
 			$data['order_lines'] = $refund_order_lines;
 		}
 		$encoded_data = wp_json_encode( $data );
-		error_log( var_export( $encoded_data, true ) );
+
 		return $encoded_data;
 	}
 
