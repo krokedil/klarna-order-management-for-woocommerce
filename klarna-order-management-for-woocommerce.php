@@ -5,9 +5,14 @@
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
  * Author: klarna, krokedil
  * Author URI: https://krokedil.se/
- * Version: 1.3.0
+ * Version: 1.3.1
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
+ *
+ * WC requires at least: 3.3
+ * WC tested up to: 3.7.0
+ *
+ * Copyright (c) 2018-2019 Krokedil
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.3.0' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.3.1' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '2.5.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -121,10 +126,13 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// Pending orders.
 			add_action(
-				'wc_klarna_notification_listener', array(
+				'wc_klarna_notification_listener',
+				array(
 					'WC_Klarna_Pending_Orders',
 					'notification_listener',
-				), 10, 2
+				),
+				10,
+				2
 			);
 		}
 
@@ -165,10 +173,12 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				// Not going to do this for non-KP and non-KCO orders.
 				if ( ! in_array(
-					$order->get_payment_method(), array(
+					$order->get_payment_method(),
+					array(
 						'klarna_payments',
 						'kco',
-					), true
+					),
+					true
 				) ) {
 					return;
 				}
@@ -230,10 +240,12 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				// Not going to do this for non-KP and non-KCO orders.
 				if ( ! in_array(
-					$order->get_payment_method(), array(
+					$order->get_payment_method(),
+					array(
 						'klarna_payments',
 						'kco',
-					), true
+					),
+					true
 				) ) {
 					return;
 				}
@@ -287,10 +299,12 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				// Not going to do this for non-KP and non-KCO orders.
 				if ( ! in_array(
-					$order->get_payment_method(), array(
+					$order->get_payment_method(),
+					array(
 						'klarna_payments',
 						'kco',
-					), true
+					),
+					true
 				) ) {
 					return;
 				}
@@ -382,10 +396,12 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// Not going to do this for non-KP and non-KCO orders.
 			if ( ! in_array(
-				$order->get_payment_method(), array(
+				$order->get_payment_method(),
+				array(
 					'klarna_payments',
 					'kco',
-				), true
+				),
+				true
 			) ) {
 				return false;
 			}
