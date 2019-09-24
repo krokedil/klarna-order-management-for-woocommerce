@@ -3,7 +3,7 @@ Contributors: klarna, krokedil, automattic
 Tags: woocommerce, klarna
 Donate link: https://klarna.com
 Requires at least: 4.0
-Tested up to: 5.2.1
+Tested up to: 5.2.3
 Requires PHP: 5.6
 Stable tag: trunk
 License: GPLv3 or later
@@ -17,18 +17,21 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 
 == Changelog ==
 
-= 2019.06.13.  	- version 1.3.0 =
+= 2019.09.24  	- version 1.3.1 =
+* Fix           - Fixed callback array and priority in settings class. Caused PHP notice.
+* Fix           - Fix for Klarna Sellers app integration. Fixes issue with KP.
+
+= 2019.06.13  	- version 1.3.0 =
 * Feature       - Added settings through the Klarna Add-ons page. Allows the merchant to select if they want to automatically process orders or do so manually through each order, or through the Klarna portal.
 * Feature       - Added the option to get the customer address and save that to a WooCommerce order. Can be used with Klarna seller app orders to get the orders to WooCommerce ( You need to add the products manually ).
 * Enhancement	- If the order is completed in Klarna before we try and activate the order, the order is no longer set to on-hold.
 
-= 2019.05.07.  	- version 1.2.5 =
+= 2019.05.07  	- version 1.2.5 =
 * Enhancement   - Ser order status to on-hold if order activation fails.
 * Fix           - Corrected text for refund error.
 
 = 2018.05.02  	- version 1.2.4 =
 * Fix           - Added rounding to refund amount to prevent float value.
-
 
 = 2018.04.27  	- version 1.2.3 =
 * Tweak         - Adds support for making order management requests possible even if payment method is disabled in frontend.
