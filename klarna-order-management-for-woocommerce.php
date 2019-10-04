@@ -294,21 +294,18 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				) ) {
 					return;
 				}
-
 				// Do nothing if Klarna order was already captured.
 				if ( get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) {
 					$order->add_order_note( 'Klarna order has already been captured.' );
 
 					return;
 				}
-
 				// Do nothing if we don't have Klarna order ID.
 				if ( ! get_post_meta( $order_id, '_wc_klarna_order_id', true ) && ! get_post_meta( $order_id, '_transaction_id', true ) ) {
 					$order->add_order_note( 'Klarna order ID is missing, Klarna order could not be captured at this time.' );
 
 					return;
 				}
-
 				// Retrieve Klarna order.
 				$klarna_order = $this->retrieve_klarna_order( $order_id );
 
@@ -317,7 +314,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 					return;
 				}
-
 				// Check if order is pending review.
 				if ( 'PENDING' === $klarna_order->fraud_status ) {
 					$order->add_order_note( 'Klarna order is pending review and could not be captured at this time.' );
@@ -325,21 +321,18 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					$order->save();
 					return;
 				}
-
 				// Check if Klarna order has already been captured.
-				if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
+				if ( in_array( $klarna_order->status, array( 'CAPTURED' ), true ) ) {
 					$order->add_order_note( 'Klarna order has already been captured on ' . $klarna_order->captures[0]->captured_at );
 					update_post_meta( $order_id, '_wc_klarna_capture_id', $klarna_order->captures[0]->capture_id );
 					return;
 				}
-
 				// Check if Klarna order has already been canceled.
 				if ( 'CANCELLED' === $klarna_order->status ) {
 					$order->add_order_note( 'Klarna order failed to capture, the order has already been canceled' );
 
 					return;
 				}
-
 				// Only send capture request if Klarna order fraud status is accepted.
 				if ( 'ACCEPTED' !== $klarna_order->fraud_status ) {
 					$order->add_order_note( 'Klarna order could not be captured at this time.' );
@@ -449,7 +442,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			return $klarna_order;
 		}
-
 	}
 
 	WC_Klarna_Order_Management::get_instance();
