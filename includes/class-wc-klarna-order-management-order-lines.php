@@ -239,7 +239,8 @@ class WC_Klarna_Order_Management_Order_Lines {
 				$item_reference = $product->get_id();
 			}
 		} elseif ( 'shipping' === $order_line_item['type'] ) {
-			$item_reference = $order_line_item['method_id'];
+			// Matching the shipping reference from KCO order.
+			$item_reference = $order_line_item->get_method_id() . ':' . $order_line_item->get_instance_id();
 		} elseif ( 'coupon' === $order_line_item['type'] ) {
 			$item_reference = 'Discount';
 		} elseif ( 'fee' === $order_line_item['type'] ) {
@@ -259,19 +260,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @return string $order_line_item_name Order line item name.
 	 */
 	public function get_item_name( $order_line_item ) {
-		$order_line_item_name = $order_line_item['name'];
-
-		// Append item meta to the title, if it exists.
-		if ( 'line_item' === $order_line_item['type'] ) {
-			if ( isset( $order_line_item['item_meta'] ) ) {
-				$item_meta = new WC_Order_Item_Meta( $order_line_item['item_meta'] );
-				if ( $item_meta->display( true, true ) ) {
-					$meta                 = $item_meta->display( true, true );
-					$order_line_item_name .= ' [' . $meta . ']';
-				}
-			}
-		}
-
+		// Matching the item name from KCO order.
+		$order_line_item_name = $order_line_item->get_name();
+		
 		return (string) strip_tags( $order_line_item_name );
 	}
 
