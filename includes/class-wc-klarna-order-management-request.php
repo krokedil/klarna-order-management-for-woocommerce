@@ -547,7 +547,7 @@ class WC_Klarna_Order_Management_Request {
 	 * Gets Klarna server base WooCommerce order, based on environment and country.
 	 */
 	public function get_server_base() {
-		if ( ín_array( $this->get_klarna_country(), array( 'US', 'CA' ), true ) ) {
+		if ( in_array( $this->get_klarna_country(), array( 'US', 'CA' ), true ) ) {
 			if ( 'live' === $this->get_klarna_environment() ) {
 				$server_base = 'https://api-na.klarna.com';
 			} else {
