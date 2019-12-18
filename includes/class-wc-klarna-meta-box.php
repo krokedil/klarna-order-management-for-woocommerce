@@ -64,6 +64,7 @@ class WC_Klarna_Meta_Box {
 		<div class="kom-meta-box-content">
 		<?php if ( $klarna_order ) { ?>
 		<strong><?php _e( 'Klarna order status: ', 'klarna-order-management-for-woocommerce' ); ?> </strong> <?php echo $klarna_order->status; ?><br/>
+		<strong><?php _e( 'Initial Payment method: ', 'klarna-order-management-for-woocommerce' ); ?> </strong> <?php echo $klarna_order->initial_payment_method->description; ?><br/>
 		<?php } ?>
 		<ul class="kom_order_actions_wrapper submitbox">
 		<?php
