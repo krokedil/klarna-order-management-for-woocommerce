@@ -217,6 +217,12 @@ class WC_Klarna_Order_Management_Request {
 			'captured_amount' => round( $order->get_total() * 100, 0 ),
 		);
 
+		$kss_shipment_data = $this->get_kss_shipment_data();
+		if ( isset( $kss_shipment_data ) && ! empty( $kss_shipment_data ) ) {
+			$kss_shipment_arr['shipping_info'] = array( $kss_shipment_data );
+			$data                              = array_merge( $kss_shipment_arr, $data );
+		}
+
 		$order_lines = $this->get_order_lines();
 
 		if ( isset( $order_lines ) && ! empty( $order_lines ) ) {
@@ -225,6 +231,25 @@ class WC_Klarna_Order_Management_Request {
 		$encoded_data = wp_json_encode( $data );
 
 		return $encoded_data;
+	}
+
+	/**
+	 * Returns KSS shipment information.
+	 *
+	 * @return array
+	 */
+	public function get_kss_shipment_data() {
+		$kss_shipment_data = array();
+
+		$kco_kss_data     = json_decode( get_post_meta( $this->order_id, '_kco_kss_data', true ), true );
+		$kss_tracking_id  = get_post_meta( $this->order_id, '_kss_tracking_id', true );
+		$kss_tracking_url = get_post_meta( $this->order_id, '_kss_tracking_url', true );
+		isset( $kco_kss_data['delivery_details']['carrier'] ) ? $kss_shipment_data['shipping_company'] = $kco_kss_data['delivery_details']['carrier'] : '';
+		isset( $kco_kss_data['shipping_method'] ) ? $kss_shipment_data['shipping_method']              = $kco_kss_data['shipping_method'] : '';
+		isset( $kss_tracking_id ) ? $kss_shipment_data['tracking_number']                              = $kss_tracking_id : '';
+		isset( $kss_tracking_url ) ? $kss_shipment_data['tracking_uri']                                = $kss_tracking_url : '';
+
+		return $kss_shipment_data;
 	}
 
 	/**
@@ -547,18 +572,24 @@ class WC_Klarna_Order_Management_Request {
 	 * Gets Klarna server base WooCommerce order, based on environment and country.
 	 */
 	public function get_server_base() {
-		if ( 'US' === $this->get_klarna_country() ) {
-			if ( 'live' === $this->get_klarna_environment() ) {
-				$server_base = 'https://api-na.klarna.com';
-			} else {
-				$server_base = 'https://api-na.playground.klarna.com';
-			}
+		switch ( $this->get_klarna_country() ) {
+			case 'US':
+				$env_string = '-na';
+				break;
+			case 'CA':
+				$env_string = '-na';
+				break;
+			case 'AU':
+				$env_string = '-oc';
+				break;
+			default:
+				$env_string = '';
+				break;
+		}
+		if ( 'live' === $this->get_klarna_environment() ) {
+			$server_base = 'https://api' . $env_string . '.klarna.com/';
 		} else {
-			if ( 'live' === $this->get_klarna_environment() ) {
-				$server_base = 'https://api.klarna.com';
-			} else {
-				$server_base = 'https://api.playground.klarna.com';
-			}
+			$server_base = 'https://api' . $env_string . '.playground.klarna.com/';
 		}
 
 		return $server_base;

@@ -55,12 +55,14 @@ class WC_Klarna_Pending_Orders {
 
 			if ( 'FRAUD_RISK_ACCEPTED' === $event_type ) {
 				$order->payment_complete( $order_id );
-				$order->add_order_note( 'Payment via Klarna Payments.' );
+				$order->add_order_note( 'Payment with Klarna is accepted.' );
 			} elseif ( 'FRAUD_RISK_REJECTED' === $event_type || 'FRAUD_RISK_STOPPED' === $event_type ) {
-				$request      = new WC_Klarna_Order_Management_Request( array(
-					'request'  => 'retrieve',
-					'order_id' => $order_id,
-				) );
+				$request      = new WC_Klarna_Order_Management_Request(
+					array(
+						'request'  => 'retrieve',
+						'order_id' => $order_id,
+					)
+				);
 				$klarna_order = $request->response();
 
 				// Set meta field so order cancellation doesn't trigger Klarna API requests.
