@@ -9,10 +9,10 @@
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
  *
- * WC requires at least: 3.3
- * WC tested up to: 3.7.0
+ * WC requires at least: 3.3.0
+ * WC tested up to: 4.0.0
  *
- * Copyright (c) 2018-2019 Krokedil
+ * Copyright (c) 2018-2020 Krokedil
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.5.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
-define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '2.5.0' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
 
 if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
