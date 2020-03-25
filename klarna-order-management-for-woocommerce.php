@@ -5,14 +5,14 @@
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
  * Author: klarna, krokedil
  * Author URI: https://krokedil.se/
- * Version: 1.5.0
+ * Version: 1.5.1
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
  *
- * WC requires at least: 3.3
- * WC tested up to: 3.7.0
+ * WC requires at least: 3.3.0
+ * WC tested up to: 4.0.0
  *
- * Copyright (c) 2018-2019 Krokedil
+ * Copyright (c) 2018-2020 Krokedil
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,9 +22,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.5.0' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.5.1' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
-define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '2.5.0' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
 
 if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
@@ -171,6 +171,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			if ( ! isset( $options['kom_auto_cancel'] ) || 'yes' === $options['kom_auto_cancel'] || $action ) {
 				$order = wc_get_order( $order_id );
 
+				// Check if the order has been paid.
+				if ( empty( $order->get_date_paid() ) ) {
+					return;
+				}
+
 				// Not going to do this for non-KP and non-KCO orders.
 				if ( ! in_array(
 					$order->get_payment_method(),
@@ -238,6 +243,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				$order = wc_get_order( $order_id );
 
+					// Check if the order has been paid.
+				if ( empty( $order->get_date_paid() ) ) {
+					return;
+				}
+
 				// Not going to do this for non-KP and non-KCO orders.
 				if ( ! in_array(
 					$order->get_payment_method(),
@@ -296,6 +306,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$options = get_option( 'kom_settings' );
 			if ( ! isset( $options['kom_auto_capture'] ) || 'yes' === $options['kom_auto_capture'] || $action ) {
 				$order = wc_get_order( $order_id );
+
+					// Check if the order has been paid.
+				if ( empty( $order->get_date_paid() ) ) {
+					return;
+				}
 
 				// Not going to do this for non-KP and non-KCO orders.
 				if ( ! in_array(

@@ -16,6 +16,9 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 2. Activate the plugin through the "Plugins" menu in WordPress.
 
 == Changelog ==
+= 2020.03.25  	- version 1.5.1 =
+* Fix           - Prevent requests from being made from orders that have not been paid.
+
 = 2020.01.22  	- version 1.5.0 =
 * Feature       - Added support for oceania endpoints.
 * Feature		- Added support for sending KSS data.
