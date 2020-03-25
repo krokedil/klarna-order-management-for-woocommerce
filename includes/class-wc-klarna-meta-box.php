@@ -137,7 +137,7 @@ class WC_Klarna_Meta_Box {
 	/**
 	 * Prints an error message for the OM Metabox
 	 *
-	 * @param string $message The error message
+	 * @param string $message The error message.
 	 * @return void
 	 */
 	public function print_error_content( $message ) {
