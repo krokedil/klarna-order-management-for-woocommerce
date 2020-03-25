@@ -52,29 +52,16 @@ class WC_Klarna_Meta_Box {
 		$order    = wc_get_order( $order_id );
 		// Check if the order has been paid.
 		if ( empty( $order->get_date_paid() ) && ! in_array( $order->get_status(), array( 'on-hold' ), true ) ) {
-			?>
-				<div class="kom-meta-box-content">
-					<p><?php esc_html_e( 'The payment has not been finalized with Klarna.', 'klarna-order-management-for-woocommerce' ); ?></p>
-				</div>
-			<?php
+			$this->print_error_content( __( 'The payment has not been finalized with Klarna.', 'klarna-order-management-for-woocommerce' ) );
 			return;
 		}
-		$klarna_order = null;
-		$settings     = get_option( 'kom_settings' );
 		// False if automatic settings are enabled, true if not. If true then show the option.
-		$capture_order = ( ! isset( $settings['kom_auto_capture'] ) || 'yes' === $settings['kom_auto_capture'] ) ? false : true;
-		$cancel_order  = ( ! isset( $settings['kom_auto_cancel'] ) || 'yes' === $settings['kom_auto_cancel'] ) ? false : true;
-		$sync_order    = ( ! isset( $settings['kom_auto_order_sync'] ) || 'yes' === $settings['kom_auto_order_sync'] ) ? false : true;
 		if ( ! empty( get_post_meta( $order_id, '_transaction_id', true ) ) && ! empty( get_post_meta( $order_id, '_wc_klarna_order_id', true ) ) ) {
 
 			$klarna_order = WC_Klarna_Order_Management::get_instance()->retrieve_klarna_order( $order_id );
 
 			if ( is_wp_error( $klarna_order ) ) {
-				?>
-					<div class="kom-meta-box-content">
-						<p><?php esc_html_e( 'Failed to retrieve the order from Klarna.', 'klarna-order-management-for-woocommerce' ); ?> </p>
-					</div>
-				<?php
+				$this->print_error_content( __( 'Failed to retrieve the order from Klarna.', 'klarna-order-management-for-woocommerce' ) );
 				return;
 			}
 		}
@@ -93,7 +80,7 @@ class WC_Klarna_Meta_Box {
 		$cancel_order  = ( ! isset( $settings['kom_auto_cancel'] ) || 'yes' === $settings['kom_auto_cancel'] ) ? false : true;
 		$sync_order    = ( ! isset( $settings['kom_auto_order_sync'] ) || 'yes' === $settings['kom_auto_order_sync'] ) ? false : true;
 
-			// Show klarna order information.
+		// Show klarna order information.
 		?>
 			<div class="kom-meta-box-content">
 			<?php if ( $klarna_order ) { ?>
@@ -145,6 +132,20 @@ class WC_Klarna_Meta_Box {
 			</ul>
 			</div>
 			<?php
+	}
+
+	/**
+	 * Prints an error message for the OM Metabox
+	 *
+	 * @param string $message The error message
+	 * @return void
+	 */
+	public function print_error_content( $message ) {
+		?>
+		<div class="kom-meta-box-content">
+			<p><?php echo esc_html( $message ); ?></p>
+		</div>
+		<?php
 	}
 
 	/**
