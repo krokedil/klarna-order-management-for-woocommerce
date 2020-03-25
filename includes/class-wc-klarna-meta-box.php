@@ -48,7 +48,17 @@ class WC_Klarna_Meta_Box {
 	 * @return void
 	 */
 	public function kom_meta_box_content() {
-		$order_id     = get_the_ID();
+		$order_id = get_the_ID();
+		$order    = wc_get_order( $order_id );
+		// Check if the order has been paid.
+		if ( empty( $order->get_date_paid() ) && ! in_array( $order->get_status(), array( 'on-hold' ), true ) ) {
+			?>
+				<div class="kom-meta-box-content">
+					<p><?php esc_html_e( 'The payment has not been finalized with Klarna.', 'klarna-order-management-for-woocommerce' ); ?></p>
+				</div>
+			<?php
+			return;
+		}
 		$klarna_order = null;
 		$settings     = get_option( 'kom_settings' );
 		// False if automatic settings are enabled, true if not. If true then show the option.
@@ -58,6 +68,15 @@ class WC_Klarna_Meta_Box {
 		if ( ! empty( get_post_meta( $order_id, '_transaction_id', true ) ) && ! empty( get_post_meta( $order_id, '_wc_klarna_order_id', true ) ) ) {
 
 			$klarna_order = WC_Klarna_Order_Management::get_instance()->retrieve_klarna_order( $order_id );
+
+			if ( is_wp_error( $klarna_order ) ) {
+				?>
+					<div class="kom-meta-box-content">
+						<p><?php esc_html_e( 'Failed to retrieve the order from Klarna.', 'klarna-order-management-for-woocommerce' ); ?> </p>
+					</div>
+				<?php
+				return;
+			}
 		}
 		// Show klarna order information.
 		?>
@@ -70,36 +89,36 @@ class WC_Klarna_Meta_Box {
 		<?php
 		if ( $klarna_order ) {
 			if ( $capture_order || $cancel_order || $sync_order ) {
-		?>
+				?>
 			<li class="wide" id="kom-capture">
 				<select class="kco_order_actions" name="kom_order_actions" id="kom_order_actions">
 					<option value=""><?php echo esc_attr( __( 'Choose an action...', 'woocommerce' ) ); ?></option>
-			<?php
+				<?php
 			}
 			// Check if the order can be captured.
 			if ( $capture_order && empty( get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) && 'ACCEPTED' == $klarna_order->fraud_status && ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
-			?>
+				?>
 				<option value="kom_capture"><?php echo esc_attr( __( 'Capture order', 'klarna-order-management-for-woocommerce' ) ); ?></option>
-			<?php
+				<?php
 			}
 			// Check if the order can be canceled.
 			if ( $cancel_order && empty( get_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true ) ) && ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
-			?>
+				?>
 				<option value="kom_cancel"><?php echo esc_attr( __( 'Cancel order', 'klarna-order-management-for-woocommerce' ) ); ?></option>
-			<?php
+				<?php
 			}
 			if ( $sync_order ) {
-			?>
+				?>
 			<option value="kom_sync"><?php echo esc_attr( __( 'Get customer', 'klarna-order-management-for-woocommerce' ) ); ?></option>
-		<?php
+				<?php
 			}
 			if ( $capture_order || $cancel_order || $sync_order ) {
-		?>
+				?>
 			</select>
 			<button class="button wc-reload"><span><?php esc_html_e( 'Apply', 'woocommerce' ); ?></span></button>
 			<span class="woocommerce-help-tip" data-tip="<?php _e( 'Capture order: Activates the order with Klarna.<br>Cancel order: Cancels the order with Klarna. <br>Get customer: Gets the customer data from Klarna and saves it to the WooCommerce order.', 'klarna-order-management-for-woocommerce' ); ?>"></span>
 		</li>
-		<?php
+				<?php
 			}
 		} else {
 			?>
@@ -110,7 +129,7 @@ class WC_Klarna_Meta_Box {
 		<?php } ?>
 		</ul>
 		</div>
-		<?php
+			<?php
 	}
 
 	/**

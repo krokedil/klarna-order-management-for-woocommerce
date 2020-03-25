@@ -171,6 +171,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			if ( ! isset( $options['kom_auto_cancel'] ) || 'yes' === $options['kom_auto_cancel'] || $action ) {
 				$order = wc_get_order( $order_id );
 
+				// Check if the order has been paid.
+				if ( empty( $order->get_date_paid() ) ) {
+					return;
+				}
+
 				// Not going to do this for non-KP and non-KCO orders.
 				if ( ! in_array(
 					$order->get_payment_method(),
@@ -238,6 +243,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				$order = wc_get_order( $order_id );
 
+					// Check if the order has been paid.
+				if ( empty( $order->get_date_paid() ) ) {
+					return;
+				}
+
 				// Not going to do this for non-KP and non-KCO orders.
 				if ( ! in_array(
 					$order->get_payment_method(),
@@ -296,6 +306,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$options = get_option( 'kom_settings' );
 			if ( ! isset( $options['kom_auto_capture'] ) || 'yes' === $options['kom_auto_capture'] || $action ) {
 				$order = wc_get_order( $order_id );
+
+					// Check if the order has been paid.
+				if ( empty( $order->get_date_paid() ) ) {
+					return;
+				}
 
 				// Not going to do this for non-KP and non-KCO orders.
 				if ( ! in_array(
