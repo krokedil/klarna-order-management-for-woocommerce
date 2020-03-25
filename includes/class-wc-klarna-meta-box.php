@@ -52,84 +52,100 @@ class WC_Klarna_Meta_Box {
 		$order    = wc_get_order( $order_id );
 		// Check if the order has been paid.
 		if ( empty( $order->get_date_paid() ) && ! in_array( $order->get_status(), array( 'on-hold' ), true ) ) {
-			?>
-				<div class="kom-meta-box-content">
-					<p><?php esc_html_e( 'The payment has not been finalized with Klarna.', 'klarna-order-management-for-woocommerce' ); ?></p>
-				</div>
-			<?php
+			$this->print_error_content( __( 'The payment has not been finalized with Klarna.', 'klarna-order-management-for-woocommerce' ) );
 			return;
 		}
-		$klarna_order = null;
-		$settings     = get_option( 'kom_settings' );
 		// False if automatic settings are enabled, true if not. If true then show the option.
-		$capture_order = ( ! isset( $settings['kom_auto_capture'] ) || 'yes' === $settings['kom_auto_capture'] ) ? false : true;
-		$cancel_order  = ( ! isset( $settings['kom_auto_cancel'] ) || 'yes' === $settings['kom_auto_cancel'] ) ? false : true;
-		$sync_order    = ( ! isset( $settings['kom_auto_order_sync'] ) || 'yes' === $settings['kom_auto_order_sync'] ) ? false : true;
 		if ( ! empty( get_post_meta( $order_id, '_transaction_id', true ) ) && ! empty( get_post_meta( $order_id, '_wc_klarna_order_id', true ) ) ) {
 
 			$klarna_order = WC_Klarna_Order_Management::get_instance()->retrieve_klarna_order( $order_id );
 
 			if ( is_wp_error( $klarna_order ) ) {
-				?>
-					<div class="kom-meta-box-content">
-						<p><?php esc_html_e( 'Failed to retrieve the order from Klarna.', 'klarna-order-management-for-woocommerce' ); ?> </p>
-					</div>
-				<?php
+				$this->print_error_content( __( 'Failed to retrieve the order from Klarna.', 'klarna-order-management-for-woocommerce' ) );
 				return;
 			}
 		}
+		$this->print_standard_content( $klarna_order );
+	}
+
+	/**
+	 * Prints the standard content for the OM Metabox
+	 *
+	 * @param object $klarna_order The Klarna order object.
+	 * @return void
+	 */
+	public function print_standard_content( $klarna_order ) {
+		$settings      = get_option( 'kom_settings' );
+		$capture_order = ( ! isset( $settings['kom_auto_capture'] ) || 'yes' === $settings['kom_auto_capture'] ) ? false : true;
+		$cancel_order  = ( ! isset( $settings['kom_auto_cancel'] ) || 'yes' === $settings['kom_auto_cancel'] ) ? false : true;
+		$sync_order    = ( ! isset( $settings['kom_auto_order_sync'] ) || 'yes' === $settings['kom_auto_order_sync'] ) ? false : true;
+
 		// Show klarna order information.
 		?>
-		<div class="kom-meta-box-content">
-		<?php if ( $klarna_order ) { ?>
-		<strong><?php _e( 'Klarna order status: ', 'klarna-order-management-for-woocommerce' ); ?> </strong> <?php echo $klarna_order->status; ?><br/>
-		<strong><?php _e( 'Initial Payment method: ', 'klarna-order-management-for-woocommerce' ); ?> </strong> <?php echo $klarna_order->initial_payment_method->description; ?><br/>
-		<?php } ?>
-		<ul class="kom_order_actions_wrapper submitbox">
-		<?php
-		if ( $klarna_order ) {
-			if ( $capture_order || $cancel_order || $sync_order ) {
-				?>
-			<li class="wide" id="kom-capture">
-				<select class="kco_order_actions" name="kom_order_actions" id="kom_order_actions">
-					<option value=""><?php echo esc_attr( __( 'Choose an action...', 'woocommerce' ) ); ?></option>
-				<?php
-			}
-			// Check if the order can be captured.
-			if ( $capture_order && empty( get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) && 'ACCEPTED' == $klarna_order->fraud_status && ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
-				?>
-				<option value="kom_capture"><?php echo esc_attr( __( 'Capture order', 'klarna-order-management-for-woocommerce' ) ); ?></option>
-				<?php
-			}
-			// Check if the order can be canceled.
-			if ( $cancel_order && empty( get_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true ) ) && ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
-				?>
-				<option value="kom_cancel"><?php echo esc_attr( __( 'Cancel order', 'klarna-order-management-for-woocommerce' ) ); ?></option>
-				<?php
-			}
-			if ( $sync_order ) {
-				?>
-			<option value="kom_sync"><?php echo esc_attr( __( 'Get customer', 'klarna-order-management-for-woocommerce' ) ); ?></option>
-				<?php
-			}
-			if ( $capture_order || $cancel_order || $sync_order ) {
-				?>
-			</select>
-			<button class="button wc-reload"><span><?php esc_html_e( 'Apply', 'woocommerce' ); ?></span></button>
-			<span class="woocommerce-help-tip" data-tip="<?php _e( 'Capture order: Activates the order with Klarna.<br>Cancel order: Cancels the order with Klarna. <br>Get customer: Gets the customer data from Klarna and saves it to the WooCommerce order.', 'klarna-order-management-for-woocommerce' ); ?>"></span>
-		</li>
-				<?php
-			}
-		} else {
-			?>
-			<li class="wide" id="kom-capture">
-			<input type="text" id="klarna_order_id" name="klarna_order_id" class="klarna_order_id" placeholder="Klarna order ID">
-			<button class="button wc-reload"><span><?php esc_html_e( 'Apply', 'woocommerce' ); ?></span></button>
-		</li>
-		<?php } ?>
-		</ul>
-		</div>
+			<div class="kom-meta-box-content">
+			<?php if ( $klarna_order ) { ?>
+			<strong><?php _e( 'Klarna order status: ', 'klarna-order-management-for-woocommerce' ); ?> </strong> <?php echo $klarna_order->status; ?><br/>
+			<strong><?php _e( 'Initial Payment method: ', 'klarna-order-management-for-woocommerce' ); ?> </strong> <?php echo $klarna_order->initial_payment_method->description; ?><br/>
+			<?php } ?>
+			<ul class="kom_order_actions_wrapper submitbox">
 			<?php
+			if ( $klarna_order ) {
+				if ( $capture_order || $cancel_order || $sync_order ) {
+					?>
+				<li class="wide" id="kom-capture">
+					<select class="kco_order_actions" name="kom_order_actions" id="kom_order_actions">
+						<option value=""><?php echo esc_attr( __( 'Choose an action...', 'woocommerce' ) ); ?></option>
+					<?php
+				}
+				// Check if the order can be captured.
+				if ( $capture_order && empty( get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) && 'ACCEPTED' == $klarna_order->fraud_status && ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
+					?>
+					<option value="kom_capture"><?php echo esc_attr( __( 'Capture order', 'klarna-order-management-for-woocommerce' ) ); ?></option>
+					<?php
+				}
+				// Check if the order can be canceled.
+				if ( $cancel_order && empty( get_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true ) ) && ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
+					?>
+					<option value="kom_cancel"><?php echo esc_attr( __( 'Cancel order', 'klarna-order-management-for-woocommerce' ) ); ?></option>
+					<?php
+				}
+				if ( $sync_order ) {
+					?>
+				<option value="kom_sync"><?php echo esc_attr( __( 'Get customer', 'klarna-order-management-for-woocommerce' ) ); ?></option>
+					<?php
+				}
+				if ( $capture_order || $cancel_order || $sync_order ) {
+					?>
+				</select>
+				<button class="button wc-reload"><span><?php esc_html_e( 'Apply', 'woocommerce' ); ?></span></button>
+				<span class="woocommerce-help-tip" data-tip="<?php _e( 'Capture order: Activates the order with Klarna.<br>Cancel order: Cancels the order with Klarna. <br>Get customer: Gets the customer data from Klarna and saves it to the WooCommerce order.', 'klarna-order-management-for-woocommerce' ); ?>"></span>
+			</li>
+					<?php
+				}
+			} else {
+				?>
+				<li class="wide" id="kom-capture">
+				<input type="text" id="klarna_order_id" name="klarna_order_id" class="klarna_order_id" placeholder="Klarna order ID">
+				<button class="button wc-reload"><span><?php esc_html_e( 'Apply', 'woocommerce' ); ?></span></button>
+			</li>
+			<?php } ?>
+			</ul>
+			</div>
+			<?php
+	}
+
+	/**
+	 * Prints an error message for the OM Metabox
+	 *
+	 * @param string $message The error message
+	 * @return void
+	 */
+	public function print_error_content( $message ) {
+		?>
+		<div class="kom-meta-box-content">
+			<p><?php echo esc_html( $message ); ?></p>
+		</div>
+		<?php
 	}
 
 	/**
