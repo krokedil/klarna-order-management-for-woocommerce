@@ -117,6 +117,13 @@ class WC_Klarna_Order_Management_Settings {
 			'kom-settings',
 			'kom_settings_section'
 		);
+		add_settings_field(
+			'kom_debug_log',
+			'Debug log',
+			array( $this, 'field_debug_log_render' ),
+			'kom-settings',
+			'kom_settings_section'
+		);
 	}
 
 	/**
@@ -192,6 +199,23 @@ class WC_Klarna_Order_Management_Settings {
 		<label for="kom_settings[kom_auto_order_sync]">
 		<input type='checkbox' name='kom_settings[kom_auto_order_sync]' value='yes' <?php checked( $val, 'yes' ); ?>>
 		<?php _e( 'Gets the customer information from Klarna when creating a manual admin order and adding a Klarna order id as a transaction id.', 'klarna-order-management-for-woocommerce' ); ?>
+		</label>
+		<?php
+	}
+
+	/**
+	 * HTML For the input field.
+	 *
+	 * @return void
+	 */
+	public function field_debug_log_render() {
+		$options = get_option( 'kom_settings' );
+		$val     = ( isset( $options['kom_debug_log'] ) ) ? $options['kom_debug_log'] : 'yes';
+		?>
+		<input type="hidden" name="kom_settings[kom_debug_log]" value="no" />
+		<label for="kom_settings[kom_debug_log]">
+		<input type='checkbox' name='kom_settings[kom_debug_log]' value='yes' <?php checked( $val, 'yes' ); ?>>
+		<?php _e( 'Enable the debug log.', 'klarna-order-management-for-woocommerce' ); ?>
 		</label>
 		<?php
 	}

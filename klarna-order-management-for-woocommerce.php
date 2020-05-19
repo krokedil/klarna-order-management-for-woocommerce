@@ -158,7 +158,10 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			if ( empty( self::$logger ) ) {
 				self::$logger = new WC_Logger();
 			}
-			self::$logger->add( 'klarna-order-management-for-woocommerce', $message );
+			$options = get_option( 'kom_settings' );
+			if ( ! isset( $options['kom_debug_log'] ) || 'yes' === $options['kom_debug_log'] ) {
+				self::$logger->add( 'klarna-order-management-for-woocommerce', $message );
+			}
 		}
 
 		/**
