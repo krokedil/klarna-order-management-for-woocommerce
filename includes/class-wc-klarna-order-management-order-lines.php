@@ -112,12 +112,14 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 		// @TODO: Add coupons as separate items (smart coupons etc).
 		foreach (
-			$order->get_items( array(
-				'line_item',
-				'shipping',
-				'coupon',
-				'fee',
-			) ) as $order_line_item_id => $order_line_item
+			$order->get_items(
+				array(
+					'line_item',
+					'shipping',
+					'coupon',
+					'fee',
+				)
+			) as $order_line_item_id => $order_line_item
 		) {
 			$klarna_item = array(
 				'reference'             => $this->get_item_reference( $order_line_item ),
@@ -185,15 +187,15 @@ class WC_Klarna_Order_Management_Order_Lines {
 					$klarna_item['total_amount']          = $coupon_amount;
 					$klarna_item['total_tax_amount']      = $coupon_tax_amount;
 
-					$this->order_lines[]    = $klarna_item;
+					$this->order_lines[]     = $klarna_item;
 					$this->order_amount     += $coupon_amount;
 					$this->order_tax_amount += $coupon_tax_amount;
 				}
 			} else {
 				$this->order_lines[] = $klarna_item;
-				$this->order_amount  += $this->get_item_total_amount( $order_line_item );
-			} // End if().
-		} // End foreach().
+				$this->order_amount += $this->get_item_total_amount( $order_line_item );
+			}
+		}
 	}
 
 	/**
@@ -217,7 +219,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			);
 
 			$this->order_lines[]    = $sales_tax;
-			$this->order_amount     += $sales_tax_amount;
+			$this->order_amount    += $sales_tax_amount;
 			$this->order_tax_amount = $sales_tax_amount;
 		}
 	}
@@ -262,8 +264,8 @@ class WC_Klarna_Order_Management_Order_Lines {
 	public function get_item_name( $order_line_item ) {
 		// Matching the item name from KCO order.
 		$order_line_item_name = $order_line_item->get_name();
-		
-		return (string) strip_tags( $order_line_item_name );
+
+		return (string) wp_strip_all_tags( $order_line_item_name );
 	}
 
 	/**

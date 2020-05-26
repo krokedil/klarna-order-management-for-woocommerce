@@ -1,4 +1,10 @@
 <?php
+/**
+ * Class for the KOM settings.
+ *
+ * @package WC_Klarna_Order_Management
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -147,7 +153,7 @@ class WC_Klarna_Order_Management_Settings {
 		<input type="hidden" name="kom_settings[kom_auto_capture]" value="no" />
 		<label for="kom_settings[kom_auto_capture]" >
 			<input type='checkbox' name='kom_settings[kom_auto_capture]' value='yes' <?php checked( $val, 'yes' ); ?>>
-			<?php _e( 'Activate Klarna order automatically when WooCommerce order is marked complete.', 'klarna-order-management-for-woocommerce' ); ?>
+			<?php esc_html_e( 'Activate Klarna order automatically when WooCommerce order is marked complete.', 'klarna-order-management-for-woocommerce' ); ?>
 		</label>
 		<?php
 	}
@@ -164,7 +170,7 @@ class WC_Klarna_Order_Management_Settings {
 		<input type="hidden" name="kom_settings[kom_auto_cancel]" value="no" />
 		<label for="kom_settings[kom_auto_cancel]" >
 		<input type='checkbox' name='kom_settings[kom_auto_cancel]' value='yes' <?php checked( $val, 'yes' ); ?>>
-		<?php _e( 'Cancel Klarna order automatically when WooCommerce order is marked canceled.', 'klarna-order-management-for-woocommerce' ); ?>
+		<?php esc_html_e( 'Cancel Klarna order automatically when WooCommerce order is marked canceled.', 'klarna-order-management-for-woocommerce' ); ?>
 		</label>
 		<?php
 	}
@@ -181,7 +187,7 @@ class WC_Klarna_Order_Management_Settings {
 		<input type="hidden" name="kom_settings[kom_auto_update]" value="no" />
 		<label for="kom_settings[kom_auto_update]" >
 		<input type='checkbox' name='kom_settings[kom_auto_update]' value='yes' <?php checked( $val, 'yes' ); ?>>
-		<?php _e( 'Update Klarna order automatically when WooCommerce order is updated.', 'klarna-order-management-for-woocommerce' ); ?>
+		<?php esc_html_e( 'Update Klarna order automatically when WooCommerce order is updated.', 'klarna-order-management-for-woocommerce' ); ?>
 		</label>
 		<?php
 	}
@@ -198,7 +204,7 @@ class WC_Klarna_Order_Management_Settings {
 		<input type="hidden" name="kom_settings[kom_auto_order_sync]" value="no" />
 		<label for="kom_settings[kom_auto_order_sync]">
 		<input type='checkbox' name='kom_settings[kom_auto_order_sync]' value='yes' <?php checked( $val, 'yes' ); ?>>
-		<?php _e( 'Gets the customer information from Klarna when creating a manual admin order and adding a Klarna order id as a transaction id.', 'klarna-order-management-for-woocommerce' ); ?>
+		<?php esc_html_e( 'Gets the customer information from Klarna when creating a manual admin order and adding a Klarna order id as a transaction id.', 'klarna-order-management-for-woocommerce' ); ?>
 		</label>
 		<?php
 	}
@@ -215,7 +221,7 @@ class WC_Klarna_Order_Management_Settings {
 		<input type="hidden" name="kom_settings[kom_debug_log]" value="no" />
 		<label for="kom_settings[kom_debug_log]">
 		<input type='checkbox' name='kom_settings[kom_debug_log]' value='yes' <?php checked( $val, 'yes' ); ?>>
-		<?php _e( 'Enable the debug log.', 'klarna-order-management-for-woocommerce' ); ?>
+		<?php esc_html_e( 'Enable the debug log.', 'klarna-order-management-for-woocommerce' ); ?>
 		</label>
 		<?php
 	}
@@ -247,13 +253,18 @@ class WC_Klarna_Order_Management_Settings {
 			'addons'   => 'checkout-addons',
 			'settings' => 'kom-settings',
 		);
-		$html  = '<h2 class="nav-tab-wrapper">';
-		foreach ( $tabs as $tab => $name ) {
-			$class = ( $tab == $current ) ? 'nav-tab-active' : '';
-			$html .= '<a class="nav-tab ' . $class . '" href="?page=' . $pages[ $tab ] . '">' . $name . '</a>';
-		}
-		$html .= '</h2>';
-		echo $html;
+		?>
+			<h2 class="nav-tab-wrapper">
+			<?php
+			foreach ( $tabs as $tab => $name ) {
+				$class = ( $tab === $current ) ? 'nav-tab-active' : '';
+				?>
+					<a class="nav-tab <?php echo esc_html( $class ); ?>" href="?page=<?php echo esc_html( $pages[ $tab ] ); ?>"><?php echo esc_html( $name ); ?></a>
+				<?php
+			}
+			?>
+			</h2>
+		<?php
 	}
 
 	/**
@@ -274,7 +285,7 @@ class WC_Klarna_Order_Management_Settings {
 			);
 			$i - 1;
 			?>
-				<a href="<?php echo add_query_arg( $query_args, $wp->request ); ?>"><?php echo $title; ?></a>
+				<a href="<?php echo esc_html( add_query_arg( $query_args, $wp->request ) ); ?>"><?php echo esc_html( $title ); ?></a>
 			<?php
 		}
 		?>

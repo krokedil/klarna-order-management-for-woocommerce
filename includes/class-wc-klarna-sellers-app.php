@@ -50,9 +50,9 @@ class WC_Klarna_Sellers_App {
 		}
 
 		// Check that this is an update, and that we have a transaction number, and that the payment method is set to KCO or KP.
-		if ( $update && ! empty( get_post_meta( $post_id, '_transaction_id', true ) ) && in_array( get_post_meta( $post_id, '_payment_method', true ), array( 'kco', 'klarna_payments' ) ) ) {
+		if ( $update && ! empty( get_post_meta( $post_id, '_transaction_id', true ) ) && in_array( get_post_meta( $post_id, '_payment_method', true ), array( 'kco', 'klarna_payments' ), true ) ) {
 			$order = wc_get_order( $post_id );
-			// Set post metas
+			// Set post metas.
 			update_post_meta( $post_id, '_wc_klarna_order_id', $order->get_transaction_id() );
 			update_post_meta( $post_id, '_wc_klarna_country', wc_get_base_location()['country'] );
 			update_post_meta( $post_id, '_wc_klarna_enviroment', self::get_klarna_environment( get_post_meta( $post_id, '_payment_method', true ) ) );
@@ -101,6 +101,7 @@ class WC_Klarna_Sellers_App {
 	/**
 	 * Gets environment (test/live) used for Klarna purchase.
 	 *
+	 * @param string $payment_method The selected payment method.
 	 * @return mixed
 	 */
 	public static function get_klarna_environment( $payment_method ) {

@@ -23,21 +23,17 @@ class WC_Klarna_Pending_Orders {
 	 * Notification listener for Pending orders.
 	 *
 	 * @param string $klarna_order_id Klarna order ID.
+	 * @param array  $data The data for the order.
 	 *
 	 * @link https://developers.klarna.com/en/us/kco-v3/pending-orders
 	 */
 	public static function notification_listener( $klarna_order_id = null, $data = null ) {
-		$order_id = '';
-
-		if ( isset( $_GET['order_id'] ) ) { // KP, Input var okay.
-			$order_id = sanitize_key( $_GET['order_id'] ); // Input var okay.
-		} else {
-			if ( isset( $_GET['kco_wc_order_id'] ) ) { // KCO, Input var okay.
-				$klarna_order_id = sanitize_key( $_GET['kco_wc_order_id'] ); // Input var okay.
-				$order_id        = self::get_order_id_from_klarna_order_id( $klarna_order_id );
-			} elseif ( $klarna_order_id ) {
-				$order_id = self::get_order_id_from_klarna_order_id( $klarna_order_id );
-			}
+		$order_id = filter_input( INPUT_GET, 'order_id', FILTER_SANITIZE_STRING );
+		if ( null === $klarna_order_id ) {
+			$klarna_order_id = filter_input( INPUT_GET, 'kco_wc_order_id', FILTER_SANITIZE_STRING );
+		}
+		if ( null === $order_id ) {
+			self::get_order_id_from_klarna_order_id( $klarna_order_id );
 		}
 
 		if ( '' !== $order_id ) {
@@ -84,16 +80,15 @@ class WC_Klarna_Pending_Orders {
 	/**
 	 * Gets WooCommerce order ID from Klarna order ID.
 	 *
-	 * @param $klarna_order_id
-	 *
+	 * @param string $klarna_order_id The klarna order id.
 	 * @return $order_id
 	 */
 	private static function get_order_id_from_klarna_order_id( $klarna_order_id ) {
 		$query_args = array(
 			'post_type'   => wc_get_order_types(),
 			'post_status' => array_keys( wc_get_order_statuses() ),
-			'meta_key'    => '_wc_klarna_order_id',
-			'meta_value'  => $klarna_order_id,
+			'meta_key'    => '_wc_klarna_order_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- Slow DB Query is ok here, we need to limit to our meta key.
+			'meta_value'  => $klarna_order_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- Slow DB Query is ok here, we need to limit to our meta key.
 		);
 
 		$orders = get_posts( $query_args );

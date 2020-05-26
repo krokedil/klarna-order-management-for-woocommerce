@@ -1,4 +1,4 @@
-<?php
+<?php // phpcs:ignore
 /**
  * Plugin Name: Klarna Order Management for WooCommerce
  * Plugin URI: https://krokedil.se/klarna/
@@ -13,6 +13,8 @@
  * WC tested up to: 4.1.0
  *
  * Copyright (c) 2018-2020 Krokedil
+ *
+ * @package WC_Klarna_Order_Management
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -167,7 +169,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		/**
 		 * Cancels a Klarna order.
 		 *
-		 * @param int $order_id Order ID.
+		 * @param int  $order_id Order ID.
+		 * @param bool $action If this was triggered through an action or not.
 		 */
 		public function cancel_klarna_order( $order_id, $action = false ) {
 			$options = get_option( 'kom_settings' );
@@ -235,6 +238,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 *
 		 * @param int   $order_id Order ID.
 		 * @param array $items Order items.
+		 * @param bool  $action If this was triggered by an action.
 		 */
 		public function update_klarna_order_items( $order_id, $items, $action = false ) {
 			if ( ! is_ajax() ) {
@@ -303,7 +307,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		/**
 		 * Captures a Klarna order.
 		 *
-		 * @param int $order_id Order ID.
+		 * @param int  $order_id Order ID.
+		 * @param bool $action If this was triggered by an action.
 		 */
 		public function capture_klarna_order( $order_id, $action = false ) {
 			$options = get_option( 'kom_settings' );
@@ -480,4 +485,4 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 	WC_Klarna_Order_Management::get_instance();
 
-} // End if().
+}
