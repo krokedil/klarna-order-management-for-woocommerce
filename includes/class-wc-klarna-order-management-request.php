@@ -1,4 +1,10 @@
 <?php
+/**
+ * Class for the order management requests.
+ *
+ * @package WC_Klarna_Order_Management
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -15,105 +21,105 @@ class WC_Klarna_Order_Management_Request {
 	 *
 	 * @var string
 	 */
-	var $request;
+	public $request;
 
 	/**
 	 * WooCommerce order ID.
 	 *
 	 * @var int
 	 */
-	var $order_id;
+	public $order_id;
 
 	/**
 	 * Array of Klarna Payments settings
 	 *
 	 * @var array
 	 */
-	var $klarna_payments_settings;
+	public $klarna_payments_settings;
 
 	/**
 	 * Array of Klarna Checkout settings
 	 *
 	 * @var array
 	 */
-	var $klarna_checkout_settings;
+	public $klarna_checkout_settings;
 
 	/**
 	 * Klarna order object.
 	 *
 	 * @var object
 	 */
-	var $klarna_order;
+	public $klarna_order;
 
 	/**
 	 * Klarna order ID.
 	 *
 	 * @var string
 	 */
-	var $klarna_order_id;
+	public $klarna_order_id;
 
 	/**
 	 * Klarna merchant ID.
 	 *
 	 * @var string
 	 */
-	var $klarna_merchant_id;
+	public $klarna_merchant_id;
 
 	/**
 	 * Klarna shared secret.
 	 *
 	 * @var string
 	 */
-	var $klarna_shared_secret;
+	public $klarna_shared_secret;
 
 	/**
 	 * Klarna server base.
 	 *
 	 * @var string
 	 */
-	var $klarna_server_base;
+	public $klarna_server_base;
 
 	/**
 	 * Klarna request URL.
 	 *
 	 * @var string
 	 */
-	var $klarna_request_url;
+	public $klarna_request_url;
 
 	/**
 	 * Klarna request method (GET/POST/PATCH).
 	 *
 	 * @var string
 	 */
-	var $klarna_request_method;
+	public $klarna_request_method;
 
 	/**
 	 * Klarna request body.
 	 *
 	 * @var string
 	 */
-	var $klarna_request_body;
+	public $klarna_request_body;
 
 	/**
 	 * Klarna request authorization header.
 	 *
 	 * @var string
 	 */
-	var $klarna_authorization_header;
+	public $klarna_authorization_header;
 
 	/**
 	 * Refund amount.
 	 *
 	 * @var integer
 	 */
-	var $refund_amount;
+	public $refund_amount;
 
 	/**
 	 * Refund reason.
 	 *
 	 * @var string
 	 */
-	var $refund_reason;
+	public $refund_reason;
 
 	/**
 	 * WC_Klarna_Order_Management_Request constructor.
@@ -162,13 +168,13 @@ class WC_Klarna_Order_Management_Request {
 		if ( $this->klarna_request_body ) {
 			if ( 'order_lines' === $this->klarna_request_body ) {
 				$request_args['body'] = $this->get_order_lines();
-				WC_Klarna_Order_Management::log( 'Update order lines request - ' . stripslashes_deep( json_encode( $request_args ) ) );
+				WC_Klarna_Order_Management::log( 'Update order lines request - ' . stripslashes_deep( wp_json_encode( $request_args ) ) );
 			} elseif ( 'capture' === $this->klarna_request_body ) {
 				$request_args['body'] = $this->order_capture();
-				WC_Klarna_Order_Management::log( 'Capture request - ' . stripslashes_deep( json_encode( $request_args ) ) );
+				WC_Klarna_Order_Management::log( 'Capture request - ' . stripslashes_deep( wp_json_encode( $request_args ) ) );
 			} elseif ( 'refund' === $this->klarna_request_body ) {
 				$request_args['body'] = $this->order_refund();
-				WC_Klarna_Order_Management::log( 'Refund request - ' . stripslashes_deep( json_encode( $request_args ) ) );
+				WC_Klarna_Order_Management::log( 'Refund request - ' . stripslashes_deep( wp_json_encode( $request_args ) ) );
 			}
 		}
 
@@ -177,9 +183,9 @@ class WC_Klarna_Order_Management_Request {
 			$request_args
 		);
 		$code     = wp_remote_retrieve_response_code( $response );
-		WC_Klarna_Order_Management::log( 'HTTP-Status Code: ' . $code . ' | Response body: ' . stripslashes_deep( json_encode( wp_remote_retrieve_body( $response ) ) ) );
+		WC_Klarna_Order_Management::log( 'HTTP-Status Code: ' . $code . ' | Response body: ' . stripslashes_deep( wp_json_encode( wp_remote_retrieve_body( $response ) ) ) );
 		if ( is_wp_error( $response ) ) {
-			WC_Klarna_Order_Management::log( var_export( $response, true ) );
+			WC_Klarna_Order_Management::log( var_export( $response, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions -- Date is not used for display.
 
 			return new WP_Error( 'error', 'Klarna Payments API request could not be completed due to an error.' );
 		}
@@ -190,7 +196,7 @@ class WC_Klarna_Order_Management_Request {
 	/**
 	 * Returns the order lines for Klarna order management request.
 	 *
-	 * @return void
+	 * @return array
 	 */
 	public function get_order_lines() {
 		$order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( $this->order_id );
@@ -209,7 +215,7 @@ class WC_Klarna_Order_Management_Request {
 	/**
 	 * Returns the order lines needed for capturing an order.
 	 *
-	 * @return void
+	 * @return string
 	 */
 	public function order_capture() {
 		$order = wc_get_order( $this->order_id );
@@ -255,8 +261,8 @@ class WC_Klarna_Order_Management_Request {
 	/**
 	 * Returns the id of the refunded order.
 	 *
-	 * @param int $order_id
-	 * @return void
+	 * @param int $order_id The WooCommerce order id.
+	 * @return string
 	 */
 	public function get_refunded_order_id( $order_id ) {
 		$query_args = array(
@@ -266,7 +272,7 @@ class WC_Klarna_Order_Management_Request {
 			'posts_per_page' => -1,
 		);
 		$refunds    = get_posts( $query_args );
-		$refund_id  = array_search( $order_id, $refunds );
+		$refund_id  = array_search( $order_id, $refunds, true );
 		if ( is_array( $refund_id ) ) {
 			foreach ( $refund_id as $key => $value ) {
 				$refund_id = $value;
@@ -279,7 +285,7 @@ class WC_Klarna_Order_Management_Request {
 	/**
 	 * Returns the refund order lines.
 	 *
-	 * @return void
+	 * @return array
 	 */
 	public function get_refund_order_lines() {
 		$refund_id = $this->get_refunded_order_id( $this->order_id );
@@ -299,7 +305,7 @@ class WC_Klarna_Order_Management_Request {
 				foreach ( $refunded_items as $item ) {
 					$product = wc_get_product( $item->get_product_id() );
 
-					// gets the order line total from order for calculation
+					// gets the order line total from order for calculation.
 					foreach ( $order_items as $order_item ) {
 						if ( $item->get_product_id() === $order_item->get_product_id() ) {
 							$order_line_total    = round( ( $order->get_line_subtotal( $order_item, false ) * 100 ) );
@@ -329,12 +335,12 @@ class WC_Klarna_Order_Management_Request {
 						'total_tax_amount'      => $refund_tax_amount,
 					);
 					// Do not add order lines if separate sales tax and no refund amount entered.
-					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) {
+					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons -- Non strict is ok here.
 						$data[] = $item_data;
 					}
 				}
 			}
-			// if shipping is refunded
+			// if shipping is refunded.
 			if ( $refunded_shipping ) {
 				foreach ( $refunded_shipping_items as $shipping_item ) {
 
@@ -363,13 +369,13 @@ class WC_Klarna_Order_Management_Request {
 						'total_tax_amount'      => $refund_tax_amount,
 					);
 					// Do not add order lines if separate sales tax and no refund amount entered.
-					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) {
+					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons -- Non strict is ok here.
 						$data[] = $shipping_data;
 					}
 				}
 			}
 			// If separate sales tax and if tax is being refunded.
-			if ( $separate_sales_tax && '0' != $refund_order->get_total_tax() ) {
+			if ( $separate_sales_tax && '0' != $refund_order->get_total_tax() ) { // phpcs:ignore WordPress.PHP.StrictComparisons -- Non strict is ok here.
 				$sales_tax_amount = round( abs( $refund_order->get_total_tax() ) * 100 );
 
 				// Add sales tax line item.
@@ -395,7 +401,7 @@ class WC_Klarna_Order_Management_Request {
 	/**
 	 * Returns the order lines needed for refunding an order.
 	 *
-	 * @return void
+	 * @return string
 	 */
 	public function order_refund() {
 
@@ -435,16 +441,11 @@ class WC_Klarna_Order_Management_Request {
 			return new WP_Error( 'wrong_gateway', 'This order was not create via Klarna Payments or Klarna Checkout for WooCommerce.' );
 		}
 
-		/*
-		if ( 'yes' !== $gateway_settings['enabled'] ) {
-			return new WP_Error( 'gateway_disabled', $gateway_title, ' gateway is currently disabled' );
-		}*/
-
 		if ( '' === $this->get_merchant_id() || '' === $this->get_shared_secret() ) {
 			return new WP_Error( 'missing_credentials', $gateway_title . ' credentials are missing' );
 		}
 
-		return 'Basic ' . base64_encode( $this->get_merchant_id() . ':' . htmlspecialchars_decode( $this->get_shared_secret() ) );
+		return 'Basic ' . base64_encode( $this->get_merchant_id() . ':' . htmlspecialchars_decode( $this->get_shared_secret() ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions -- Base64 used to calculate auth headers.
 	}
 
 	/**
@@ -693,7 +694,7 @@ class WC_Klarna_Order_Management_Request {
 				} else {
 					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
 				}
-		} // End switch().
+		}
 
 		return new WP_Error( 'invalid_request', 'Invalid request type.' );
 	}

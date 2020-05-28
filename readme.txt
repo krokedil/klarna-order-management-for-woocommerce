@@ -3,7 +3,7 @@ Contributors: klarna, krokedil, automattic
 Tags: woocommerce, klarna
 Donate link: https://klarna.com
 Requires at least: 4.0
-Tested up to: 5.2.3
+Tested up to: 5.4.1
 Requires PHP: 5.6
 Stable tag: trunk
 License: GPLv3 or later
@@ -16,6 +16,9 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 2. Activate the plugin through the "Plugins" menu in WordPress.
 
 == Changelog ==
+= 2020.05.28  	- version 1.5.2 =
+* Enhancement   - Added debug log setting. You can now turn off logging of requests made from the plugin to Klarna.
+
 = 2020.03.25  	- version 1.5.1 =
 * Fix           - Prevent requests from being made from orders that have not been paid.
 

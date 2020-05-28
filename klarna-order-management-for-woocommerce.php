@@ -1,18 +1,20 @@
-<?php
+<?php // phpcs:ignore
 /**
  * Plugin Name: Klarna Order Management for WooCommerce
  * Plugin URI: https://krokedil.se/klarna/
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
  * Author: klarna, krokedil
  * Author URI: https://krokedil.se/
- * Version: 1.5.1
+ * Version: 1.5.2
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
  *
  * WC requires at least: 3.3.0
- * WC tested up to: 4.0.0
+ * WC tested up to: 4.2.0
  *
  * Copyright (c) 2018-2020 Krokedil
+ *
+ * @package WC_Klarna_Order_Management
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.5.1' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.5.2' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -158,13 +160,17 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			if ( empty( self::$logger ) ) {
 				self::$logger = new WC_Logger();
 			}
-			self::$logger->add( 'klarna-order-management-for-woocommerce', $message );
+			$options = get_option( 'kom_settings' );
+			if ( ! isset( $options['kom_debug_log'] ) || 'yes' === $options['kom_debug_log'] ) {
+				self::$logger->add( 'klarna-order-management-for-woocommerce', $message );
+			}
 		}
 
 		/**
 		 * Cancels a Klarna order.
 		 *
-		 * @param int $order_id Order ID.
+		 * @param int  $order_id Order ID.
+		 * @param bool $action If this was triggered through an action or not.
 		 */
 		public function cancel_klarna_order( $order_id, $action = false ) {
 			$options = get_option( 'kom_settings' );
@@ -232,6 +238,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 *
 		 * @param int   $order_id Order ID.
 		 * @param array $items Order items.
+		 * @param bool  $action If this was triggered by an action.
 		 */
 		public function update_klarna_order_items( $order_id, $items, $action = false ) {
 			if ( ! is_ajax() ) {
@@ -300,7 +307,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		/**
 		 * Captures a Klarna order.
 		 *
-		 * @param int $order_id Order ID.
+		 * @param int  $order_id Order ID.
+		 * @param bool $action If this was triggered by an action.
 		 */
 		public function capture_klarna_order( $order_id, $action = false ) {
 			$options = get_option( 'kom_settings' );
@@ -477,4 +485,4 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 	WC_Klarna_Order_Management::get_instance();
 
-} // End if().
+}

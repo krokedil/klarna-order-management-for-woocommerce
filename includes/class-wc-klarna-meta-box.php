@@ -36,7 +36,7 @@ class WC_Klarna_Meta_Box {
 		if ( 'shop_order' === $post_type ) {
 			$order_id = get_the_ID();
 			$order    = wc_get_order( $order_id );
-			if ( in_array( $order->get_payment_method(), array( 'kco', 'klarna_payments' ) ) ) {
+			if ( in_array( $order->get_payment_method(), array( 'kco', 'klarna_payments' ), true ) ) {
 				add_meta_box( 'kom_meta_box', __( 'Klarna Order Management', 'klarna-order-management-for-woocommerce' ), array( $this, 'kom_meta_box_content' ), 'shop_order', 'side', 'core' );
 			}
 		}
@@ -84,8 +84,8 @@ class WC_Klarna_Meta_Box {
 		?>
 			<div class="kom-meta-box-content">
 			<?php if ( $klarna_order ) { ?>
-			<strong><?php _e( 'Klarna order status: ', 'klarna-order-management-for-woocommerce' ); ?> </strong> <?php echo $klarna_order->status; ?><br/>
-			<strong><?php _e( 'Initial Payment method: ', 'klarna-order-management-for-woocommerce' ); ?> </strong> <?php echo $klarna_order->initial_payment_method->description; ?><br/>
+			<strong><?php esc_html_e( 'Klarna order status: ', 'klarna-order-management-for-woocommerce' ); ?> </strong> <?php echo esc_html( $klarna_order->status ); ?><br/>
+			<strong><?php esc_html_e( 'Initial Payment method: ', 'klarna-order-management-for-woocommerce' ); ?> </strong> <?php echo esc_html( $klarna_order->initial_payment_method->description ); ?><br/>
 			<?php } ?>
 			<ul class="kom_order_actions_wrapper submitbox">
 			<?php
@@ -98,7 +98,7 @@ class WC_Klarna_Meta_Box {
 					<?php
 				}
 				// Check if the order can be captured.
-				if ( $capture_order && empty( get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) && 'ACCEPTED' == $klarna_order->fraud_status && ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
+				if ( $capture_order && empty( get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) && 'ACCEPTED' === $klarna_order->fraud_status && ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
 					?>
 					<option value="kom_capture"><?php echo esc_attr( __( 'Capture order', 'klarna-order-management-for-woocommerce' ) ); ?></option>
 					<?php
@@ -118,7 +118,7 @@ class WC_Klarna_Meta_Box {
 					?>
 				</select>
 				<button class="button wc-reload"><span><?php esc_html_e( 'Apply', 'woocommerce' ); ?></span></button>
-				<span class="woocommerce-help-tip" data-tip="<?php _e( 'Capture order: Activates the order with Klarna.<br>Cancel order: Cancels the order with Klarna. <br>Get customer: Gets the customer data from Klarna and saves it to the WooCommerce order.', 'klarna-order-management-for-woocommerce' ); ?>"></span>
+				<span class="woocommerce-help-tip" data-tip="<?php esc_html_e( 'Capture order: Activates the order with Klarna.<br>Cancel order: Cancels the order with Klarna. <br>Get customer: Gets the customer data from Klarna and saves it to the WooCommerce order.', 'klarna-order-management-for-woocommerce' ); ?>"></span>
 			</li>
 					<?php
 				}
@@ -155,33 +155,35 @@ class WC_Klarna_Meta_Box {
 	 * @param WP_Post $post Post Object.
 	 */
 	public function process_kom_actions( $post_id, $post ) {
-		$order = wc_get_order( $post_id );
+		$klarna_order_id = filter_input( INPUT_POST, 'klarna_order_id', FILTER_SANITIZE_STRING );
+		$kom_action      = filter_input( INPUT_POST, 'kom_order_actions', FILTER_SANITIZE_STRING );
+		$order           = wc_get_order( $post_id );
 		// Bail if not a valid order.
 		if ( ! $order ) {
 			return;
 		}
-		if ( isset( $_POST['klarna_order_id'] ) && ! empty( $_POST['klarna_order_id'] ) ) {
-			update_post_meta( $post_id, '_wc_klarna_order_id', $_POST['klarna_order_id'] );
-			$order->set_transaction_id( $_POST['klarna_order_id'] );
+		if ( ! empty( $klarna_order_id ) ) {
+			update_post_meta( $post_id, '_wc_klarna_order_id', $klarna_order_id );
+			$order->set_transaction_id( $klarna_order_id );
 			$order->save();
 		}
 
 		// If the KOM order actions is not set, or is empty bail.
-		if ( ! isset( $_POST['kom_order_actions'] ) && empty( $_POST['kom_order_actions'] ) ) {
+		if ( empty( $kom_action ) ) {
 			return;
 		}
 
 		// If we get here, process the action.
-		// Capture order
-		if ( 'kom_capture' === $_POST['kom_order_actions'] ) {
+		// Capture order.
+		if ( 'kom_capture' === $kom_action ) {
 			WC_Klarna_Order_Management::get_instance()->capture_klarna_order( $post_id, true );
 		}
-		// Cancel order
-		if ( 'kom_cancel' === $_POST['kom_order_actions'] ) {
+		// Cancel order.
+		if ( 'kom_cancel' === $kom_action ) {
 			WC_Klarna_Order_Management::get_instance()->cancel_klarna_order( $post_id, true );
 		}
-		// Sync order
-		if ( 'kom_sync' === $_POST['kom_order_actions'] ) {
+		// Sync order.
+		if ( 'kom_sync' === $kom_action ) {
 			$klarna_order = WC_Klarna_Order_Management::get_instance()->retrieve_klarna_order( $post_id );
 			WC_Klarna_Sellers_App::populate_klarna_order( $post_id, $klarna_order );
 		}
