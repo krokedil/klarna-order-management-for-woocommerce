@@ -50,7 +50,7 @@ class WC_Klarna_Pending_Orders {
 			$order_id   = sanitize_key( $data['order_id'] );
 
 			if ( 'FRAUD_RISK_ACCEPTED' === $event_type ) {
-				$order->payment_complete( $order_id );
+				$order->payment_complete( $klarna_order_id );
 				$order->add_order_note( 'Payment with Klarna is accepted.' );
 			} elseif ( 'FRAUD_RISK_REJECTED' === $event_type || 'FRAUD_RISK_STOPPED' === $event_type ) {
 				$request      = new WC_Klarna_Order_Management_Request(
