@@ -192,7 +192,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 					$this->order_tax_amount += $coupon_tax_amount;
 				}
 			} else {
-				$this->order_lines[] = $klarna_item;
+				$this->order_lines[] = apply_filters( 'kom_wc_order_line_item', $klarna_item, $order_line_item, $order );
 				$this->order_amount += $this->get_item_total_amount( $order_line_item );
 			}
 		}
