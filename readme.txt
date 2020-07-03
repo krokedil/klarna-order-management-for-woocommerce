@@ -16,6 +16,10 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 2. Activate the plugin through the "Plugins" menu in WordPress.
 
 == Changelog ==
+= 2020.07.03    - version 1.5.3 =
+* Fix           - Improvements to the notification listener. Prevents error notices.
+* Fix           - Set order status to on-hold if the Klarna order id is missing during order completion.
+
 = 2020.05.28  	- version 1.5.2 =
 * Enhancement   - Added debug log setting. You can now turn off logging of requests made from the plugin to Klarna.
 
