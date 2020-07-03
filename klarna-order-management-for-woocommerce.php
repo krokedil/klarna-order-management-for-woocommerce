@@ -5,7 +5,7 @@
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
  * Author: klarna, krokedil
  * Author URI: https://krokedil.se/
- * Version: 1.5.2
+ * Version: 1.5.3
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
  *
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.5.2' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.5.3' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -340,7 +340,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				// Do nothing if we don't have Klarna order ID.
 				if ( ! get_post_meta( $order_id, '_wc_klarna_order_id', true ) && ! get_post_meta( $order_id, '_transaction_id', true ) ) {
 					$order->add_order_note( 'Klarna order ID is missing, Klarna order could not be captured at this time.' );
-
+					$order->set_status( 'on-hold' );
+					$order->save();
 					return;
 				}
 				// Retrieve Klarna order.
@@ -348,7 +349,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				if ( is_wp_error( $klarna_order ) ) {
 					$order->add_order_note( 'Klarna order could not be captured due to an error.' );
-
+					$order->set_status( 'on-hold' );
+					$order->save();
 					return;
 				}
 				// Check if order is pending review.
@@ -468,7 +470,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 *
 		 * @param int $order_id WooCommerce order ID.
 		 *
-		 * @return bool $klarna_order Klarna Order.
+		 * @return object $klarna_order Klarna Order.
 		 */
 		public function retrieve_klarna_order( $order_id ) {
 			$request      = new WC_Klarna_Order_Management_Request(
