@@ -468,7 +468,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 *
 		 * @param int $order_id WooCommerce order ID.
 		 *
-		 * @return bool $klarna_order Klarna Order.
+		 * @return object $klarna_order Klarna Order.
 		 */
 		public function retrieve_klarna_order( $order_id ) {
 			$request      = new WC_Klarna_Order_Management_Request(

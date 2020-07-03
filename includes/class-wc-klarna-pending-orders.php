@@ -29,51 +29,54 @@ class WC_Klarna_Pending_Orders {
 	 */
 	public static function notification_listener( $klarna_order_id = null, $data = null ) {
 		$order_id = filter_input( INPUT_GET, 'order_id', FILTER_SANITIZE_STRING );
-		if ( null === $klarna_order_id ) {
+		if ( empty( $klarna_order_id ) ) {
 			$klarna_order_id = filter_input( INPUT_GET, 'kco_wc_order_id', FILTER_SANITIZE_STRING );
 		}
-		if ( null === $order_id ) {
-			self::get_order_id_from_klarna_order_id( $klarna_order_id );
+		// Get order id from klarna order id.
+		if ( empty( $order_id ) && ! empty( $klarna_order_id ) ) {
+			$order_id = self::get_order_id_from_klarna_order_id( $klarna_order_id );
+		}
+		// Get klarna order id from order id.
+		if ( empty( $klarna_order_id ) && ! empty( $order_id ) ) {
+			$klarna_order_id = self::get_klarna_order_id_from_order_id( $order_id );
 		}
 
-		if ( '' !== $order_id ) {
-			$order = wc_get_order( $order_id );
+		// Bail if we do not have the order id or Klarna order id.
+		if ( empty( $order_id ) || empty( $klarna_order_id ) ) {
+			return;
+		}
 
-			// There's no incoming contents in punted notification, so we had to send it as argument.
-			if ( ! $data ) {
-				// In regular notification, grab the incoming data.
-				$post_body = file_get_contents( 'php://input' );
-				$data      = json_decode( $post_body, true );
-			}
+		// Check the order status for the klarna order. Bail if it does not exist in order management.
+		$klarna_order = ( WC_Klarna_Order_Management::get_instance() )->retrieve_klarna_order( $order_id );
+		if ( is_wp_error( $klarna_order ) ) {
+			return;
+		}
 
-			$event_type = sanitize_text_field( $data['event_type'] );
-			$order_id   = sanitize_key( $data['order_id'] );
+		$order = wc_get_order( $order_id );
+		// There's no incoming contents in punted notification, so we had to send it as argument.
+		if ( ! $data ) {
+			// In regular notification, grab the incoming data.
+			$post_body = file_get_contents( 'php://input' );
+			$data      = json_decode( $post_body, true );
+		}
+		$event_type = sanitize_text_field( $data['event_type'] );
 
-			if ( 'FRAUD_RISK_ACCEPTED' === $event_type ) {
-				$order->payment_complete( $klarna_order_id );
-				$order->add_order_note( 'Payment with Klarna is accepted.' );
-			} elseif ( 'FRAUD_RISK_REJECTED' === $event_type || 'FRAUD_RISK_STOPPED' === $event_type ) {
-				$request      = new WC_Klarna_Order_Management_Request(
-					array(
-						'request'  => 'retrieve',
-						'order_id' => $order_id,
-					)
-				);
-				$klarna_order = $request->response();
-
-				// Set meta field so order cancellation doesn't trigger Klarna API requests.
-				update_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true, true );
-				$order->update_status( 'cancelled', 'Klarna order rejected.' );
-				wc_mail(
-					get_option( 'admin_email' ),
-					'Klarna order rejected',
-					sprintf(
-						'Klarna has identified order %1$s, Klarna Reference %2$s as high risk and request that you do not ship this order. Please contact the Klarna Fraud Team to resolve.',
-						$order->get_order_number(),
-						$klarna_order->order_id
-					)
-				);
-			}
+		if ( 'FRAUD_RISK_ACCEPTED' === $event_type ) {
+			$order->payment_complete( $klarna_order_id );
+			$order->add_order_note( 'Payment with Klarna is accepted.' );
+		} elseif ( 'FRAUD_RISK_REJECTED' === $event_type || 'FRAUD_RISK_STOPPED' === $event_type ) {
+			// Set meta field so order cancellation doesn't trigger Klarna API requests.
+			update_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true, true );
+			$order->update_status( 'cancelled', 'Klarna order rejected.' );
+			wc_mail(
+				get_option( 'admin_email' ),
+				'Klarna order rejected',
+				sprintf(
+					'Klarna has identified order %1$s, Klarna Reference %2$s as high risk and request that you do not ship this order. Please contact the Klarna Fraud Team to resolve.',
+					$order->get_order_number(),
+					$klarna_order->order_id
+				)
+			);
 		}
 	}
 
@@ -103,4 +106,13 @@ class WC_Klarna_Pending_Orders {
 		return $order_id;
 	}
 
+	/**
+	 * Undocumented function
+	 *
+	 * @param int $order_id The WooCommerce order id.
+	 * @return string|bool
+	 */
+	private static function get_klarna_order_id_from_order_id( $order_id ) {
+		return get_post_meta( $order_id, '_wc_klarna_order_id', true );
+	}
 }
