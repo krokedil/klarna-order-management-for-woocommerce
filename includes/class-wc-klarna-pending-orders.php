@@ -32,10 +32,12 @@ class WC_Klarna_Pending_Orders {
 		if ( empty( $klarna_order_id ) ) {
 			$klarna_order_id = filter_input( INPUT_GET, 'kco_wc_order_id', FILTER_SANITIZE_STRING );
 		}
+
 		// Get order id from klarna order id.
 		if ( empty( $order_id ) && ! empty( $klarna_order_id ) ) {
 			$order_id = self::get_order_id_from_klarna_order_id( $klarna_order_id );
 		}
+
 		// Get klarna order id from order id.
 		if ( empty( $klarna_order_id ) && ! empty( $order_id ) ) {
 			$klarna_order_id = self::get_klarna_order_id_from_order_id( $order_id );

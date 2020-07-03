@@ -340,7 +340,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				// Do nothing if we don't have Klarna order ID.
 				if ( ! get_post_meta( $order_id, '_wc_klarna_order_id', true ) && ! get_post_meta( $order_id, '_transaction_id', true ) ) {
 					$order->add_order_note( 'Klarna order ID is missing, Klarna order could not be captured at this time.' );
-
+					$order->set_status( 'on-hold' );
+					$order->save();
 					return;
 				}
 				// Retrieve Klarna order.
@@ -348,7 +349,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				if ( is_wp_error( $klarna_order ) ) {
 					$order->add_order_note( 'Klarna order could not be captured due to an error.' );
-
+					$order->set_status( 'on-hold' );
+					$order->save();
 					return;
 				}
 				// Check if order is pending review.
