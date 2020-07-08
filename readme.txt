@@ -16,6 +16,9 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 2. Activate the plugin through the "Plugins" menu in WordPress.
 
 == Changelog ==
+= 2020.07.08    - version 1.5.4 =
+* Enhancement   - Update pending order status based on the fraud status in Klarnas system.
+
 = 2020.07.03    - version 1.5.3 =
 * Enhancement   - Add environment information to the Klarna order management metabox.
 * Enhancement   - Add a filter to the order lines sent to Klarna. kom_wc_order_line_item.
