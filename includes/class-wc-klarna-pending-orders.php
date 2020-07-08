@@ -55,18 +55,12 @@ class WC_Klarna_Pending_Orders {
 		}
 
 		$order = wc_get_order( $order_id );
-		// There's no incoming contents in punted notification, so we had to send it as argument.
-		if ( ! $data ) {
-			// In regular notification, grab the incoming data.
-			$post_body = file_get_contents( 'php://input' );
-			$data      = json_decode( $post_body, true );
-		}
-		$event_type = sanitize_text_field( $data['event_type'] );
 
-		if ( 'FRAUD_RISK_ACCEPTED' === $event_type ) {
+		// Use the order from Klarna for the fraud status check.
+		if ( 'ACCEPTED' === $klarna_order->fraud_status ) {
 			$order->payment_complete( $klarna_order_id );
 			$order->add_order_note( 'Payment with Klarna is accepted.' );
-		} elseif ( 'FRAUD_RISK_REJECTED' === $event_type || 'FRAUD_RISK_STOPPED' === $event_type ) {
+		} elseif ( 'REJECTED' === $klarna_order->fraud_status ) {
 			// Set meta field so order cancellation doesn't trigger Klarna API requests.
 			update_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true, true );
 			$order->update_status( 'cancelled', 'Klarna order rejected.' );
