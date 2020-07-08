@@ -60,7 +60,7 @@ class WC_Klarna_Pending_Orders {
 		if ( 'ACCEPTED' === $klarna_order->fraud_status ) {
 			$order->payment_complete( $klarna_order_id );
 			$order->add_order_note( 'Payment with Klarna is accepted.' );
-		} elseif ( 'REJECTED' === $klarna_order->fraud_status ) {
+		} elseif ( 'REJECTED' === $klarna_order->fraud_status || 'STOPPED' === $klarna_order->fraud_status ) {
 			// Set meta field so order cancellation doesn't trigger Klarna API requests.
 			update_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true, true );
 			$order->update_status( 'cancelled', 'Klarna order rejected.' );
@@ -103,7 +103,7 @@ class WC_Klarna_Pending_Orders {
 	}
 
 	/**
-	 * Undocumented function
+	 * Get Klarna order id from WooCommerce order id.
 	 *
 	 * @param int $order_id The WooCommerce order id.
 	 * @return string|bool
