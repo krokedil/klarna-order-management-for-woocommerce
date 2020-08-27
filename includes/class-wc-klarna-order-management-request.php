@@ -688,8 +688,8 @@ class WC_Klarna_Order_Management_Request {
 				}
 
 			case 'refund':
-				// Check if 2**.
-				if ( 200 <= $response_code || 204 > $response_code ) {
+				// Check if 200 to 204.
+				if ( 200 <= $response_code && 204 >= $response_code ) {
 					return true;
 				} else {
 					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
