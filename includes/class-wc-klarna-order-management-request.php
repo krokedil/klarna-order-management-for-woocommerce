@@ -305,12 +305,12 @@ class WC_Klarna_Order_Management_Request {
 				foreach ( $refunded_items as $item ) {
 					$product = wc_get_product( $item->get_product_id() );
 
-					// gets the order line total from order for calculation.
+					// Gets the order line total from order for calculation.
 					foreach ( $order_items as $order_item ) {
 						if ( $item->get_product_id() === $order_item->get_product_id() ) {
 							$order_line_total    = round( ( $order->get_line_subtotal( $order_item, false ) * 100 ) );
 							$order_line_tax      = round( ( $order->get_line_tax( $order_item ) * 100 ) );
-							$order_line_tax_rate = round( ( $order_line_tax / $order_line_total ) * 100 * 100 );
+							$order_line_tax_rate = ( 0 != $order_line_tax && 0 != $order_line_total ) ? round( ( $order_line_tax / $order_line_total ) * 100 * 100 ) : 0; // phpcs:ignore WordPress.PHP.StrictComparisons -- Non strict is ok here.
 						}
 					}
 
