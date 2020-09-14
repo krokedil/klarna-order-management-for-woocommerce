@@ -290,7 +290,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 						)
 					);
 					$response = $request->response();
-
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order updated.' );
 					} else {

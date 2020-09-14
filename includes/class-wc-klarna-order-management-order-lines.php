@@ -109,7 +109,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 */
 	public function process_order_line_items() {
 		$order = wc_get_order( $this->order_id );
-
+		$order->calculate_shipping();
+		$order->calculate_taxes();
+		$order->calculate_totals();
 		// @TODO: Add coupons as separate items (smart coupons etc).
 		foreach (
 			$order->get_items(

@@ -164,7 +164,6 @@ class WC_Klarna_Order_Management_Request {
 			'user-agent' => apply_filters( 'http_headers_useragent', 'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ) ) . ' - OM:' . WC_KLARNA_ORDER_MANAGEMENT_VERSION . ' - PHP Version: ' . phpversion() . ' - Krokedil',
 			'method'     => $this->klarna_request_method,
 		);
-
 		if ( $this->klarna_request_body ) {
 			if ( 'order_lines' === $this->klarna_request_body ) {
 				$request_args['body'] = $this->get_order_lines();
@@ -653,7 +652,6 @@ class WC_Klarna_Order_Management_Request {
 	private function process_response( $response ) {
 		$response_body = json_decode( wp_remote_retrieve_body( $response ) );
 		$response_code = wp_remote_retrieve_response_code( $response );
-
 		switch ( $this->request ) {
 			case 'retrieve':
 				if ( 200 === $response_code ) {
