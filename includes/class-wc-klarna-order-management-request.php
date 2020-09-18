@@ -217,9 +217,14 @@ class WC_Klarna_Order_Management_Request {
 	 * @return string
 	 */
 	public function order_capture() {
-		$order = wc_get_order( $this->order_id );
-		$data  = array(
-			'captured_amount' => round( $order->get_total() * 100, 0 ),
+		// If force full capture is enabled, set to true.
+		$settings                 = get_option( 'kom_settings' );
+		$force_capture_full_order = ( isset( $settings['kom_force_full_capture'] ) && 'yes' === $settings['kom_force_full_capture'] ) ? true : false;
+		$order                    = wc_get_order( $this->order_id );
+
+		// If force capture is enabled, send the full remaining authorized amount.
+		$data = array(
+			'captured_amount' => ( $force_capture_full_order ) ? $this->klarna_order->remaining_authorized_amount : round( $order->get_total() * 100, 0 ),
 		);
 
 		$kss_shipment_data = $this->get_kss_shipment_data();
@@ -228,13 +233,15 @@ class WC_Klarna_Order_Management_Request {
 			$data                              = array_merge( $kss_shipment_arr, $data );
 		}
 
-		$order_lines = $this->get_order_lines();
+		// Don't add order lines if we are forcing a full order capture.
+		if ( ! $force_capture_full_order ) {
+			$order_lines = $this->get_order_lines();
 
-		if ( isset( $order_lines ) && ! empty( $order_lines ) ) {
-			$data = array_merge( json_decode( $order_lines, true ), $data );
+			if ( isset( $order_lines ) && ! empty( $order_lines ) ) {
+				$data = array_merge( json_decode( $order_lines, true ), $data );
+			}
 		}
 		$encoded_data = wp_json_encode( $data );
-
 		return $encoded_data;
 	}
 
