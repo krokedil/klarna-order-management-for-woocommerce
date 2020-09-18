@@ -44,13 +44,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		private static $instance;
 
 		/**
-		 * Reference to logging class.
-		 *
-		 * @var $logger
-		 */
-		private static $logger;
-
-		/**
 		 * Returns the *Singleton* instance of this class.
 		 *
 		 * @return self The *Singleton* instance.
@@ -108,6 +101,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-sellers-app.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-meta-box.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-order-management-settings.php';
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-logger.php';
 
 			// Add refunds support to Klarna Payments and Klarna Checkout gateways.
 			add_action( 'wc_klarna_payments_supports', array( $this, 'add_gateway_support' ) );
@@ -149,21 +143,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$features[] = 'refunds';
 
 			return $features;
-		}
-
-		/**
-		 * Instantiate WC_Logger class.
-		 *
-		 * @param string $message Log message.
-		 */
-		public static function log( $message ) {
-			if ( empty( self::$logger ) ) {
-				self::$logger = new WC_Logger();
-			}
-			$options = get_option( 'kom_settings' );
-			if ( ! isset( $options['kom_debug_log'] ) || 'yes' === $options['kom_debug_log'] ) {
-				self::$logger->add( 'klarna-order-management-for-woocommerce', $message );
-			}
 		}
 
 		/**
