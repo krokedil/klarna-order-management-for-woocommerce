@@ -5,12 +5,12 @@
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
  * Author: klarna, krokedil
  * Author URI: https://krokedil.se/
- * Version: 1.5.6
+ * Version: 1.6.0
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
  *
  * WC requires at least: 3.3.0
- * WC tested up to: 4.4.1
+ * WC tested up to: 4.5.2
  *
  * Copyright (c) 2018-2020 Krokedil
  *
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.5.6' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.6.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
