@@ -138,6 +138,7 @@ class WC_Klarna_Order_Management_Request {
 		$klarna_request_details            = $this->get_request_details();
 		$this->klarna_request_url          = $this->klarna_server_base . $klarna_request_details['url'];
 		$this->klarna_request_method       = $klarna_request_details['method'];
+		$this->klarna_request_title        = $klarna_request_details['title'];
 		$this->klarna_request_body         = array_key_exists( 'body', $klarna_request_details ) ? $klarna_request_details['body'] : false;
 		$this->klarna_payments_settings    = get_option( 'woocommerce_klarna_payments_settings' );
 		$this->klarna_checkout_settings    = get_option( 'woocommerce_kco_settings' );
@@ -167,13 +168,10 @@ class WC_Klarna_Order_Management_Request {
 		if ( $this->klarna_request_body ) {
 			if ( 'order_lines' === $this->klarna_request_body ) {
 				$request_args['body'] = $this->get_order_lines();
-				WC_Klarna_Order_Management::log( 'Update order lines request - ' . stripslashes_deep( wp_json_encode( $request_args ) ) );
 			} elseif ( 'capture' === $this->klarna_request_body ) {
 				$request_args['body'] = $this->order_capture();
-				WC_Klarna_Order_Management::log( 'Capture request - ' . stripslashes_deep( wp_json_encode( $request_args ) ) );
 			} elseif ( 'refund' === $this->klarna_request_body ) {
 				$request_args['body'] = $this->order_refund();
-				WC_Klarna_Order_Management::log( 'Refund request - ' . stripslashes_deep( wp_json_encode( $request_args ) ) );
 			}
 		}
 
@@ -182,10 +180,9 @@ class WC_Klarna_Order_Management_Request {
 			$request_args
 		);
 		$code     = wp_remote_retrieve_response_code( $response );
-		WC_Klarna_Order_Management::log( 'HTTP-Status Code: ' . $code . ' | Response body: ' . stripslashes_deep( wp_json_encode( wp_remote_retrieve_body( $response ) ) ) );
+		$log      = WC_Klarna_Logger::format_log( $this->klarna_order_id, $this->klarna_request_method, $this->klarna_request_title, $request_args, $response, $code );
+		WC_Klarna_Logger::log( $log );
 		if ( is_wp_error( $response ) ) {
-			WC_Klarna_Order_Management::log( var_export( $response, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions -- Date is not used for display.
-
 			return new WP_Error( 'error', 'Klarna Payments API request could not be completed due to an error.' );
 		}
 
@@ -617,24 +614,29 @@ class WC_Klarna_Order_Management_Request {
 				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/authorization',
 				'method' => 'PATCH',
 				'body'   => 'order_lines',
+				'title'  => 'Update Klarna order lines',
 			),
 			'cancel'             => array(
 				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/cancel',
 				'method' => 'POST',
+				'title'  => 'Cancel Klarna order',
 			),
 			'retrieve'           => array(
 				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id,
 				'method' => 'GET',
+				'title'  => 'Retrieve Klarna order',
 			),
 			'capture'            => array(
 				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures',
 				'method' => 'POST',
 				'body'   => 'capture',
+				'title'  => 'Capture Klarna order',
 			),
 			'refund'             => array(
 				'url'    => '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/refunds',
 				'method' => 'POST',
 				'body'   => 'refund',
+				'title'  => 'Refund Klarna order',
 			),
 		);
 
