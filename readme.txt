@@ -16,6 +16,11 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 2. Activate the plugin through the "Plugins" menu in WordPress.
 
 == Changelog ==
+= 2020.09.21    - version 1.6.0 =
+* Feature       - Added ability to force a full capture of an order. Useful for merchants that are using an ERP system that could have updated the Klarna order without changing the WooCommerce order.
+* Enhancement   - Improved logging to make debugging easier.
+* Fix           - Fixed an issue were when adding products to the Klarna order, the tax rate sent to Klarna would be incorrect.
+
 = 2020.09.08    - version 1.5.6 =
 * Fix           - Fixed a division by zero issue that happened when you attempted to refund a product with 0 value.
 

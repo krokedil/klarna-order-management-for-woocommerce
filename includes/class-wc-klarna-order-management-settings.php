@@ -124,6 +124,13 @@ class WC_Klarna_Order_Management_Settings {
 			'kom_settings_section'
 		);
 		add_settings_field(
+			'kom_force_full_capture',
+			'Force capture full order',
+			array( $this, 'field_force_full_capture_render' ),
+			'kom-settings',
+			'kom_settings_section'
+		);
+		add_settings_field(
 			'kom_debug_log',
 			'Debug log',
 			array( $this, 'field_debug_log_render' ),
@@ -222,6 +229,23 @@ class WC_Klarna_Order_Management_Settings {
 		<label for="kom_settings[kom_debug_log]">
 		<input type='checkbox' name='kom_settings[kom_debug_log]' value='yes' <?php checked( $val, 'yes' ); ?>>
 		<?php esc_html_e( 'Enable the debug log.', 'klarna-order-management-for-woocommerce' ); ?>
+		</label>
+		<?php
+	}
+
+	/**
+	 * HTML For the input field.
+	 *
+	 * @return void
+	 */
+	public function field_force_full_capture_render() {
+		$options = get_option( 'kom_settings' );
+		$val     = ( isset( $options['kom_force_full_capture'] ) ) ? $options['kom_force_full_capture'] : 'no';
+		?>
+		<input type="hidden" name="kom_settings[kom_force_full_capture]" value="no" />
+		<label for="kom_settings[kom_force_full_capture]">
+		<input type='checkbox' name='kom_settings[kom_force_full_capture]' value='yes' <?php checked( $val, 'yes' ); ?>>
+		<?php esc_html_e( 'Force the capture of a full order. Usefull if the Klarna order has been updated by a ERP system.', 'klarna-order-management-for-woocommerce' ); ?>
 		</label>
 		<?php
 	}

@@ -5,12 +5,12 @@
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
  * Author: klarna, krokedil
  * Author URI: https://krokedil.se/
- * Version: 1.5.6
+ * Version: 1.6.0
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
  *
  * WC requires at least: 3.3.0
- * WC tested up to: 4.4.1
+ * WC tested up to: 4.5.2
  *
  * Copyright (c) 2018-2020 Krokedil
  *
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.5.6' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.6.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -42,13 +42,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @var $instance
 		 */
 		private static $instance;
-
-		/**
-		 * Reference to logging class.
-		 *
-		 * @var $logger
-		 */
-		private static $logger;
 
 		/**
 		 * Returns the *Singleton* instance of this class.
@@ -108,6 +101,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-sellers-app.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-meta-box.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-order-management-settings.php';
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-logger.php';
 
 			// Add refunds support to Klarna Payments and Klarna Checkout gateways.
 			add_action( 'wc_klarna_payments_supports', array( $this, 'add_gateway_support' ) );
@@ -149,21 +143,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$features[] = 'refunds';
 
 			return $features;
-		}
-
-		/**
-		 * Instantiate WC_Logger class.
-		 *
-		 * @param string $message Log message.
-		 */
-		public static function log( $message ) {
-			if ( empty( self::$logger ) ) {
-				self::$logger = new WC_Logger();
-			}
-			$options = get_option( 'kom_settings' );
-			if ( ! isset( $options['kom_debug_log'] ) || 'yes' === $options['kom_debug_log'] ) {
-				self::$logger->add( 'klarna-order-management-for-woocommerce', $message );
-			}
 		}
 
 		/**
@@ -290,7 +269,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 						)
 					);
 					$response = $request->response();
-
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order updated.' );
 					} else {
