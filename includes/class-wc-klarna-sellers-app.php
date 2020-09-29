@@ -93,6 +93,17 @@ class WC_Klarna_Sellers_App {
 		$order->set_shipping_state( sanitize_text_field( $klarna_order->shipping_address->region ) );
 		$order->set_shipping_postcode( sanitize_text_field( $klarna_order->shipping_address->postal_code ) );
 
+		$process_order_lines = true;
+		if ( true === $process_order_lines ) {
+			self::process_order_lines( $klarna_order, $order );
+			$order->set_date_paid( time() );
+			$order->set_shipping_total( self::get_shipping_total( $klarna_order ) );
+			$order->set_cart_tax( self::get_cart_contents_tax( $klarna_order ) );
+			$order->set_shipping_tax( self::get_shipping_tax_total( $klarna_order ) );
+			$order->set_total( $klarna_order->order_amount / 100 );
+			$order->calculate_totals();
+		}
+
 		$order->save();
 
 		$order->add_order_note( __( 'Order address updated by Klarna Order management.', 'klarna-order-management-for-woocommerce' ) );
@@ -114,5 +125,158 @@ class WC_Klarna_Sellers_App {
 
 		return $env;
 	}
+
+	/**
+	 * Processes order lines with order data received from Klarna.
+	 *
+	 * @param Klarna_Checkout_Order $klarna_order Klarna order.
+	 * @param WooCommerce_Order     $order WooCommerce order.
+	 *
+	 * @throws Exception WC_Data_Exception.
+	 */
+	private static function process_order_lines( $klarna_order, $order ) {
+		WC_Klarna_Order_Management::log( 'Processing order lines (from Klarna order) during sellers app creation for Klarna order ID ' . $klarna_order->order_id );
+		foreach ( $klarna_order->order_lines as $cart_item ) {
+
+			// Only try to add the item to the order if we got a reference in the Klarna order.
+			if ( empty( $cart_item->reference ) ) {
+				continue;
+			}
+			if ( 'physical' === $cart_item->type || 'digital' === $cart_item->type ) {
+				if ( wc_get_product_id_by_sku( $cart_item->reference ) ) {
+					$id = wc_get_product_id_by_sku( $cart_item->reference );
+				} else {
+					$id = $cart_item->reference;
+				}
+
+				try {
+					$product = wc_get_product( $id );
+					$args    = array(
+						'name'         => $product->get_name(),
+						'tax_class'    => $product->get_tax_class(),
+						'product_id'   => $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id(),
+						'variation_id' => $product->is_type( 'variation' ) ? $product->get_id() : 0,
+						'variation'    => $product->is_type( 'variation' ) ? $product->get_attributes() : array(),
+						'subtotal'     => ( $cart_item->total_amount - $cart_item->total_tax_amount ) / 100,
+						'total'        => ( $cart_item->total_amount - $cart_item->total_tax_amount ) / 100,
+						'quantity'     => $cart_item->quantity,
+					);
+					$item    = new WC_Order_Item_Product();
+					$item->set_props( $args );
+					$item->set_backorder_meta();
+					$item->set_order_id( $order->get_id() );
+					$item->save();
+					$order->add_item( $item );
+
+				} catch ( Exception $e ) {
+					WC_Klarna_Order_Management::log( 'Error during process order lines. Add to cart error:   ' . $e->getCode() . ' - ' . $e->getMessage() );
+				}
+			}
+
+			if ( 'shipping_fee' === $cart_item->type ) {
+				try {
+					$method_id   = substr( $cart_item->reference, 0, strpos( $cart_item->reference, ':' ) );
+					$instance_id = substr( $cart_item->reference, strpos( $cart_item->reference, ':' ) + 1 );
+					$rate        = new WC_Shipping_Rate( $cart_item->reference, $cart_item->name, ( $cart_item->total_amount - $cart_item->total_tax_amount ) / 100, array(), $method_id, $instance_id );
+					$item        = new WC_Order_Item_Shipping();
+					$item->set_props(
+						array(
+							'method_title' => $rate->label,
+							'method_id'    => $rate->id,
+							'total'        => wc_format_decimal( $rate->cost ),
+							'taxes'        => $rate->taxes,
+							'meta_data'    => $rate->get_meta_data(),
+						)
+					);
+					$order->add_item( $item );
+				} catch ( Exception $e ) {
+					WC_Klarna_Order_Management::log( 'Error during process order lines. Add shipping error:   ' . $e->getCode() . ' - ' . $e->getMessage() );
+				}
+			}
+
+			if ( 'surcharge' === $cart_item->type ) {
+				$tax_class = '';
+				if ( isset( $cart_item->merchant_data ) ) {
+					$merchant_data = json_decode( $cart_item->merchant_data );
+					$tax_class     = $merchant_data->tax_class;
+				}
+				try {
+					$args = array(
+						'name'      => $cart_item->name,
+						'tax_class' => $tax_class,
+						'subtotal'  => ( $cart_item->total_amount - $cart_item->total_tax_amount ) / 100,
+						'total'     => ( $cart_item->total_amount - $cart_item->total_tax_amount ) / 100,
+						'quantity'  => $cart_item->quantity,
+					);
+					$fee  = new WC_Order_Item_Fee();
+					$fee->set_props( $args );
+					$order->add_item( $fee );
+				} catch ( Exception $e ) {
+					WC_Klarna_Order_Management::log( 'Error during process order lines. Add fee error:   ' . $e->getCode() . ' - ' . $e->getMessage() );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Gets the shipping total for the order.
+	 *
+	 * @param object $klarna_order The Klarna order.
+	 * @return int
+	 */
+	private static function get_shipping_total( $klarna_order ) {
+		$shipping_total = 0;
+		foreach ( $klarna_order->order_lines as $cart_item ) {
+			if ( 'shipping_fee' === $cart_item->type ) {
+				$shipping_total += $cart_item->total_amount;
+			}
+		}
+		if ( $shipping_total > 0 ) {
+			$shipping_total = $shipping_total / 100;
+		}
+
+		return $shipping_total;
+	}
+
+	/**
+	 * Gets the cart contents tax.
+	 *
+	 * @param object $klarna_order The Klarna order.
+	 * @return int
+	 */
+	private static function get_cart_contents_tax( $klarna_order ) {
+		$cart_contents_tax = 0;
+		foreach ( $klarna_order->order_lines as $cart_item ) {
+			if ( 'physical' === $cart_item->type || 'digital' === $cart_item->type ) {
+				$cart_contents_tax += $cart_item->total_tax_amount;
+			}
+		}
+		if ( $cart_contents_tax > 0 ) {
+			$cart_contents_tax = $cart_contents_tax / 100;
+		}
+
+		return $cart_contents_tax;
+	}
+
+	/**
+	 * Gets the shipping tax total for the order.
+	 *
+	 * @param object $klarna_order The Klarna order.
+	 * @return int
+	 */
+	private static function get_shipping_tax_total( $klarna_order ) {
+		$shipping_tax_total = 0;
+		foreach ( $klarna_order->order_lines as $cart_item ) {
+			if ( 'shipping_fee' === $cart_item->type ) {
+				$shipping_tax_total += $cart_item->total_tax_amount;
+			}
+		}
+		if ( $shipping_tax_total > 0 ) {
+			$shipping_tax_total = $shipping_tax_total / 100;
+		}
+
+		return $shipping_tax_total;
+	}
+
 }
 new WC_Klarna_Sellers_App();
