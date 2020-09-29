@@ -218,6 +218,12 @@ class WC_Klarna_Sellers_App {
 		}
 	}
 
+	/**
+	 * Gets the shipping total for the order.
+	 *
+	 * @param object $klarna_order The Klarna order.
+	 * @return int
+	 */
 	private static function get_shipping_total( $klarna_order ) {
 		$shipping_total = 0;
 		foreach ( $klarna_order->order_lines as $cart_item ) {
@@ -232,6 +238,12 @@ class WC_Klarna_Sellers_App {
 		return $shipping_total;
 	}
 
+	/**
+	 * Gets the cart contents tax.
+	 *
+	 * @param object $klarna_order The Klarna order.
+	 * @return int
+	 */
 	private static function get_cart_contents_tax( $klarna_order ) {
 		$cart_contents_tax = 0;
 		foreach ( $klarna_order->order_lines as $cart_item ) {
@@ -246,6 +258,12 @@ class WC_Klarna_Sellers_App {
 		return $cart_contents_tax;
 	}
 
+	/**
+	 * Gets the shipping tax total for the order.
+	 *
+	 * @param object $klarna_order The Klarna order.
+	 * @return int
+	 */
 	private static function get_shipping_tax_total( $klarna_order ) {
 		$shipping_tax_total = 0;
 		foreach ( $klarna_order->order_lines as $cart_item ) {
