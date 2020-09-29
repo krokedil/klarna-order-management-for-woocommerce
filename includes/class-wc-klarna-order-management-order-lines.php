@@ -153,7 +153,6 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 			if ( 'fee' === $order_line_item['type'] ) {
 				$klarna_item['type'] = 'surcharge';
-				error_log( var_export( $klarna_item, true ) );
 			}
 
 			if ( 'coupon' === $order_line_item['type'] ) {
