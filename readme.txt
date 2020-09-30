@@ -17,6 +17,7 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 
 == Changelog ==
 = 2020.09.29    - version 1.6.1 =
+* Enhancement   - Add order lines to WooCommerce order, for orders created via Sellers App if corresponding SKU exist in WooCommerce.
 * Fix           - Fixed an issue when adding items with a negative value being sent incorrectly to Klarna that caused the tax rate to be incorrect. Tax rate calculations have been improved.
 
 = 2020.09.21    - version 1.6.0 =
