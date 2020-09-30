@@ -34,7 +34,7 @@ services:
         define( 'SCRIPT_DEBUG', true );
     volumes:
       - "./:/var/www/html/wp-content/plugins/klarna-order-management-for-woocommerce"
-      - ./wp:/var/www/html
+      - ./.wp:/var/www/html
 
   wordpress-cli:
     depends_on:
@@ -56,8 +56,8 @@ services:
       wp import wp-content/plugins/woocommerce/sample-data/sample_products.xml --authors=create;
       '
     volumes:
-      - "./:/var/www/html/wp-content/plugins/test"
-      - ./wp:/var/www/html
+      - "./:/var/www/html/wp-content/plugins/klarna-order-management-for-woocommerce"
+      - ./.wp:/var/www/html
 
 volumes:
   db:
