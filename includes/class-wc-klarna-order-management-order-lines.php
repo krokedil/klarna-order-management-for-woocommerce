@@ -128,7 +128,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 				'name'                  => $this->get_item_name( $order_line_item ),
 				'quantity'              => $this->get_item_quantity( $order_line_item ),
 				'unit_price'            => $this->get_item_unit_price( $order_line_item ),
-				'tax_rate'              => $this->get_item_tax_rate( $order_line_item ),
+				'tax_rate'              => $this->get_item_tax_rate( $order, $order_line_item ),
 				'total_amount'          => $this->get_item_total_amount( $order_line_item ),
 				'total_discount_amount' => $this->get_item_discount_amount( $order_line_item ),
 				'total_tax_amount'      => $this->get_item_tax_amount( $order_line_item ),
@@ -320,25 +320,24 @@ class WC_Klarna_Order_Management_Order_Lines {
 	}
 
 	/**
-	 * Calculate item tax percentage.
+	 * Gets the order line tax rate.
 	 *
-	 * @param array $order_line_item Order line item.
-	 *
-	 * @return integer $item_tax_rate Item tax percentage formatted for Klarna.
+	 * @param WC_Order $order The WooCommerce order.
+	 * @param mixed    $order_item If not false the WooCommerce order item WC_Order_Item.
+	 * @return int
 	 */
-	public function get_item_tax_rate( $order_line_item ) {
-		if ( $order_line_item['total_tax'] > 0 ) {
-			// Calculate tax rate.
-			if ( $this->separate_sales_tax ) {
-				$item_tax_rate = 00;
-			} else {
-				$item_tax_rate = round( $order_line_item['total_tax'] / $order_line_item['total'] * 100 * 100 );
+	public function get_item_tax_rate( $order, $order_item = false ) {
+		$tax_items = $order->get_items( 'tax' );
+		foreach ( $tax_items as $tax_item ) {
+			$rate_id = $tax_item->get_rate_id();
+			foreach ( $order_item->get_taxes()['total'] as $key => $value ) {
+				if ( '' !== $value ) {
+					if ( $rate_id === $key ) {
+						return round( WC_Tax::_get_tax_rate( $rate_id )['tax_rate'] * 100 );
+					}
+				}
 			}
-		} else {
-			$item_tax_rate = 00;
 		}
-
-		return round( $item_tax_rate );
 	}
 
 
