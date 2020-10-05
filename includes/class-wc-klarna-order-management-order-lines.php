@@ -327,6 +327,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @return int
 	 */
 	public function get_item_tax_rate( $order, $order_item = false ) {
+		if ( 'coupon' === $order_item->get_type() ) {
+			return;
+		}
 		$tax_items = $order->get_items( 'tax' );
 		foreach ( $tax_items as $tax_item ) {
 			$rate_id = $tax_item->get_rate_id();
