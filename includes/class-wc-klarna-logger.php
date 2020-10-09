@@ -26,8 +26,8 @@ class WC_Klarna_Logger {
 	 * @param string $data The data string.
 	 */
 	public static function log( $data ) {
-		$settings = get_option( 'kom_settings' );
-		if ( 'yes' === $settings['kom_debug_log'] ) {
+		$settings = get_option( 'kom_settings', array() );
+		if ( ! isset( $settings['kom_debug_log'] ) || 'yes' === $settings['kom_debug_log'] ) {
 			$message = self::format_data( $data );
 			if ( empty( self::$log ) ) {
 				self::$log = new WC_Logger();
