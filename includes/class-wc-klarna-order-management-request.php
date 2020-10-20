@@ -197,8 +197,7 @@ class WC_Klarna_Order_Management_Request {
 	public function get_order_lines() {
 		$order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( $this->order_id );
 		$order_lines           = $order_lines_processor->order_lines();
-
-		$encoded_data = wp_json_encode(
+		$encoded_data          = wp_json_encode(
 			array(
 				'order_lines'      => $order_lines['order_lines'],
 				'order_amount'     => $order_lines['order_amount'],

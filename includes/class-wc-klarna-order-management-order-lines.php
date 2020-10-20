@@ -112,92 +112,169 @@ class WC_Klarna_Order_Management_Order_Lines {
 		$order->calculate_shipping();
 		$order->calculate_taxes();
 		$order->calculate_totals();
-		// @TODO: Add coupons as separate items (smart coupons etc).
-		foreach (
-			$order->get_items(
-				array(
-					'line_item',
-					'shipping',
-					'coupon',
-					'fee',
-				)
-			) as $order_line_item_id => $order_line_item
-		) {
-			$klarna_item = array(
-				'reference'             => $this->get_item_reference( $order_line_item ),
-				'name'                  => $this->get_item_name( $order_line_item ),
-				'quantity'              => $this->get_item_quantity( $order_line_item ),
-				'unit_price'            => $this->get_item_unit_price( $order_line_item ),
-				'tax_rate'              => $this->get_item_tax_rate( $order, $order_line_item ),
-				'total_amount'          => $this->get_item_total_amount( $order_line_item ),
-				'total_discount_amount' => $this->get_item_discount_amount( $order_line_item ),
-				'total_tax_amount'      => $this->get_item_tax_amount( $order_line_item ),
-			);
 
-			if ( 'line_item' === $order_line_item['type'] ) {
-				$order_payment_method    = $order->get_payment_method();
-				$payment_method_settings = get_option( 'woocommerce_' . $order_payment_method . '_settings' );
-				if ( 'yes' === $payment_method_settings['send_product_urls'] ) {
-					$product                    = $order_line_item['variation_id'] ? wc_get_product( $order_line_item['variation_id'] ) : wc_get_product( $order_line_item['product_id'] );
-					$klarna_item['product_url'] = $product->get_permalink();
-					if ( $product->get_image_id() > 0 ) {
-						$image_id                 = $product->get_image_id();
-						$klarna_item['image_url'] = wp_get_attachment_image_url( $image_id, 'shop_thumbnail' );
-					}
-				}
-			}
+		/**
+		 * Process order item products.
+		 *
+		 * @var WC_Order_Item_Product $order_item WooCommerce order item product.
+		 */
+		foreach ( $order->get_items() as $order_item ) {
+			$this->order_lines[] = $this->process_order_item_product( $order_item, $order );
+		}
 
-			if ( 'shipping' === $order_line_item['type'] ) {
-				$klarna_item['type'] = 'shipping_fee';
-			}
+		/**
+		 * Process order item shipping.
+		 *
+		 * @var WC_Order_Item_Shipping $order_item WooCommerce order item shipping.
+		 */
+		foreach ( $order->get_items( 'shipping' ) as $order_item ) {
+			$this->order_lines[] = $this->process_order_item_shipping( $order_item, $order );
+		}
 
-			if ( 'fee' === $order_line_item['type'] ) {
-				$klarna_item['type'] = 'surcharge';
-			}
+		/**
+		 * Process order item fee.
+		 *
+		 * @var WC_Order_Item_Fee $order_item WooCommerce order item fee.
+		 */
+		foreach ( $order->get_items( 'fee' ) as $order_item ) {
+			$this->order_lines[] = $this->process_order_item_fee( $order_item, $order );
+		}
 
-			if ( 'coupon' === $order_line_item['type'] ) {
-				$coupon = new WC_Coupon( $order_line_item['name'] );
+		/**
+		 * Process order item coupon.
+		 *
+		 * @var WC_Order_Item_Coupon $order_item WooCommerce order item coupon.
+		 */
+		foreach ( $order->get_items( 'coupon' ) as $order_item ) {
+			$this->order_lines[] = $this->process_order_item_coupon( $order_item, $order );
+		}
 
-				// @TODO: For now, only send smart coupons as separate items, needs to include all coupons for US
-				if ( 'smart_coupon' === $coupon->get_discount_type() ) {
-					$coupon_amount     = - $order_line_item['discount_amount'] * 100;
-					$coupon_tax_amount = - $order_line_item['discount_amount_tax'] * 100;
-					$coupon_reference  = 'Discount';
+		$added_surcharge = json_decode( get_post_meta( $this->order_id, '_kco_added_surcharge', true ), true );
+
+		if ( ! empty( $added_surcharge ) ) {
+			$this->order_lines[] = $added_surcharge;
+		}
+	}
+
+	/**
+	 * Process order item product and return it formatted for the request.
+	 *
+	 * @param WC_Order_Item_Product $order_item WooCommerce order item product.
+	 * @param WC_Order              $order The WooCommerce order.
+	 * @return array
+	 */
+	public function process_order_item_product( $order_item, $order ) {
+		return array(
+			'reference'             => $this->get_item_reference( $order_item ),
+			'name'                  => $this->get_item_name( $order_item ),
+			'quantity'              => $this->get_item_quantity( $order_item ),
+			'unit_price'            => $this->get_item_unit_price( $order_item ),
+			'tax_rate'              => $this->get_item_tax_rate( $order, $order_item ),
+			'total_amount'          => $this->get_item_total_amount( $order_item ),
+			'total_discount_amount' => $this->get_item_discount_amount( $order_item ),
+			'total_tax_amount'      => $this->get_item_tax_amount( $order_item ),
+		);
+	}
+
+	/**
+	 * Process order item shipping and return it formatted for the request.
+	 *
+	 * @param WC_Order_Item_Shipping $order_item WooCommerce order item shipping.
+	 * @param WC_Order               $order The WooCommerce order.
+	 * @return array
+	 */
+	public function process_order_item_shipping( $order_item, $order ) {
+		return array(
+			'reference'             => $this->get_item_reference( $order_item ),
+			'type'                  => 'shipping_fee',
+			'name'                  => $this->get_item_name( $order_item ),
+			'quantity'              => $this->get_item_quantity( $order_item ),
+			'unit_price'            => $this->get_item_unit_price( $order_item ),
+			'tax_rate'              => $this->get_item_tax_rate( $order, $order_item ),
+			'total_amount'          => $this->get_item_total_amount( $order_item ),
+			'total_discount_amount' => $this->get_item_discount_amount( $order_item ),
+			'total_tax_amount'      => $this->get_item_tax_amount( $order_item ),
+		);
+	}
+
+	/**
+	 * Process order item fee and return it formatted for the request.
+	 *
+	 * @param WC_Order_Item_Fee $order_item WooCommerce order item fee.
+	 * @param WC_Order          $order The WooCommerce order.
+	 * @return array
+	 */
+	public function process_order_item_fee( $order_item, $order ) {
+		return array(
+			'reference'             => $this->get_item_reference( $order_item ),
+			'type'                  => 'surcharge',
+			'name'                  => $this->get_item_name( $order_item ),
+			'quantity'              => $this->get_item_quantity( $order_item ),
+			'unit_price'            => $this->get_item_unit_price( $order_item ),
+			'tax_rate'              => $this->get_item_tax_rate( $order, $order_item ),
+			'total_amount'          => $this->get_item_total_amount( $order_item ),
+			'total_discount_amount' => $this->get_item_discount_amount( $order_item ),
+			'total_tax_amount'      => $this->get_item_tax_amount( $order_item ),
+		);
+	}
+
+	/**
+	 * Process order item coupon and return it formatted for the request.
+	 *
+	 * @param WC_Order_Item_Coupon $order_item WooCommerce order item coupon.
+	 * @param WC_Order             $order The WooCommerce order.
+	 * @return array
+	 */
+	public function process_order_item_coupon( $order_item, $order ) {
+		$klarna_item = array(
+			'reference'             => $this->get_item_reference( $order_item ),
+			'name'                  => $this->get_item_name( $order_item ),
+			'quantity'              => $this->get_item_quantity( $order_item ),
+			'unit_price'            => $this->get_item_unit_price( $order_item ),
+			'tax_rate'              => $this->get_item_tax_rate( $order, $order_item ),
+			'total_amount'          => $this->get_item_total_amount( $order_item ),
+			'total_discount_amount' => $this->get_item_discount_amount( $order_item ),
+			'total_tax_amount'      => $this->get_item_tax_amount( $order_item ),
+		);
+
+		$coupon = new WC_Coupon( $order_item['name'] );
+
+		// @TODO: For now, only send smart coupons as separate items, needs to include all coupons for US
+		if ( 'smart_coupon' === $coupon->get_discount_type() ) {
+			$coupon_amount     = - $order_item['discount_amount'] * 100;
+			$coupon_tax_amount = - $order_item['discount_amount_tax'] * 100;
+			$coupon_reference  = 'Discount';
+		} else {
+			if ( 'US' === $this->klarna_country ) {
+				$coupon_amount     = 0;
+				$coupon_tax_amount = 0;
+
+				if ( $coupon->is_type( 'fixed_cart' ) || $coupon->is_type( 'percent' ) ) {
+					$coupon_type = 'Cart discount';
+				} elseif ( $coupon->is_type( 'fixed_product' ) || $coupon->is_type( 'percent_product' ) ) {
+					$coupon_type = 'Product discount';
 				} else {
-					if ( 'US' === $this->klarna_country ) {
-						$coupon_amount     = 0;
-						$coupon_tax_amount = 0;
-
-						if ( $coupon->is_type( 'fixed_cart' ) || $coupon->is_type( 'percent' ) ) {
-							$coupon_type = 'Cart discount';
-						} elseif ( $coupon->is_type( 'fixed_product' ) || $coupon->is_type( 'percent_product' ) ) {
-							$coupon_type = 'Product discount';
-						} else {
-							$coupon_type = 'Discount';
-						}
-
-						$coupon_reference = $coupon_type . ' (amount: ' . $order_line_item['discount_amount'] . ', tax amount: ' . $order_line_item['discount_amount_tax'] . ')';
-					}
+					$coupon_type = 'Discount';
 				}
 
-				// Add discount line item, only if it's a smart coupon or purchase country was US.
-				if ( 'smart_coupon' === $coupon->get_discount_type() || 'US' === $this->klarna_country ) {
-					$klarna_item['type']                  = 'discount';
-					$klarna_item['reference']             = $coupon_reference;
-					$klarna_item['total_discount_amount'] = 0;
-					$klarna_item['unit_price']            = $coupon_amount;
-					$klarna_item['total_amount']          = $coupon_amount;
-					$klarna_item['total_tax_amount']      = $coupon_tax_amount;
-
-					$this->order_lines[]     = $klarna_item;
-					$this->order_amount     += $coupon_amount;
-					$this->order_tax_amount += $coupon_tax_amount;
-				}
-			} else {
-				$this->order_lines[] = apply_filters( 'kom_wc_order_line_item', $klarna_item, $order_line_item, $order );
-				$this->order_amount += $this->get_item_total_amount( $order_line_item );
+				$coupon_reference = $coupon_type . ' (amount: ' . $order_item['discount_amount'] . ', tax amount: ' . $order_item['discount_amount_tax'] . ')';
 			}
 		}
+
+		// Add discount line item, only if it's a smart coupon or purchase country was US.
+		if ( 'smart_coupon' === $coupon->get_discount_type() || 'US' === $this->klarna_country ) {
+			$klarna_item['type']                  = 'discount';
+			$klarna_item['reference']             = $coupon_reference;
+			$klarna_item['total_discount_amount'] = 0;
+			$klarna_item['unit_price']            = $coupon_amount;
+			$klarna_item['total_amount']          = $coupon_amount;
+			$klarna_item['total_tax_amount']      = $coupon_tax_amount;
+
+			$this->order_amount     += $coupon_amount;
+			$this->order_tax_amount += $coupon_tax_amount;
+		}
+
+		return $klarna_item;
 	}
 
 	/**
@@ -328,7 +405,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 */
 	public function get_item_tax_rate( $order, $order_item = false ) {
 		if ( 'coupon' === $order_item->get_type() ) {
-			return;
+			return 0;
 		}
 		$tax_items = $order->get_items( 'tax' );
 		foreach ( $tax_items as $tax_item ) {
