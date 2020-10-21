@@ -162,7 +162,7 @@ class WC_Klarna_Order_Management_Request {
 				'Authorization' => $this->get_klarna_authorization_header(),
 				'Content-Type'  => 'application/json',
 			),
-			'user-agent' => apply_filters( 'http_headers_useragent', 'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ) ) . ' - OM:' . WC_KLARNA_ORDER_MANAGEMENT_VERSION . ' - PHP Version: ' . phpversion() . ' - Krokedil',
+			'user-agent' => apply_filters( 'http_headers_useragent', 'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ) ) . ' - WooCommerce: ' . WC()->version . ' - OM:' . WC_KLARNA_ORDER_MANAGEMENT_VERSION . ' - PHP Version: ' . phpversion() . ' - Krokedil',
 			'method'     => $this->klarna_request_method,
 		);
 		if ( $this->klarna_request_body ) {
@@ -197,8 +197,7 @@ class WC_Klarna_Order_Management_Request {
 	public function get_order_lines() {
 		$order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( $this->order_id );
 		$order_lines           = $order_lines_processor->order_lines();
-
-		$encoded_data = wp_json_encode(
+		$encoded_data          = wp_json_encode(
 			array(
 				'order_lines'      => $order_lines['order_lines'],
 				'order_amount'     => $order_lines['order_amount'],
