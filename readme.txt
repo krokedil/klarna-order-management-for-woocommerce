@@ -16,6 +16,12 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 2. Activate the plugin through the "Plugins" menu in WordPress.
 
 == Changelog ==
+= 2020.10.21    - version 1.6.3 =
+* Enhancement   - Added the WooCommerce version number to the useragent sent to Klarna.
+* Tweak         - Split the order line processing into different functions to prevent applying methods that don't exist for the object.
+* Fix           - Fixed the default for the debug log setting.
+* Fix           - Fixed some error notices that came from accessing properties of coupons directly.
+
 = 2020.10.05    - version 1.6.2 =
 * Fix           - Fixed an issue when getting tax rates for coupons.
 * Fix           - Fixed an incorrect definition name used for the plugin version in the log.
