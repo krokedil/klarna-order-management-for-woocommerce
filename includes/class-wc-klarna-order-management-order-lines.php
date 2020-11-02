@@ -113,6 +113,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 		$order->calculate_taxes();
 		$order->calculate_totals();
 
+		// Set order amount from order total.
+		$this->order_amount = intval( round( $order->get_total() * 100 ) );
+
 		/**
 		 * Process order item products.
 		 *
