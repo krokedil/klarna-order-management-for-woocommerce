@@ -16,6 +16,10 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 2. Activate the plugin through the "Plugins" menu in WordPress.
 
 == Changelog ==
+= 2020.11.10    - version 1.6.5 =
+* Fix           - Limit shipping, fees and coupons to only 1 quantity when updating an order. Prevents a unnecessary calculation.
+* Fix           - Fixed tax amount for shipping and fees not being sent correctly when updating an order.
+
 = 2020.11.02    - version 1.6.4 =
 * Fix           - Fixed an issue that made us not send the correct order total to Klarna when updating an order in WooCommerce.
 

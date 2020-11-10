@@ -96,7 +96,6 @@ class WC_Klarna_Order_Management_Order_Lines {
 		// @TODO: Process fees.
 		$this->process_order_line_items();
 		$this->process_sales_tax();
-
 		return array(
 			'order_lines'      => $this->order_lines,
 			'order_amount'     => $this->order_amount,
@@ -191,7 +190,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			'reference'             => $this->get_item_reference( $order_item ),
 			'type'                  => 'shipping_fee',
 			'name'                  => $this->get_item_name( $order_item ),
-			'quantity'              => $this->get_item_quantity( $order_item ),
+			'quantity'              => 1,
 			'unit_price'            => $this->get_item_unit_price( $order_item ),
 			'tax_rate'              => $this->get_item_tax_rate( $order, $order_item ),
 			'total_amount'          => $this->get_item_total_amount( $order_item ),
@@ -212,7 +211,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			'reference'             => $this->get_item_reference( $order_item ),
 			'type'                  => 'surcharge',
 			'name'                  => $this->get_item_name( $order_item ),
-			'quantity'              => $this->get_item_quantity( $order_item ),
+			'quantity'              => 1,
 			'unit_price'            => $this->get_item_unit_price( $order_item ),
 			'tax_rate'              => $this->get_item_tax_rate( $order, $order_item ),
 			'total_amount'          => $this->get_item_total_amount( $order_item ),
@@ -233,7 +232,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			'reference'             => $this->get_item_reference( $order_item ),
 			'type'                  => 'discount',
 			'name'                  => $this->get_item_name( $order_item ),
-			'quantity'              => $this->get_item_quantity( $order_item ),
+			'quantity'              => 1,
 			'unit_price'            => $this->get_item_unit_price( $order_item ),
 			'tax_rate'              => $this->get_item_tax_rate( $order, $order_item ),
 			'total_amount'          => $this->get_item_total_amount( $order_item ),
@@ -475,7 +474,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 		if ( $this->separate_sales_tax ) {
 			$item_tax_amount = 00;
 		} else {
-			if ( 'line_item' === $order_line_item->get_type() ) {
+			if ( in_array( $order_line_item->get_type(), array( 'line_item', 'fee', 'shipping' ), true ) ) {
 				$item_tax_amount = $order_line_item->get_total_tax() * 100;
 			} elseif ( 'coupon' === $order_line_item->get_type() ) {
 				$item_tax_amount = $order_line_item->get_discount_tax() * 100;
