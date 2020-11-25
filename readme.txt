@@ -17,6 +17,10 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 1. Upload plugin folder to to the "/wp-content/plugins/" directory.
 2. Activate the plugin through the "Plugins" menu in WordPress.
 
+== Frequently Asked Questions ==
+= Where can I find Klarna Order Management for WooCommerce documentation? =
+For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
+
 == Changelog ==
 = 2020.11.10    - version 1.6.5 =
 * Fix           - Limit shipping, fees and coupons to only 1 quantity when updating an order. Prevents a unnecessary calculation.
