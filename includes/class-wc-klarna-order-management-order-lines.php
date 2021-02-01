@@ -168,6 +168,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	public function process_order_item_product( $order_item, $order ) {
 		return array(
 			'reference'             => $this->get_item_reference( $order_item ),
+			'type'                  => $this->get_item_type( $order_item ),
 			'name'                  => $this->get_item_name( $order_item ),
 			'quantity'              => $this->get_item_quantity( $order_item ),
 			'unit_price'            => $this->get_item_unit_price( $order_item ),
@@ -505,6 +506,18 @@ class WC_Klarna_Order_Management_Order_Lines {
 		}
 
 		return round( $item_discount_amount );
+	}
+
+	/**
+	 * Get cart item discount.
+	 *
+	 * @param WC_Order_Item_Product $order_line_item Order line item.
+	 *
+	 * @return string $item_type Order item type.
+	 */
+	public function get_item_type( $order_line_item ) {
+		$product = $order_line_item->get_product();
+		return $product && ! $product->is_virtual() ? 'physical' : 'digital';
 	}
 
 }
