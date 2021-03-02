@@ -3,7 +3,7 @@ Contributors: klarna, krokedil, NiklasHogefjord, automattic
 Tags: woocommerce, klarna
 Donate link: https://klarna.com
 Requires at least: 4.0
-Tested up to: 5.5
+Tested up to: 5.6.1
 Requires PHP: 5.6
 WC requires at least: 3.8.0
 WC tested up to: 4.5.2
@@ -22,6 +22,10 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2021.03.02    - version 1.6.6 =
+* Enhancement   - Add product types to the order lines being sent to Klarna.
+* Tweak         - We no longer check for is_ajax when updating the Klarna order items.
+
 = 2020.11.10    - version 1.6.5 =
 * Fix           - Limit shipping, fees and coupons to only 1 quantity when updating an order. Prevents a unnecessary calculation.
 * Fix           - Fixed tax amount for shipping and fees not being sent correctly when updating an order.
