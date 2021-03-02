@@ -220,10 +220,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @param bool  $action If this was triggered by an action.
 		 */
 		public function update_klarna_order_items( $order_id, $items, $action = false ) {
-			if ( ! is_ajax() ) {
-				return;
-			}
-
 			$options = get_option( 'kom_settings' );
 			if ( ! isset( $options['kom_auto_update'] ) || 'yes' === $options['kom_auto_update'] || $action ) {
 
