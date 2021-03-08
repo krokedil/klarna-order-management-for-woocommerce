@@ -243,7 +243,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				}
 
 				// Changes are only possible if order is an allowed order status.
-				if ( in_array( $order->get_status(), apply_filters( 'kom_allowed_update_statuses', array( 'on-hold' ) ), true ) ) {
+				if ( ! in_array( $order->get_status(), apply_filters( 'kom_allowed_update_statuses', array( 'on-hold' ) ), true ) ) {
 					return;
 				}
 
