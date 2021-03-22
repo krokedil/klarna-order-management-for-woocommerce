@@ -237,7 +237,7 @@ class WC_Klarna_Order_Management_Request {
 				$data = array_merge( json_decode( $order_lines, true ), $data );
 			}
 		}
-		$encoded_data = wp_json_encode( $data );
+		$encoded_data = wp_json_encode( apply_filters( 'kom_order_capture_args', $data ) );
 		return $encoded_data;
 	}
 
@@ -397,7 +397,7 @@ class WC_Klarna_Order_Management_Request {
 			}
 		}
 
-		return $data;
+		return apply_filters( 'kom_refund_order_args', $data );
 	}
 
 	/**
