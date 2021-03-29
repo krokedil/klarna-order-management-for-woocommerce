@@ -169,7 +169,7 @@ class WC_Klarna_Sellers_App {
 					$order->add_item( $item );
 
 				} catch ( Exception $e ) {
-					WC_Klarna_Order_Management::log( 'Error during process order lines. Add to cart error:   ' . $e->getCode() . ' - ' . $e->getMessage() );
+					WC_Klarna_Logger::log( 'Error during process order lines. Add to cart error:   ' . $e->getCode() . ' - ' . $e->getMessage() );
 				}
 			}
 
@@ -190,7 +190,7 @@ class WC_Klarna_Sellers_App {
 					);
 					$order->add_item( $item );
 				} catch ( Exception $e ) {
-					WC_Klarna_Order_Management::log( 'Error during process order lines. Add shipping error:   ' . $e->getCode() . ' - ' . $e->getMessage() );
+					WC_Klarna_Logger::log( 'Error during process order lines. Add shipping error:   ' . $e->getCode() . ' - ' . $e->getMessage() );
 				}
 			}
 
@@ -212,7 +212,7 @@ class WC_Klarna_Sellers_App {
 					$fee->set_props( $args );
 					$order->add_item( $fee );
 				} catch ( Exception $e ) {
-					WC_Klarna_Order_Management::log( 'Error during process order lines. Add fee error:   ' . $e->getCode() . ' - ' . $e->getMessage() );
+					WC_Klarna_Logger::log( 'Error during process order lines. Add fee error:   ' . $e->getCode() . ' - ' . $e->getMessage() );
 				}
 			}
 		}
