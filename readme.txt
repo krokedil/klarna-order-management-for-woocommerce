@@ -22,6 +22,13 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2021.04.07    - version 1.6.7 =
+* Enhancement   - Add support for New Zealand.
+* Enhancement   - Add new filter to allow custom post statuses for when you can update an order. kom_allowed_update_statuses
+* Enhancement   - Add filter for the body for capture and refund requests. kom_order_capture_args and kom_refund_order_args
+* Enhancement   - Add a fallback for when a product is removed between the purchase and order activation.
+* Fix           - Fixed some potential fatal errors in the sellers app integration.
+
 = 2021.03.02    - version 1.6.6 =
 * Enhancement   - Add product types to the order lines being sent to Klarna.
 * Tweak         - We no longer check for is_ajax when updating the Klarna order items.

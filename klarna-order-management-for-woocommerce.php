@@ -5,7 +5,7 @@
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
  * Author: klarna, krokedil
  * Author URI: https://krokedil.se/
- * Version: 1.6.6
+ * Version: 1.6.7
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
  *
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.6.6' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.6.7' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -242,8 +242,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					return;
 				}
 
-				// Changes only possible if order is set to On Hold.
-				if ( 'on-hold' !== $order->get_status() ) {
+				// Changes are only possible if order is an allowed order status.
+				if ( ! in_array( $order->get_status(), apply_filters( 'kom_allowed_update_statuses', array( 'on-hold' ) ), true ) ) {
 					return;
 				}
 

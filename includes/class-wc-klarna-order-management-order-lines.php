@@ -317,11 +317,14 @@ class WC_Klarna_Order_Management_Order_Lines {
 	public function get_item_reference( $order_line_item ) {
 		if ( 'line_item' === $order_line_item->get_type() ) {
 			$product = $order_line_item['variation_id'] ? wc_get_product( $order_line_item['variation_id'] ) : wc_get_product( $order_line_item['product_id'] );
-
-			if ( $product->get_sku() ) {
-				$item_reference = $product->get_sku();
+			if ( $product ) {
+				if ( $product->get_sku() ) {
+					$item_reference = $product->get_sku();
+				} else {
+					$item_reference = $product->get_id();
+				}
 			} else {
-				$item_reference = $product->get_id();
+				$item_reference = $order_line_item->get_name();
 			}
 		} elseif ( 'shipping' === $order_line_item->get_type() ) {
 			// Matching the shipping reference from KCO order.
