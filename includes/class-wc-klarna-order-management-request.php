@@ -583,6 +583,7 @@ class WC_Klarna_Order_Management_Request {
 				$env_string = '-na';
 				break;
 			case 'AU':
+			case 'NZ':
 				$env_string = '-oc';
 				break;
 			default:
