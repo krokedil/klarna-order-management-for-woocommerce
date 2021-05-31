@@ -316,7 +316,24 @@ class WC_Klarna_Order_Management_Request {
 						}
 					}
 
-					$type                = $product->is_downloadable() || $product->is_virtual() ? 'digital' : 'physical';
+					 /**
+                     *
+                     *  If a product is not available inside of WC anymore wc_get_product() will return false
+                     *  and the default check will fail resulting in an fatal error, creating the Refund with WC but not sending it to Klarna
+                     *  This fallback allows DEVs to provide the product type which they saved before.
+                     *
+                     *  Alternatively KOM or KCO could save this onformation on order creation.
+                     *
+                     **/
+
+
+                     if(is_object($product) && method_exists($product, 'is_downloadable')){
+                           $type = $product->is_downloadable() || $product->is_virtual() ? 'digital' : 'physical';
+                     } else {
+                           $type = apply_filters('kom_line_item_product_type','physical',$item);
+                     }
+					
+					
 					$reference           = $order_lines_processor->get_item_reference( $item );
 					$name                = $order_lines_processor->get_item_name( $item );
 					$quantity            = abs( $order_lines_processor->get_item_quantity( $item ) );
