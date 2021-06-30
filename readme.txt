@@ -3,7 +3,6 @@ Contributors: klarna, krokedil, NiklasHogefjord, automattic
 Tags: woocommerce, klarna
 Donate link: https://klarna.com
 Requires at least: 4.0
-
 Tested up to: 5.7.2
 Requires PHP: 5.6
 WC requires at least: 3.4.0
@@ -12,6 +11,7 @@ Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
+== DESCRIPTION ==
 Provides post-purchase order management for Klarna Payments for WooCommerce and Klarna Checkout for WooCommerce payment gateways.
 
 == Installation ==
