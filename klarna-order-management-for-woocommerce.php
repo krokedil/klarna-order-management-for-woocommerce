@@ -80,6 +80,9 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		protected function __construct() {
 			add_action( 'plugins_loaded', array( $this, 'init' ) );
+
+			// Add action links
+			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_action_links' ) );
 		}
 
 		/**
@@ -130,6 +133,21 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				10,
 				2
 			);
+		}
+
+		/**
+		 * Adds plugin action links
+		 *
+		 * @param array $links Plugin action link before filtering.
+		 *
+		 * @return array Filtered links.
+		 */
+		public function plugin_action_links( $links ) {
+			$plugin_links = array(
+				'<a href="https://docs.krokedil.com/article/259-klarna-on-site-messaging">Docs</a>',
+			);
+
+			return array_merge( $plugin_links, $links );
 		}
 
 		/**
