@@ -194,8 +194,8 @@ class WC_Klarna_Order_Management_Request {
 	 *
 	 * @return array
 	 */
-	public function get_order_lines() {
-		$order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( $this->order_id );
+	public function get_order_lines( $request_type = '' ) {
+		$order_lines_processor = new WC_Klarna_Order_Management_Order_Lines( $this->order_id, $request_type );
 		$order_lines           = $order_lines_processor->order_lines();
 		$encoded_data          = wp_json_encode(
 			array(
@@ -231,7 +231,7 @@ class WC_Klarna_Order_Management_Request {
 
 		// Don't add order lines if we are forcing a full order capture.
 		if ( ! $force_capture_full_order ) {
-			$order_lines = $this->get_order_lines();
+			$order_lines = $this->get_order_lines( 'capture' );
 
 			if ( isset( $order_lines ) && ! empty( $order_lines ) ) {
 				$data = array_merge( json_decode( $order_lines, true ), $data );

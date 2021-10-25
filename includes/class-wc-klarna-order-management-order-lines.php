@@ -48,6 +48,13 @@ class WC_Klarna_Order_Management_Order_Lines {
 	public $order_id;
 
 	/**
+	 * The request type.
+	 *
+	 * @var $request_type
+	 */
+	public $request_type;
+
+	/**
 	 * WooCommerce order.
 	 *
 	 * @var $order
@@ -71,11 +78,13 @@ class WC_Klarna_Order_Management_Order_Lines {
 	/**
 	 * WC_Klarna_Order_Management_Order_Lines constructor.
 	 *
-	 * @param int $order_id WooCommerce order ID.
+	 * @param int    $order_id WooCommerce order ID.
+	 * @param string $request_type The request type.
 	 */
-	public function __construct( $order_id ) {
-		$this->order_id = $order_id;
-		$this->order    = wc_get_order( $this->order_id );
+	public function __construct( $order_id, $request_type ) {
+		$this->order_id     = $order_id;
+		$this->order        = wc_get_order( $this->order_id );
+		$this->request_type = $request_type;
 
 		$base_location = wc_get_base_location();
 		$shop_country  = $base_location['country'];
@@ -108,9 +117,11 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 */
 	public function process_order_line_items() {
 		$order = wc_get_order( $this->order_id );
-		$order->calculate_shipping();
-		$order->calculate_taxes();
-		$order->calculate_totals();
+		if ( 'capture' !== $this->request_type ) {
+			$order->calculate_shipping();
+			$order->calculate_taxes();
+			$order->calculate_totals();
+		}
 
 		// Set order amount from order total.
 		$this->order_amount = intval( round( $order->get_total() * 100 ) );
