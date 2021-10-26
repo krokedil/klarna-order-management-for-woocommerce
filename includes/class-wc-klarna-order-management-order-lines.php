@@ -81,7 +81,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @param int    $order_id WooCommerce order ID.
 	 * @param string $request_type The request type.
 	 */
-	public function __construct( $order_id, $request_type ) {
+	public function __construct( $order_id, $request_type = '' ) {
 		$this->order_id     = $order_id;
 		$this->order        = wc_get_order( $this->order_id );
 		$this->request_type = $request_type;
