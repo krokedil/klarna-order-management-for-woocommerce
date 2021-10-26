@@ -3,10 +3,10 @@ Contributors: klarna, krokedil, NiklasHogefjord, automattic
 Tags: woocommerce, klarna
 Donate link: https://klarna.com
 Requires at least: 4.0
-Tested up to: 5.7.2
+Tested up to: 5.8.0
 Requires PHP: 7.0
 WC requires at least: 4.0.0
-WC tested up to: 5.4.0
+WC tested up to: 5.8.0
 Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -23,6 +23,11 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2021.10.26    - version 1.6.8 =
+* Enhancement   - Add a action link to our documentation in the plugin list.
+* Fix           - We no longer trigger calculations when we complete an order with Klarna. This could cause issues with shipping taxes and some other tax plugins.
+* Tweak         - Updated URLs to our docs pages.
+
 = 2021.04.07    - version 1.6.7 =
 * Enhancement   - Add support for New Zealand.
 * Enhancement   - Add new filter to allow custom post statuses for when you can update an order. kom_allowed_update_statuses
