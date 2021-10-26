@@ -5,7 +5,7 @@
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
  * Author: klarna, krokedil
  * Author URI: https://krokedil.se/
- * Version: 1.6.7
+ * Version: 1.6.8
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
  *
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.6.7' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.6.8' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -80,6 +80,9 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		protected function __construct() {
 			add_action( 'plugins_loaded', array( $this, 'init' ) );
+
+			// Add action links.
+			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_action_links' ) );
 		}
 
 		/**
@@ -130,6 +133,21 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				10,
 				2
 			);
+		}
+
+		/**
+		 * Adds plugin action link to Krokedil documentation for KOM.
+		 *
+		 * @param array $links Plugin action link before filtering.
+		 *
+		 * @return array Filtered links.
+		 */
+		public function plugin_action_links( $links ) {
+			$plugin_links = array(
+				'<a target="_blank" href="https://docs.krokedil.com/article/149-klarna-order-management">Docs</a>',
+			);
+
+			return array_merge( $plugin_links, $links );
 		}
 
 		/**
