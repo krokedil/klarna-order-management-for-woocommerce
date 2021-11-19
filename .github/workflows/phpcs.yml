@@ -21,9 +21,6 @@ jobs:
         run: |
           composer update
           ./vendor/bin/phpcs --version
-          ./vendor/bin/phpcs -i
-          ./vendor/bin/phpcs --config-set installed_paths ./vendor/bin/wp-coding-standards/wpcs
-          ./vendor/bin/phpcs -i
 
       - uses: thenabeel/action-phpcs@v8
         with:
