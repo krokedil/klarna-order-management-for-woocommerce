@@ -150,8 +150,11 @@ abstract class KOM_Request {
 	 * @return object|WP_Error
 	 */
 	public function request() {
-		$url      = $this->get_request_url();
-		$args     = $this->get_request_args();
+		$url  = $this->get_request_url();
+		$args = $this->get_request_args();
+		if ( is_wp_error( $args ) ) {
+			return $args;
+		}
 		$response = wp_remote_request( $url, $args );
 		return $this->process_response( $response, $args, $url );
 	}
@@ -159,13 +162,17 @@ abstract class KOM_Request {
 	/**
 	 * Get the request headers.
 	 *
-	 * @param string $body json_encoded body.
 	 * @return array
 	 */
-	protected function get_request_headers( $body = '' ) {
+	protected function get_request_headers() {
+		$auth = $this->calculate_auth();
+		if ( is_wp_error( $auth ) ) {
+			return $auth;
+		}
+		error_log( $auth );
 		return array(
-			'Content-type'  => 'application/json',
-			'Authorization' => $this->calculate_auth( $body ),
+			'Authorization' => $auth,
+			'Content-Type'  => 'application/json',
 		);
 	}
 
@@ -179,7 +186,7 @@ abstract class KOM_Request {
 			'http_headers_useragent',
 			'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' )
 			. ' - WooCommerce: ' . WC()->version
-			. ' - OM:' . WC_KLARNA_ORDER_MANAGEMENT_VERSION
+			. ' - OM: ' . WC_KLARNA_ORDER_MANAGEMENT_VERSION
 			. ' - PHP Version: ' . phpversion()
 			. ' - Krokedil'
 		);
@@ -191,12 +198,12 @@ abstract class KOM_Request {
 	 * @return bool
 	 */
 	protected function use_playground() {
-		$playground = true;
+		$playground = false;
 		$variant    = $this->get_klarna_variant();
 		if ( $variant ) {
 			$payment_method_settings = get_option( "woocommerce_${variant}_settings" );
 			if ( ! $payment_method_settings || 'yes' == $payment_method_settings['testmode'] ) {
-				$playground = false;
+				$playground = true;
 			}
 		}
 		return $playground;
@@ -216,6 +223,7 @@ abstract class KOM_Request {
 
 		$merchant_id   = $this->get_auth_component( 'merchant_id' );
 		$shared_secret = $this->get_auth_component( 'shared_secret' );
+		error_log( "Merchant ID: <${merchant_id}>, Shared secret: <${shared_secret}>" );
 		if ( '' === $merchant_id || '' === $shared_secret ) {
 			return new WP_Error( 'missing_credentials', "${gateway_title} credentials are missing" );
 		}
@@ -255,25 +263,12 @@ abstract class KOM_Request {
 			}
 		}
 
-		$key = "${prefix}${component}_${country_string}";
+		$key = "${prefix}${component_name}_${country_string}";
 
 		if ( key_exists( $key, $options ) ) {
-			return utf8_encode( $options[ $key ] );
+			return $options[ $key ];
 		}
 		return '';
-	}
-
-	/**
-	 * Gets the settings relevant for this request. Returns boolean false if this is not a KCO or KP order.
-	 *
-	 * @return object|bool
-	 */
-	protected function get_klarna_settings() {
-		$variant = $this->get_klarna_variant();
-		if ( ! $variant ) {
-			return false;
-		}
-		return get_option( "woocommerce_${variant}_settings" );
 	}
 
 	/**
@@ -310,16 +305,24 @@ abstract class KOM_Request {
 	/**
 	 * Builds the request args for a request.
 	 *
-	 * @return array
+	 * @return array|WP_Error
 	 */
 	public function get_request_args() {
-		return array(
-			'headers'    => $this->get_request_headers(),
+		$headers = $this->get_request_headers();
+		if ( is_wp_error( $headers ) ) {
+			return $headers;
+		}
+		$args = array(
+			'headers'    => $headers,
 			'user-agent' => $this->get_user_agent(),
 			'method'     => $this->method,
-			'body'       => wp_json_encode( $this->get_body() ),
 			'timeout'    => apply_filters( 'kom_request_timeout', 10 ),
 		);
+		$body = $this->get_body();
+		if ( ! empty( $body ) ) {
+			$args['body'] = wp_json_encode( $body );
+		}
+		return $args;
 	}
 
 	/**
