@@ -284,7 +284,7 @@ abstract class KOM_Request {
 			return $response;
 		}
 		$response_code = wp_remote_retrieve_response_code( $response );
-		$body          = json_decode( wp_remote_retrieve_body( $response ), true );
+		$body          = json_decode( wp_remote_retrieve_body( $response ) );
 
 		if ( $response_code < 200 || $response_code >= 300 ) { // Anything not in the 200 range is an error.
 			$data          = "URL: ${request_url} - " . wp_json_encode( $request_args );
