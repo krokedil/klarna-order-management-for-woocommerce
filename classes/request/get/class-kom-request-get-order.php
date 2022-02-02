@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Get Order request class for orders
  */
-abstract class KOM_Request_Get_Order extends KOM_Request_Get {
+class KOM_Request_Get_Order extends KOM_Request_Get {
 	/**
 	 * Class constructor.
 	 *

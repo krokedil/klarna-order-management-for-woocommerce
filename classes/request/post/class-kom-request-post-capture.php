@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * POST request class for order capture
  */
-abstract class KOM_Request_Post_Capture extends KOM_Request_Post {
+class KOM_Request_Post_Capture extends KOM_Request_Post {
 	/**
 	 * Class constructor.
 	 *

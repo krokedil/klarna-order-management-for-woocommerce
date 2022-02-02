@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * POST request class for order cancellation
  */
-abstract class KOM_Request_Post_Cancel extends KOM_Request_Post {
+class KOM_Request_Post_Cancel extends KOM_Request_Post {
 	/**
 	 * Class constructor.
 	 *
