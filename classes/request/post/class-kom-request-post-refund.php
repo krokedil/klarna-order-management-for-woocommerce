@@ -11,6 +11,22 @@ defined( 'ABSPATH' ) || exit;
  * POST request class for order refund
  */
 class KOM_Request_Post_Refund extends KOM_Request_Post {
+
+
+	/**
+	 * The Refund Reason
+	 *
+	 * @var string
+	 */
+	protected $refund_reason;
+
+	/**
+	 * The Refund Amount
+	 *
+	 * @var integer
+	 */
+	protected $refund_amount;
+
 	/**
 	 * Class constructor.
 	 *
@@ -18,8 +34,9 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 	 */
 	public function __construct( $arguments ) {
 		parent::__construct( $arguments );
-		$this->log_title = 'Refund Klarna order';
-		// TODO: Implement refund_reason and refund_amount.
+		$this->log_title     = 'Refund Klarna order';
+		$this->refund_reason = $arguments['refund_reason'];
+		$this->refund_amount = $arguments['refund_amount'];
 	}
 
 	/**
