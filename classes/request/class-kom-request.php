@@ -52,8 +52,9 @@ abstract class KOM_Request {
 	 * @param array $arguments The request args.
 	 */
 	public function __construct( $arguments = array() ) {
-		$this->arguments = $arguments;
-		$this->order_id  = $arguments['order_id'];
+		$this->arguments       = $arguments;
+		$this->order_id        = $arguments['order_id'];
+		$this->klarna_order_id = $this->get_klarna_order_id();
 	}
 
 	/**
@@ -77,6 +78,20 @@ abstract class KOM_Request {
 
 		return false;
 
+	}
+
+	/**
+	 * Gets Klarna order ID from WooCommerce order.
+	 *
+	 * @return mixed
+	 */
+	public function get_klarna_order_id() {
+		$transaction_id = get_post_meta( $this->order_id, '_transaction_id', true );
+		if ( $transaction_id ) {
+			return $transaction_id;
+		}
+
+		return get_post_meta( $this->order_id, '_wc_klarna_order_id', true );
 	}
 
 	/**
@@ -130,13 +145,6 @@ abstract class KOM_Request {
 	abstract protected function get_request_url();
 
 	/**
-	 * Get the arguments for this request.
-	 *
-	 * @return array
-	 */
-	abstract protected function get_request_args();
-
-	/**
 	 * Make the request.
 	 *
 	 * @return object|WP_Error
@@ -146,6 +154,35 @@ abstract class KOM_Request {
 		$args     = $this->get_request_args();
 		$response = wp_remote_request( $url, $args );
 		return $this->process_response( $response, $args, $url );
+	}
+
+	/**
+	 * Get the request headers.
+	 *
+	 * @param string $body json_encoded body.
+	 * @return array
+	 */
+	protected function get_request_headers( $body = '' ) {
+		return array(
+			'Content-type'  => 'application/json',
+			'Authorization' => $this->calculate_auth( $body ),
+		);
+	}
+
+	/**
+	 * Get the user agent via filter 'http_headers_useragent'.
+	 *
+	 * @return string
+	 */
+	protected function get_user_agent() {
+		return apply_filters(
+			'http_headers_useragent',
+			'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' )
+			. ' - WooCommerce: ' . WC()->version
+			. ' - OM:' . WC_KLARNA_ORDER_MANAGEMENT_VERSION
+			. ' - PHP Version: ' . phpversion()
+			. ' - Krokedil'
+		);
 	}
 
 	/**
@@ -266,14 +303,44 @@ abstract class KOM_Request {
 			$processed_response = $body;
 		}
 
-		$this->log_response( $response, $request_args, $request_url );
+		$this->log_response( $response, $request_args, $response_code );
 		return $processed_response;
 	}
 
 	/**
-	 * FIXME: Stub function. Please do the thing!
+	 * Builds the request args for a request.
 	 *
+	 * @return array
+	 */
+	public function get_request_args() {
+		return array(
+			'headers'    => $this->get_request_headers(),
+			'user-agent' => $this->get_user_agent(),
+			'method'     => $this->method,
+			'body'       => wp_json_encode( $this->get_body() ),
+			'timeout'    => apply_filters( 'kom_request_timeout', 10 ),
+		);
+	}
+
+	/**
+	 * Build the request body for this request.
+	 *
+	 * @return array
+	 */
+	protected function get_body() {
+		return array();
+	}
+
+	/**
+	 * Standardized logging format for requests/responses.
+	 *
+	 * @param object|WP_Error $response The request response.
+	 * @param array           $request_args The arguments of the request.
+	 * @param int             $code The HTTP Response Code this request returned.
 	 * @return void
 	 */
-	protected function log_response() {}
+	protected function log_response( $response, $request_args, $code ) {
+		$log = WC_Klarna_Logger::format_log( $this->klarna_order_id, $this->method, $this->log_title, $request_args, $response, $code );
+		WC_Klarna_Logger::log( $log );
+	}
 }
