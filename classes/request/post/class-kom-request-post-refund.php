@@ -19,6 +19,7 @@ abstract class KOM_Request_Post_Refund extends KOM_Request_Post {
 	public function __construct( $arguments ) {
 		parent::__construct( $arguments );
 		$this->log_title = 'Refund Klarna order';
+		// TODO: Implement refund_reason and refund_amount.
 	}
 
 	/**

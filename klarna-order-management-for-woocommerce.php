@@ -98,13 +98,25 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				return;
 			}
 
-			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-order-management-request.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-order-management-order-lines.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-pending-orders.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-sellers-app.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-meta-box.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-order-management-settings.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-logger.php';
+
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/request/class-kom-request.php';
+
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/request/class-kom-request-get.php';
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/request/get/class-kom-request-get-order.php';
+
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/request/class-kom-request-patch.php';
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/request/patch/class-kom-request-patch-update.php';
+
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/request/class-kom-request-post.php';
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/request/post/class-kom-request-post-cancel.php';
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/request/post/class-kom-request-post-capture.php';
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/request/post/class-kom-request-post-refund.php';
 
 			// Add refunds support to Klarna Payments and Klarna Checkout gateways.
 			add_action( 'wc_klarna_payments_supports', array( $this, 'add_gateway_support' ) );
@@ -211,14 +223,12 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				} elseif ( 'CANCELLED' === $klarna_order->status ) {
 					$order->add_order_note( 'Klarna order has already been cancelled.' );
 				} else {
-					$request  = new WC_Klarna_Order_Management_Request(
+					$request  = new KOM_Request_Post_Cancel(
 						array(
-							'request'      => 'cancel',
-							'order_id'     => $order_id,
-							'klarna_order' => $klarna_order,
+							'order_id' => $order_id,
 						)
 					);
-					$response = $request->response();
+					$response = $request->request();
 
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order cancelled.' );
@@ -275,14 +285,14 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				}
 
 				if ( ! in_array( $klarna_order->status, array( 'CANCELLED', 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
-					$request  = new WC_Klarna_Order_Management_Request(
+					$request  = new KOM_Request_Patch_Update(
 						array(
 							'request'      => 'update_order_lines',
 							'order_id'     => $order_id,
 							'klarna_order' => $klarna_order,
 						)
 					);
-					$response = $request->response();
+					$response = $request->request();
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order updated.' );
 					} else {
@@ -370,14 +380,14 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 					return;
 				} else {
-					$request  = new WC_Klarna_Order_Management_Request(
+					$request  = new KOM_Request_Post_Capture(
 						array(
 							'request'      => 'capture',
 							'order_id'     => $order_id,
 							'klarna_order' => $klarna_order,
 						)
 					);
-					$response = $request->response();
+					$response = $request->request();
 
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order captured. Capture amount: ' . $order->get_formatted_order_total( '', false ) . '. Capture ID: ' . $response );
@@ -433,16 +443,14 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			}
 
 			if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
-				$request  = new WC_Klarna_Order_Management_Request(
+				$request  = new KOM_Request_Post_Refund(
 					array(
-						'request'       => 'refund',
 						'order_id'      => $order_id,
-						'klarna_order'  => $klarna_order,
 						'refund_amount' => $amount,
 						'refund_reason' => $reason,
 					)
 				);
-				$response = $request->response();
+				$response = $request->request();
 
 				if ( ! is_wp_error( $response ) ) {
 					$order->add_order_note( wc_price( $amount, array( 'currency' => get_post_meta( $order_id, '_order_currency', true ) ) ) . ' refunded via Klarna.' );
@@ -465,13 +473,12 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @return object $klarna_order Klarna Order.
 		 */
 		public function retrieve_klarna_order( $order_id ) {
-			$request      = new WC_Klarna_Order_Management_Request(
+			$request      = new KOM_Request_Get_Order(
 				array(
-					'request'  => 'retrieve',
 					'order_id' => $order_id,
 				)
 			);
-			$klarna_order = $request->response();
+			$klarna_order = $request->request();
 
 			return $klarna_order;
 		}
