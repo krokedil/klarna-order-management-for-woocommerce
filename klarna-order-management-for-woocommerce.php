@@ -103,8 +103,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-sellers-app.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-meta-box.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-order-management-settings.php';
-			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/class-wc-klarna-logger.php';
 
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-logger.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/request/class-kom-request.php';
 
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/request/class-kom-request-get.php';
