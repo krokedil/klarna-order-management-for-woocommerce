@@ -70,6 +70,7 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 
 	/**
 	 * Returns the refund order lines.
+	 * TODO: Move this functionality to WC_Klarna_Order_Management_Order_Lines class.
 	 *
 	 * @return array
 	 */
