@@ -22,42 +22,42 @@ class WC_Klarna_Order_Management_Order_Lines {
 	/**
 	 * Klarna order order lines.
 	 *
-	 * @var $order_lines
+	 * @var array
 	 */
 	public $order_lines = array();
 
 	/**
 	 * Klarna order amount.
 	 *
-	 * @var $order_lines
+	 * @var integer
 	 */
 	public $order_amount = 0;
 
 	/**
 	 * Klarna order tax amount.
 	 *
-	 * @var $order_tax_amount
+	 * @var integer
 	 */
 	public $order_tax_amount = 0;
 
 	/**
 	 * WooCommerce order ID.
 	 *
-	 * @var $order_id
+	 * @var string
 	 */
 	public $order_id;
 
 	/**
 	 * The request type.
 	 *
-	 * @var $request_type
+	 * @var string
 	 */
 	public $request_type;
 
 	/**
 	 * WooCommerce order.
 	 *
-	 * @var $order
+	 * @var bool|WC_Order|WC_Order_Refund
 	 */
 	public $order;
 
