@@ -144,7 +144,7 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 						'total_tax_amount'      => $refund_tax_amount,
 					);
 					// Do not add order lines if separate sales tax and no refund amount entered.
-					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons -- Non strict is ok here.
+					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons -- Can be float *or* integer, so non-strict is required.
 						$data[] = $item_data;
 					}
 				}
@@ -183,13 +183,13 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 						'total_tax_amount'      => $refund_tax_amount,
 					);
 					// Do not add order lines if separate sales tax and no refund amount entered.
-					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons -- Non strict is ok here.
+					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons -- Can be float *or* integer, so non-strict is required.
 						$data[] = $shipping_data;
 					}
 				}
 			}
 			// If separate sales tax and if tax is being refunded.
-			if ( $separate_sales_tax && '0' != $refund_order->get_total_tax() ) { // phpcs:ignore WordPress.PHP.StrictComparisons -- Non strict is ok here.
+			if ( $separate_sales_tax && '0' != $refund_order->get_total_tax() ) { // phpcs:ignore WordPress.PHP.StrictComparisons -- Can be float *or* integer, so non-strict is required.
 				$sales_tax_amount = round( abs( $refund_order->get_total_tax() ) * 100 );
 
 				// Add sales tax line item.
