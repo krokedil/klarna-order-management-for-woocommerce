@@ -34,8 +34,6 @@ class WC_Klarna_Meta_Box {
 		add_action( 'kom_meta_action_tips', array( $this, 'output_tip_capture' ), 10, 3 );
 		add_action( 'kom_meta_action_tips', array( $this, 'output_tip_cancel' ), 20, 3 );
 		add_action( 'kom_meta_action_tips', array( $this, 'output_tip_sync' ), 30, 3 );
-
-		add_action( 'kom_meta_no_actions', array( $this, 'output_no_actions_enabled' ), 10 );
 	}
 
 	/**
