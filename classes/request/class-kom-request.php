@@ -35,7 +35,7 @@ abstract class KOM_Request {
 	/**
 	 * The WC order id.
 	 *
-	 * @var string
+	 * @var int
 	 */
 	protected $order_id;
 

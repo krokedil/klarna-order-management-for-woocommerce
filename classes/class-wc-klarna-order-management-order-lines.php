@@ -43,7 +43,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	/**
 	 * WooCommerce order ID.
 	 *
-	 * @var string
+	 * @var int
 	 */
 	public $order_id;
 
