@@ -149,7 +149,7 @@ class WC_Klarna_Meta_Box {
 	 * @param  string $text The descriptive text for this option.
 	 * @return void
 	 */
-	protected static function print_option( $value, $text ) {
+	protected function print_option( $value, $text ) {
 		printf( '<option value="%s">%s</option>', esc_attr( $value ), esc_attr( $text ) );
 	}
 
@@ -160,7 +160,7 @@ class WC_Klarna_Meta_Box {
 	 * @param  string $description The discription of said action.
 	 * @return void
 	 */
-	protected static function print_tip_fragment( $action, $description ) {
+	protected function print_tip_fragment( $action, $description ) {
 		printf( '%s: %s<br/>', esc_html( $action ), esc_html( $description ) );
 	}
 
