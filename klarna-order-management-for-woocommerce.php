@@ -155,11 +155,24 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @return array Filtered links.
 		 */
 		public function plugin_action_links( $links ) {
+
+			$setting_link = $this->get_setting_link();
+
 			$plugin_links = array(
+				'<a href="' . $setting_link . '">' . __( 'Settings', 'klarna-order-management-for-woocommerce' ) . '</a>',
 				'<a target="_blank" href="https://docs.krokedil.com/article/149-klarna-order-management">Docs</a>',
 			);
 
 			return array_merge( $plugin_links, $links );
+		}
+
+		/**
+		 * Return the proper link for the settings page of KOM.
+		 *
+		 * @return string The full settings page URL.
+		 */
+		protected function get_setting_link() {
+			return admin_url( 'admin.php?page=kom-settings' );
 		}
 
 		/**
