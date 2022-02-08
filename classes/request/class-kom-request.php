@@ -169,7 +169,6 @@ abstract class KOM_Request {
 		if ( is_wp_error( $auth ) ) {
 			return $auth;
 		}
-		error_log( $auth );
 		return array(
 			'Authorization' => $auth,
 			'Content-Type'  => 'application/json',
@@ -223,7 +222,6 @@ abstract class KOM_Request {
 
 		$merchant_id   = $this->get_auth_component( 'merchant_id' );
 		$shared_secret = $this->get_auth_component( 'shared_secret' );
-		error_log( "Merchant ID: <${merchant_id}>, Shared secret: <${shared_secret}>" );
 		if ( '' === $merchant_id || '' === $shared_secret ) {
 			return new WP_Error( 'missing_credentials', "${gateway_title} credentials are missing" );
 		}
