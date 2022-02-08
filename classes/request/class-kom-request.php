@@ -33,6 +33,13 @@ abstract class KOM_Request {
 	protected $klarna_order_id;
 
 	/**
+	 * The Klarna order object.
+	 *
+	 * @var object
+	 */
+	protected $klarna_order;
+
+	/**
 	 * The WC order id.
 	 *
 	 * @var int
@@ -55,6 +62,7 @@ abstract class KOM_Request {
 		$this->arguments       = $arguments;
 		$this->order_id        = $arguments['order_id'];
 		$this->klarna_order_id = $this->get_klarna_order_id();
+		$this->klarna_order    = array_key_exists( 'klarna_order', $arguments ) ? $arguments['klarna_order'] : false;
 	}
 
 	/**
