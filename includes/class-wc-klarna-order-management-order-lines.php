@@ -159,7 +159,12 @@ class WC_Klarna_Order_Management_Order_Lines {
 		 * @var WC_Order_Item_Coupon $order_item WooCommerce order item coupon.
 		 */
 		foreach ( $order->get_items( 'coupon' ) as $order_item ) {
-			$this->order_lines[] = $this->process_order_item_coupon( $order_item, $order );
+
+			/* Only smart coupons are added to the capture order lines, or if the merchant is a Klarna US merchant. */
+			$coupon = new WC_Coupon( $order_item->get_name() );
+			if ( 'smart_coupon' === $coupon->get_discount_type() || 'US' === $this->klarna_country ) {
+				$this->order_lines[] = $this->process_order_item_coupon( $order_item, $order );
+			}
 		}
 
 		$added_surcharge = json_decode( get_post_meta( $this->order_id, '_kco_added_surcharge', true ), true );
@@ -397,7 +402,11 @@ class WC_Klarna_Order_Management_Order_Lines {
 
 			$item_quantity = 1;
 		} elseif ( 'fee' === $order_line_item->get_type() ) {
-			$item_price    = $order_line_item->get_total();
+			if ( $this->separate_sales_tax ) {
+				$item_price = $order_line_item->get_total();
+			} else {
+				$item_price = $order_line_item->get_total() + $order_line_item->get_total_tax();
+			}
 			$item_quantity = 1;
 		} elseif ( 'coupon' === $order_line_item->get_type() ) {
 			$item_price    = $order_line_item->get_discount();
@@ -462,7 +471,11 @@ class WC_Klarna_Order_Management_Order_Lines {
 				$item_total_amount = $this->order->get_shipping_total() + (float) $this->order->get_shipping_tax();
 			}
 		} elseif ( 'fee' === $order_line_item->get_type() ) {
-			$item_total_amount = $order_line_item->get_total();
+			if ( $this->separate_sales_tax ) {
+				$item_total_amount = $order_line_item->get_total();
+			} else {
+				$item_total_amount = $order_line_item->get_total() + $order_line_item->get_total_tax();
+			}
 		} elseif ( 'coupon' === $order_line_item->get_type() ) {
 			$item_total_amount = $order_line_item->get_discount();
 		} else {

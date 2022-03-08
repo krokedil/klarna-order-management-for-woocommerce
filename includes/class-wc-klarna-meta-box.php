@@ -56,7 +56,7 @@ class WC_Klarna_Meta_Box {
 			return;
 		}
 		// False if automatic settings are enabled, true if not. If true then show the option.
-		if ( ! empty( get_post_meta( $order_id, '_transaction_id', true ) ) && ! empty( get_post_meta( $order_id, '_wc_klarna_order_id', true ) ) ) {
+		if ( ! empty( get_post_meta( $order_id, '_transaction_id', true ) ) || ! empty( get_post_meta( $order_id, '_wc_klarna_order_id', true ) ) ) {
 
 			$klarna_order = WC_Klarna_Order_Management::get_instance()->retrieve_klarna_order( $order_id );
 
