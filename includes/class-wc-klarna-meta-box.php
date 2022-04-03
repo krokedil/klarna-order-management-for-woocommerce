@@ -64,8 +64,9 @@ class WC_Klarna_Meta_Box {
 				$this->print_error_content( __( 'Failed to retrieve the order from Klarna.', 'klarna-order-management-for-woocommerce' ) );
 				return;
 			}
+
+			$this->print_standard_content( $klarna_order );
 		}
-		$this->print_standard_content( $klarna_order );
 	}
 
 	/**
