@@ -3,10 +3,10 @@ Contributors: klarna, krokedil, NiklasHogefjord, automattic
 Tags: woocommerce, klarna
 Donate link: https://klarna.com
 Requires at least: 4.0
-Tested up to: 5.9.0
+Tested up to: 5.9.3
 Requires PHP: 7.0
 WC requires at least: 4.0.0
-WC tested up to: 6.2.0
+WC tested up to: 6.4.0
 Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -23,6 +23,10 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2022.04.13    - version 1.6.10 =
+* Fix           - Fixed an issue with the Mexico integration.
+* Fix           - Fixed a potential call to a undefined variable.
+
 = 2022.03.08    - version 1.6.9 =
 * Enhancement   - Added a filter when processing line items to be able to set the product type. This helps fix an issue if you have removed a product and want to set the product type. Thank you Ilja Zaglov (github: Zaglov).
 * Fix           - Fixed an issue that would cause the klarna order id to not be found on renewal orders in some cases.
