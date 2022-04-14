@@ -203,8 +203,10 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @return array
 	 */
 	public function process_order_item_shipping( $order_item, $order ) {
+		$reference = json_decode( get_post_meta( $order->get_id(), '_kco_kss_data', true ), true );
+
 		return array(
-			'reference'             => $this->get_item_reference( $order_item ),
+			'reference'             => ( isset( $reference['id'] ) ) ? $reference['id'] : $this->get_item_reference( $order_item ),
 			'type'                  => 'shipping_fee',
 			'name'                  => $this->get_item_name( $order_item ),
 			'quantity'              => 1,
