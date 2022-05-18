@@ -456,7 +456,8 @@ class WC_Klarna_Order_Management_Order_Lines {
 			}
 		}
 
-		return ! empty( floatval( $order_item->get_total() ) ) ? intval( number_format( 100 * $order_item->get_total_tax() / $order_item->get_total(), 0, '', '' ) ) : 0;
+		// If we get here, there is no tax set for the order item.
+		return 0;
 	}
 
 
