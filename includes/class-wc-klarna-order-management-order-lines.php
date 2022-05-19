@@ -469,6 +469,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 				}
 			}
 		}
+
+		// If we get here, there is no tax set for the order item.
+		return 0;
 	}
 
 
