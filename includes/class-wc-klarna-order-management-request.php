@@ -333,12 +333,12 @@ class WC_Klarna_Order_Management_Request {
 
 					$reference           = $order_lines_processor->get_item_reference( $item );
 					$name                = $order_lines_processor->get_item_name( $item );
-					$quantity            = abs( $order_lines_processor->get_item_quantity( $item ) );
-					$refund_price_amount = round( abs( $refund_order->get_line_subtotal( $item, false ) ) * 100 );
+					$quantity            = absint( $order_lines_processor->get_item_quantity( $item ) );
+					$refund_price_amount = absint( $refund_order->get_line_subtotal( $item, false ) * 100 );
 					$total_discount      = $order_lines_processor->get_item_discount_amount( $item );
-					$refund_tax_amount   = $separate_sales_tax ? 0 : abs( $order_lines_processor->get_item_tax_amount( $item ) );
-					$unit_price          = round( $refund_price_amount + $refund_tax_amount );
-					$total               = round( $quantity * $unit_price );
+					$refund_tax_amount   = $separate_sales_tax ? 0 : absint( $order_lines_processor->get_item_tax_amount( $item ) );
+					$unit_price          = ( $quantity === 0 ) ? 0 : ( $refund_price_amount + $refund_tax_amount ) / $quantity;
+					$total               = $quantity * $unit_price;
 					$item_data           = array(
 						'type'                  => $type,
 						'reference'             => $reference,

@@ -427,7 +427,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$klarna_order = $this->retrieve_klarna_order( $order_id );
 
 			if ( is_wp_error( $klarna_order ) ) {
-				$order->add_order_note( 'Could not capture Klarna order. ' . $klarna_order->get_error_message() . '.' );
+				$order->add_order_note( 'Could not refund Klarna order. ' . $klarna_order->get_error_message() . '.' );
 
 				return false;
 			}
