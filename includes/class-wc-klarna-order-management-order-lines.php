@@ -132,7 +132,12 @@ class WC_Klarna_Order_Management_Order_Lines {
 		 * @var WC_Order_Item_Product $order_item WooCommerce order item product.
 		 */
 		foreach ( $order->get_items() as $order_item ) {
-			$this->order_lines[] = $this->process_order_item_product( $order_item, $order );
+			$klarna_item = $this->process_order_item_product( $order_item, $order );
+
+			$order_line_item = apply_filters( 'kom_wc_order_line_item', $klarna_item, $order_item );
+			if ( $order_line_item ) {
+				$this->order_lines[] = $order_line_item;
+			}
 		}
 
 		/**
