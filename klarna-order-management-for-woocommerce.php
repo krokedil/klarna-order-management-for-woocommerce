@@ -207,7 +207,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				// Captured, part-captured and cancelled orders cannot be cancelled.
 				if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
-					$order->add_order_note( 'Klarna order has been captured previously and could not be cancelled.' );
+					$order->add_order_note( 'The Klarna order cannot be cancelled due to it already being captured.' );
 				} elseif ( 'CANCELLED' === $klarna_order->status ) {
 					$order->add_order_note( 'Klarna order has already been cancelled.' );
 				} else {
