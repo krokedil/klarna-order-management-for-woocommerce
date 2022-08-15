@@ -362,7 +362,7 @@ class WC_Klarna_Order_Management_Request {
 
 					$order_shipping_total    = round( $order->get_shipping_total() * 100 );
 					$order_shipping_tax      = round( $order->get_shipping_tax() * 100 );
-					$order_shipping_tax_rate = round( ( $order_shipping_tax / $order_shipping_total ) * 100 * 100 );
+					$order_shipping_tax_rate = empty( floatval( $order_shipping_total ) ) ? 0 : round( ( $order_shipping_tax / $order_shipping_total ) * 100 * 100 );
 
 					$type                = 'shipping_fee';
 					$reference           = $shipping_item->get_method_id() . ':' . $shipping_item->get_instance_id();
