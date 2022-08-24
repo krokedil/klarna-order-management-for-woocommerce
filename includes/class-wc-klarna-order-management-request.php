@@ -337,8 +337,8 @@ class WC_Klarna_Order_Management_Request {
 					$refund_price_amount = round( abs( $refund_order->get_line_subtotal( $item, false ) ) * 100 );
 					$total_discount      = $order_lines_processor->get_item_discount_amount( $item );
 					$refund_tax_amount   = $separate_sales_tax ? 0 : abs( $order_lines_processor->get_item_tax_amount( $item ) );
-					$unit_price          = round( $refund_price_amount + $refund_tax_amount );
-					$total               = round( $quantity * $unit_price );
+					$unit_price          = round( ( $refund_price_amount + $refund_tax_amount ) / $quantity );
+					$total               = round( $quantity * $unit_price - $total_discount );
 					$item_data           = array(
 						'type'                  => $type,
 						'reference'             => $reference,
@@ -372,7 +372,7 @@ class WC_Klarna_Order_Management_Request {
 					$refund_price_amount = round( abs( $shipping_item->get_total() ) * 100 );
 					$refund_tax_amount   = $separate_sales_tax ? 0 : round( abs( $shipping_item->get_total_tax() ) * 100 );
 					$unit_price          = round( $refund_price_amount + $refund_tax_amount );
-					$total               = round( $quantity * $unit_price );
+					$total               = round( $quantity * $unit_price - $total_discount );
 					$shipping_data       = array(
 						'type'                  => $type,
 						'reference'             => $reference,
