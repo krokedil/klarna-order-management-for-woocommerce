@@ -383,7 +383,16 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 						$order->add_order_note( 'Klarna order captured. Capture amount: ' . $order->get_formatted_order_total( '', false ) . '. Capture ID: ' . $response );
 						update_post_meta( $order_id, '_wc_klarna_capture_id', $response, true );
 					} else {
-						$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() );
+
+						/* The suggested approach by Klarna is to try again after some time. If that still fails, the merchant should inform the customer, and ask them to either "create a new subscription or add funds to their payment method if they wish to continue." */
+						if ( isset( $response->get_error_data()['code'] ) && 403 === $response->get_error_data()['code'] && 'PAYMENT_METHOD_FAILED' === $response->get_error_code() ) {
+							$order = wc_get_order( $order_id );
+							$order->add_order_note( __( 'Klarna could not charge the customer. Please try again later. If that still fails, the customer may have to create a new subscription or add funds to their payment method if they wish to continue.', 'klarna-order-management-for-woocommerce' ) );
+						} else {
+							// translators: %s: Error message from Klarna.
+							$order->add_order_note( __( 'Could not capture Klarna order. %s', 'klarna-order-management-for-woocommerce' ) );
+						}
+
 						$order->set_status( 'on-hold' );
 						$order->save();
 					}
