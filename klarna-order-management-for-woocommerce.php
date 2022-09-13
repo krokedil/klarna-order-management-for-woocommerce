@@ -383,7 +383,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 						$order->add_order_note( 'Klarna order captured. Capture amount: ' . $order->get_formatted_order_total( '', false ) . '. Capture ID: ' . $response );
 						update_post_meta( $order_id, '_wc_klarna_capture_id', $response, true );
 					} else {
-						$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() . '.' );
+						$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() );
 						$order->set_status( 'on-hold' );
 						$order->save();
 					}
