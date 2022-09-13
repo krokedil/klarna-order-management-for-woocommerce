@@ -390,7 +390,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 							$order->add_order_note( __( 'Klarna could not charge the customer. Please try again later. If that still fails, the customer may have to create a new subscription or add funds to their payment method if they wish to continue.', 'klarna-order-management-for-woocommerce' ) );
 						} else {
 							// translators: %s: Error message from Klarna.
-							$order->add_order_note( __( 'Could not capture Klarna order. %s', 'klarna-order-management-for-woocommerce' ) );
+							$order->add_order_note( __( sprintf( 'Could not capture Klarna order. %s', $response->get_error_message() ), 'klarna-order-management-for-woocommerce' ) );
 						}
 
 						$order->set_status( 'on-hold' );
