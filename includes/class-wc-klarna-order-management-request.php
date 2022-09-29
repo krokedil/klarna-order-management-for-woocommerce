@@ -694,7 +694,7 @@ class WC_Klarna_Order_Management_Request {
 
 					return sanitize_key( $klarna_capture_id );
 				} else {
-					return new WP_Error( $response_body->error_code, $response_body->error_messages[0] );
+					return new WP_Error( $response_body->error_code, $response_body->error_messages[0], array( 'code' => $response_code ) );
 				}
 
 			case 'cancel':
