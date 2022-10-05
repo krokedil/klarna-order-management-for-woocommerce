@@ -302,6 +302,11 @@ abstract class KOM_Request {
 			$processed_response = new WP_Error( $response_code, $error_message, $data );
 		} else { // Response is *not* an error!
 			$processed_response = $body;
+
+			// On capture, the $body is null and capture id is sent in the HTTP headers.
+			if ( isset( $this->arguments['request'] ) && 'capture' === $this->arguments['request'] ) {
+				$processed_response = sanitize_key( $response['headers']->offsetGet( 'capture-id' ) );
+			}
 		}
 
 		$this->log_response( $response, $request_args, $response_code );
