@@ -144,6 +144,12 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 						'total_discount_amount' => $total_discount,
 						'total_tax_amount'      => $refund_tax_amount,
 					);
+
+					$product_urls = kom_maybe_add_product_urls( $item );
+					if ( ! empty( $product_urls ) ) {
+						$item_data = array_merge( $item_data, kom_maybe_add_product_urls( $item ) );
+					}
+
 					// Do not add order lines if separate sales tax and no refund amount entered.
 					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons -- Can be float *or* integer, so non-strict is required.
 						$data[] = $item_data;
@@ -183,6 +189,7 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 						'total_discount_amount' => $total_discount,
 						'total_tax_amount'      => $refund_tax_amount,
 					);
+
 					// Do not add order lines if separate sales tax and no refund amount entered.
 					if ( ! ( $separate_sales_tax && '0' == $refund_price_amount ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons -- Can be float *or* integer, so non-strict is required.
 						$data[] = $shipping_data;
@@ -225,4 +232,5 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 		/* Always retrieve the most recent (current) refund (index 0). */
 		return $order->get_refunds()[0]->get_id();
 	}
+
 }

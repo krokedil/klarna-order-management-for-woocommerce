@@ -199,16 +199,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 			'total_tax_amount'      => $this->get_item_tax_amount( $order_item ),
 		);
 
-		$settings = get_option( 'woocommerce_kco_settings', array() );
-		if ( isset( $settings['send_product_urls'] ) && 'yes' === $settings['send_product_urls'] ) {
-			$product = wc_get_product( $order_item->get_product_id() );
-
-			$image_url = $this->get_item_image_url( $product );
-			if ( $image_url ) {
-				$order_line['image_url'] = $image_url;
-			}
-
-			$order_line['product_url'] = $this->get_item_product_url( $product );
+		$product_urls = kom_maybe_add_product_urls( $order_item );
+		if ( ! empty( $product_urls ) ) {
+			$order_line = array_merge( $order_line, $product_urls );
 		}
 
 		return $order_line;
@@ -570,34 +563,4 @@ class WC_Klarna_Order_Management_Order_Lines {
 		$product = $order_line_item->get_product();
 		return $product && ! $product->is_virtual() ? 'physical' : 'digital';
 	}
-
-	/**
-	 * Get cart item product URL.
-	 *
-	 * @since  1.1
-	 * @access public
-	 *
-	 * @param  WC_Product $product Product.
-	 * @return string|false $item_product_url Cart item product URL.
-	 */
-	private function get_item_product_url( $product ) {
-		return $product->get_permalink();
-	}
-
-	/**
-	 * Get cart item product image URL.
-	 *
-	 * @param WC_Product $product
-	 * @return string|false $item_product_image_url Cart item product image URL.
-	 */
-	private function get_item_image_url( $product ) {
-		$image_url = false;
-		if ( $product->get_image_id() > 0 ) {
-			$image_id  = $product->get_image_id();
-			$image_url = wp_get_attachment_image_url( $image_id, 'shop_single', false );
-		}
-
-		return $image_url;
-	}
-
 }
