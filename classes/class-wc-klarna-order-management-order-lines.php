@@ -132,7 +132,12 @@ class WC_Klarna_Order_Management_Order_Lines {
 		 * @var WC_Order_Item_Product $order_item WooCommerce order item product.
 		 */
 		foreach ( $order->get_items() as $order_item ) {
-			$this->order_lines[] = $this->process_order_item_product( $order_item, $order );
+			$klarna_item = $this->process_order_item_product( $order_item, $order );
+
+			$order_line_item = apply_filters( 'kom_wc_order_line_item', $klarna_item, $order_item );
+			if ( $order_line_item ) {
+				$this->order_lines[] = $order_line_item;
+			}
 		}
 
 		/**
@@ -159,7 +164,12 @@ class WC_Klarna_Order_Management_Order_Lines {
 		 * @var WC_Order_Item_Coupon $order_item WooCommerce order item coupon.
 		 */
 		foreach ( $order->get_items( 'coupon' ) as $order_item ) {
-			$this->order_lines[] = $this->process_order_item_coupon( $order_item, $order );
+
+			/* Only smart coupons are added to the capture order lines, or if the merchant is a Klarna US merchant. */
+			$coupon = new WC_Coupon( $order_item->get_name() );
+			if ( 'smart_coupon' === $coupon->get_discount_type() || 'US' === $this->klarna_country ) {
+				$this->order_lines[] = $this->process_order_item_coupon( $order_item, $order );
+			}
 		}
 
 		$added_surcharge = json_decode( get_post_meta( $this->order_id, '_kco_added_surcharge', true ), true );
@@ -177,7 +187,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @return array
 	 */
 	public function process_order_item_product( $order_item, $order ) {
-		return array(
+		$order_line = array(
 			'reference'             => $this->get_item_reference( $order_item ),
 			'type'                  => $this->get_item_type( $order_item ),
 			'name'                  => $this->get_item_name( $order_item ),
@@ -188,6 +198,20 @@ class WC_Klarna_Order_Management_Order_Lines {
 			'total_discount_amount' => $this->get_item_discount_amount( $order_item ),
 			'total_tax_amount'      => $this->get_item_tax_amount( $order_item ),
 		);
+
+		$settings = get_option( 'woocommerce_kco_settings', array() );
+		if ( isset( $settings['send_product_urls'] ) && 'yes' === $settings['send_product_urls'] ) {
+			$product = wc_get_product( $order_item->get_product_id() );
+
+			$image_url = $this->get_item_image_url( $product );
+			if ( $image_url ) {
+				$order_line['image_url'] = $image_url;
+			}
+
+			$order_line['product_url'] = $this->get_item_product_url( $product );
+		}
+
+		return $order_line;
 	}
 
 	/**
@@ -198,8 +222,10 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @return array
 	 */
 	public function process_order_item_shipping( $order_item, $order ) {
+		$reference = json_decode( get_post_meta( $order->get_id(), '_kco_kss_data', true ), true );
+
 		return array(
-			'reference'             => $this->get_item_reference( $order_item ),
+			'reference'             => ( isset( $reference['id'] ) ) ? $reference['id'] : $this->get_item_reference( $order_item ),
 			'type'                  => 'shipping_fee',
 			'name'                  => $this->get_item_name( $order_item ),
 			'quantity'              => 1,
@@ -448,6 +474,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 				}
 			}
 		}
+
+		// If we get here, there is no tax set for the order item.
+		return 0;
 	}
 
 
@@ -540,6 +569,35 @@ class WC_Klarna_Order_Management_Order_Lines {
 	public function get_item_type( $order_line_item ) {
 		$product = $order_line_item->get_product();
 		return $product && ! $product->is_virtual() ? 'physical' : 'digital';
+	}
+
+	/**
+	 * Get cart item product URL.
+	 *
+	 * @since  1.1
+	 * @access public
+	 *
+	 * @param  WC_Product $product Product.
+	 * @return string|false $item_product_url Cart item product URL.
+	 */
+	private function get_item_product_url( $product ) {
+		return $product->get_permalink();
+	}
+
+	/**
+	 * Get cart item product image URL.
+	 *
+	 * @param WC_Product $product
+	 * @return string|false $item_product_image_url Cart item product image URL.
+	 */
+	private function get_item_image_url( $product ) {
+		$image_url = false;
+		if ( $product->get_image_id() > 0 ) {
+			$image_id  = $product->get_image_id();
+			$image_url = wp_get_attachment_image_url( $image_id, 'shop_single', false );
+		}
+
+		return $image_url;
 	}
 
 }
