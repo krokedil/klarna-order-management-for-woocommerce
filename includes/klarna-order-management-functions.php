@@ -12,12 +12,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Get the product and its image URLs.
  *
- * @param WC_Order_Item
+ * @param WC_Order_Item_Product The order item.
  * @return array The product and image URL if available, otherwise an empty array.
  */
 function kom_maybe_add_product_urls( $item ) {
 	$product_data = array();
-	$settings = get_option( 'woocommerce_kco_settings', array() );
+	$settings     = get_option( 'woocommerce_kco_settings', array() );
 	if ( isset( $settings['send_product_urls'] ) && 'yes' === $settings['send_product_urls'] ) {
 		$product = wc_get_product( $item->get_product_id() );
 		if ( $product->get_image_id() > 0 ) {
