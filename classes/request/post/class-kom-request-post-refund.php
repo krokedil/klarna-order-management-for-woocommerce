@@ -77,7 +77,7 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 	public function get_refund_order_lines() {
 		$refund_id = $this->get_refunded_order_id( $this->order_id );
 
-		if ( null !== $refund_id ) {
+		if ( ! empty( $refund_id ) ) {
 			$refund_order            = wc_get_order( $refund_id );
 			$order                   = wc_get_order( $this->order_id );
 			$order_items             = $order->get_items();
@@ -220,20 +220,9 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 	 * @return string
 	 */
 	public function get_refunded_order_id( $order_id ) {
-		$query_args = array(
-			'fields'         => 'id=>parent',
-			'post_type'      => 'shop_order_refund',
-			'post_status'    => 'any',
-			'posts_per_page' => -1,
-		);
-		$refunds    = get_posts( $query_args );
-		$refund_id  = array_search( $order_id, $refunds, true );
-		if ( is_array( $refund_id ) ) {
-			foreach ( $refund_id as $key => $value ) {
-				$refund_id = $value;
-				break;
-			}
-		}
-		return $refund_id;
+		$order = wc_get_order( $order_id );
+
+		/* Always retrieve the most recent (current) refund (index 0). */
+		return $order->get_refunds()[0]->get_id();
 	}
 }
