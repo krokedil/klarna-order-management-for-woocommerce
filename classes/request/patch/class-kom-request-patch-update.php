@@ -27,7 +27,7 @@ class KOM_Request_Patch_Update extends KOM_Request_Patch {
 	 * @return string
 	 */
 	protected function get_request_url() {
-		return $this->get_api_url_base() . '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/authorization';
+		return $this->get_api_url_base() . 'ordermanagement/v1/orders/' . $this->klarna_order_id . '/authorization';
 	}
 
 	/**

@@ -27,6 +27,6 @@ class KOM_Request_Post_Cancel extends KOM_Request_Post {
 	 * @return string
 	 */
 	protected function get_request_url() {
-		return $this->get_api_url_base() . '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/cancel';
+		return $this->get_api_url_base() . 'ordermanagement/v1/orders/' . $this->klarna_order_id . '/cancel';
 	}
 }

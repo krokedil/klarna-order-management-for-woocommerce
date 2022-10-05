@@ -27,7 +27,7 @@ class KOM_Request_Get_Order extends KOM_Request_Get {
 	 * @return string
 	 */
 	protected function get_request_url() {
-		return $this->get_api_url_base() . '/ordermanagement/v1/orders/' . $this->klarna_order_id;
+		return $this->get_api_url_base() . 'ordermanagement/v1/orders/' . $this->klarna_order_id;
 	}
 }
 

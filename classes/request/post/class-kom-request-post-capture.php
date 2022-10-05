@@ -27,7 +27,7 @@ class KOM_Request_Post_Capture extends KOM_Request_Post {
 	 * @return string
 	 */
 	protected function get_request_url() {
-		return $this->get_api_url_base() . '/ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures';
+		return $this->get_api_url_base() . 'ordermanagement/v1/orders/' . $this->klarna_order_id . '/captures';
 	}
 
 	/**
