@@ -78,9 +78,9 @@ class WC_Klarna_Meta_Box {
 	public function print_standard_content( $klarna_order ) {
 		$order_id      = get_the_ID();
 		$settings      = get_option( 'kom_settings' );
-		$capture_order = ( ! isset( $settings['kom_auto_capture'] ) || 'yes' === $settings['kom_auto_capture'] ) ? false : true;
-		$cancel_order  = ( ! isset( $settings['kom_auto_cancel'] ) || 'yes' === $settings['kom_auto_cancel'] ) ? false : true;
-		$sync_order    = ( ! isset( $settings['kom_auto_order_sync'] ) || 'yes' === $settings['kom_auto_order_sync'] ) ? false : true;
+		$capture_order = isset( $settings['kom_auto_capture'] ) && 'yes' === $settings['kom_auto_capture'];
+		$cancel_order  = isset( $settings['kom_auto_cancel'] ) && 'yes' === $settings['kom_auto_cancel'];
+		$sync_order    = isset( $settings['kom_auto_order_sync'] ) && 'yes' === $settings['kom_auto_order_sync'];
 		$environment   = ! empty( get_post_meta( $order_id, '_wc_klarna_environment', true ) ) ? get_post_meta( $order_id, '_wc_klarna_environment', true ) : '';
 
 		// Show klarna order information.
@@ -92,7 +92,7 @@ class WC_Klarna_Meta_Box {
 					$environment = 'live' === $environment ? 'Production' : 'Playground';
 					?>
 				<strong><?php esc_html_e( 'Klarna Environment: ', 'klarna-order-management-for-woocommerce' ); ?> </strong><?php echo esc_html( $environment ); ?><br/>
-			<?php } ?> 
+			<?php } ?>
 			<strong><?php esc_html_e( 'Klarna order status: ', 'klarna-order-management-for-woocommerce' ); ?> </strong> <?php echo esc_html( $klarna_order->status ); ?><br/>
 			<strong><?php esc_html_e( 'Initial Payment method: ', 'klarna-order-management-for-woocommerce' ); ?> </strong> <?php echo esc_html( $klarna_order->initial_payment_method->description ); ?><br/>
 			<?php } ?>
