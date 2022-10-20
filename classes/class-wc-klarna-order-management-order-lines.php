@@ -172,6 +172,28 @@ class WC_Klarna_Order_Management_Order_Lines {
 			}
 		}
 
+		/**
+		 * PW WooCommerce Gift Cards.
+		 */
+		foreach ( $order->get_items( 'pw_gift_card' ) as $gift_card ) {
+			$code             = $gift_card->get_card_number();
+			$gift_card_sku    = apply_filters( 'klarna_pw_gift_card_sku', __( 'gift_card', 'klarna-order-management-for-woocommerce' ), $code );
+			$gift_card_amount = intval( $gift_card->get_amount() * -100 );
+			$order_item       = array(
+				'type'                  => 'gift_card',
+				'reference'             => $gift_card_sku,
+				'name'                  => __( 'Gift card', 'pw-woocommerce-gift-cards' ) . ' ' . $code,
+				'quantity'              => 1,
+				'tax_rate'              => 0,
+				'total_discount_amount' => 0,
+				'total_tax_amount'      => 0,
+				'unit_price'            => $gift_card_amount,
+				'total_amount'          => $gift_card_amount,
+			);
+
+			$this->order_lines[] = $order_item;
+		}
+
 		$added_surcharge = json_decode( get_post_meta( $this->order_id, '_kco_added_surcharge', true ), true );
 
 		if ( ! empty( $added_surcharge ) ) {
