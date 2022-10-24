@@ -22,42 +22,42 @@ class WC_Klarna_Order_Management_Order_Lines {
 	/**
 	 * Klarna order order lines.
 	 *
-	 * @var $order_lines
+	 * @var array
 	 */
 	public $order_lines = array();
 
 	/**
 	 * Klarna order amount.
 	 *
-	 * @var $order_lines
+	 * @var integer
 	 */
 	public $order_amount = 0;
 
 	/**
 	 * Klarna order tax amount.
 	 *
-	 * @var $order_tax_amount
+	 * @var integer
 	 */
 	public $order_tax_amount = 0;
 
 	/**
 	 * WooCommerce order ID.
 	 *
-	 * @var $order_id
+	 * @var int
 	 */
 	public $order_id;
 
 	/**
 	 * The request type.
 	 *
-	 * @var $request_type
+	 * @var string
 	 */
 	public $request_type;
 
 	/**
 	 * WooCommerce order.
 	 *
-	 * @var $order
+	 * @var bool|WC_Order|WC_Order_Refund
 	 */
 	public $order;
 
@@ -172,6 +172,28 @@ class WC_Klarna_Order_Management_Order_Lines {
 			}
 		}
 
+		/**
+		 * PW WooCommerce Gift Cards.
+		 */
+		foreach ( $order->get_items( 'pw_gift_card' ) as $gift_card ) {
+			$code             = $gift_card->get_card_number();
+			$gift_card_sku    = apply_filters( 'klarna_pw_gift_card_sku', __( 'gift_card', 'klarna-order-management-for-woocommerce' ), $code );
+			$gift_card_amount = intval( $gift_card->get_amount() * -100 );
+			$order_item       = array(
+				'type'                  => 'gift_card',
+				'reference'             => $gift_card_sku,
+				'name'                  => __( 'Gift card', 'pw-woocommerce-gift-cards' ) . ' ' . $code,
+				'quantity'              => 1,
+				'tax_rate'              => 0,
+				'total_discount_amount' => 0,
+				'total_tax_amount'      => 0,
+				'unit_price'            => $gift_card_amount,
+				'total_amount'          => $gift_card_amount,
+			);
+
+			$this->order_lines[] = $order_item;
+		}
+
 		$added_surcharge = json_decode( get_post_meta( $this->order_id, '_kco_added_surcharge', true ), true );
 
 		if ( ! empty( $added_surcharge ) ) {
@@ -199,16 +221,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 			'total_tax_amount'      => $this->get_item_tax_amount( $order_item ),
 		);
 
-		$settings = get_option( 'woocommerce_kco_settings', array() );
-		if ( isset( $settings['send_product_urls'] ) && 'yes' === $settings['send_product_urls'] ) {
-			$product = wc_get_product( $order_item->get_product_id() );
-
-			$image_url = $this->get_item_image_url( $product );
-			if ( $image_url ) {
-				$order_line['image_url'] = $image_url;
-			}
-
-			$order_line['product_url'] = $this->get_item_product_url( $product );
+		$product_urls = kom_maybe_add_product_urls( $order_item );
+		if ( ! empty( $product_urls ) ) {
+			$order_line = array_merge( $order_line, $product_urls );
 		}
 
 		return $order_line;
@@ -570,34 +585,4 @@ class WC_Klarna_Order_Management_Order_Lines {
 		$product = $order_line_item->get_product();
 		return $product && ! $product->is_virtual() ? 'physical' : 'digital';
 	}
-
-	/**
-	 * Get cart item product URL.
-	 *
-	 * @since  1.1
-	 * @access public
-	 *
-	 * @param  WC_Product $product Product.
-	 * @return string|false $item_product_url Cart item product URL.
-	 */
-	private function get_item_product_url( $product ) {
-		return $product->get_permalink();
-	}
-
-	/**
-	 * Get cart item product image URL.
-	 *
-	 * @param WC_Product $product
-	 * @return string|false $item_product_image_url Cart item product image URL.
-	 */
-	private function get_item_image_url( $product ) {
-		$image_url = false;
-		if ( $product->get_image_id() > 0 ) {
-			$image_id  = $product->get_image_id();
-			$image_url = wp_get_attachment_image_url( $image_id, 'shop_single', false );
-		}
-
-		return $image_url;
-	}
-
 }
