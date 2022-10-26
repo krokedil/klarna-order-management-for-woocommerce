@@ -22,42 +22,42 @@ class WC_Klarna_Order_Management_Order_Lines {
 	/**
 	 * Klarna order order lines.
 	 *
-	 * @var $order_lines
+	 * @var array
 	 */
 	public $order_lines = array();
 
 	/**
 	 * Klarna order amount.
 	 *
-	 * @var $order_lines
+	 * @var integer
 	 */
 	public $order_amount = 0;
 
 	/**
 	 * Klarna order tax amount.
 	 *
-	 * @var $order_tax_amount
+	 * @var integer
 	 */
 	public $order_tax_amount = 0;
 
 	/**
 	 * WooCommerce order ID.
 	 *
-	 * @var $order_id
+	 * @var int
 	 */
 	public $order_id;
 
 	/**
 	 * The request type.
 	 *
-	 * @var $request_type
+	 * @var string
 	 */
 	public $request_type;
 
 	/**
 	 * WooCommerce order.
 	 *
-	 * @var $order
+	 * @var bool|WC_Order|WC_Order_Refund
 	 */
 	public $order;
 
@@ -132,7 +132,12 @@ class WC_Klarna_Order_Management_Order_Lines {
 		 * @var WC_Order_Item_Product $order_item WooCommerce order item product.
 		 */
 		foreach ( $order->get_items() as $order_item ) {
-			$this->order_lines[] = $this->process_order_item_product( $order_item, $order );
+			$klarna_item = $this->process_order_item_product( $order_item, $order );
+
+			$order_line_item = apply_filters( 'kom_wc_order_line_item', $klarna_item, $order_item );
+			if ( $order_line_item ) {
+				$this->order_lines[] = $order_line_item;
+			}
 		}
 
 		/**
@@ -167,6 +172,28 @@ class WC_Klarna_Order_Management_Order_Lines {
 			}
 		}
 
+		/**
+		 * PW WooCommerce Gift Cards.
+		 */
+		foreach ( $order->get_items( 'pw_gift_card' ) as $gift_card ) {
+			$code             = $gift_card->get_card_number();
+			$gift_card_sku    = apply_filters( 'klarna_pw_gift_card_sku', __( 'gift_card', 'klarna-order-management-for-woocommerce' ), $code );
+			$gift_card_amount = intval( $gift_card->get_amount() * -100 );
+			$order_item       = array(
+				'type'                  => 'gift_card',
+				'reference'             => $gift_card_sku,
+				'name'                  => __( 'Gift card', 'pw-woocommerce-gift-cards' ) . ' ' . $code,
+				'quantity'              => 1,
+				'tax_rate'              => 0,
+				'total_discount_amount' => 0,
+				'total_tax_amount'      => 0,
+				'unit_price'            => $gift_card_amount,
+				'total_amount'          => $gift_card_amount,
+			);
+
+			$this->order_lines[] = $order_item;
+		}
+
 		$added_surcharge = json_decode( get_post_meta( $this->order_id, '_kco_added_surcharge', true ), true );
 
 		if ( ! empty( $added_surcharge ) ) {
@@ -182,7 +209,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @return array
 	 */
 	public function process_order_item_product( $order_item, $order ) {
-		return array(
+		$order_line = array(
 			'reference'             => $this->get_item_reference( $order_item ),
 			'type'                  => $this->get_item_type( $order_item ),
 			'name'                  => $this->get_item_name( $order_item ),
@@ -193,6 +220,13 @@ class WC_Klarna_Order_Management_Order_Lines {
 			'total_discount_amount' => $this->get_item_discount_amount( $order_item ),
 			'total_tax_amount'      => $this->get_item_tax_amount( $order_item ),
 		);
+
+		$product_urls = kom_maybe_add_product_urls( $order_item );
+		if ( ! empty( $product_urls ) ) {
+			$order_line = array_merge( $order_line, $product_urls );
+		}
+
+		return $order_line;
 	}
 
 	/**
@@ -203,8 +237,10 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @return array
 	 */
 	public function process_order_item_shipping( $order_item, $order ) {
+		$reference = json_decode( get_post_meta( $order->get_id(), '_kco_kss_data', true ), true );
+
 		return array(
-			'reference'             => $this->get_item_reference( $order_item ),
+			'reference'             => ( isset( $reference['id'] ) ) ? $reference['id'] : $this->get_item_reference( $order_item ),
 			'type'                  => 'shipping_fee',
 			'name'                  => $this->get_item_name( $order_item ),
 			'quantity'              => 1,
@@ -453,6 +489,9 @@ class WC_Klarna_Order_Management_Order_Lines {
 				}
 			}
 		}
+
+		// If we get here, there is no tax set for the order item.
+		return 0;
 	}
 
 
@@ -546,5 +585,4 @@ class WC_Klarna_Order_Management_Order_Lines {
 		$product = $order_line_item->get_product();
 		return $product && ! $product->is_virtual() ? 'physical' : 'digital';
 	}
-
 }
