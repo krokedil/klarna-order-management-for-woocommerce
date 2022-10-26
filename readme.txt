@@ -3,10 +3,10 @@ Contributors: klarna, krokedil, NiklasHogefjord, automattic
 Tags: woocommerce, klarna
 Donate link: https://klarna.com
 Requires at least: 4.0
-Tested up to: 5.9.3
+Tested up to: 6.1
 Requires PHP: 7.0
 WC requires at least: 4.0.0
-WC tested up to: 6.4.0
+WC tested up to: 7.0.0
 Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -23,6 +23,16 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2022.10.26    - version 1.7.0 =
+* Feature       - Added support for "PW WooCommerce Gift Cards"
+* Fix           - Fixed division by zero.
+* Fix           - Fixed an issue where "null" is returned if the tax rate could not be retrieved. 
+* Fix           - The image and product URL should now be sent for pay for order if this option is enabled in Klarna Checkout or Payments.
+* Tweak         - You can now use the 'kom_wc_order_line_item' filter to conditionally add or remove items to be sent to Klarna.
+* Tweak         - Use the Klarna Shipping Assistant shipping data when available.
+* Enhancement   - If a capture fails due to a 403 error, the merchant should now be notified about the reason.
+* Note          - Cleaned up code that handles requests to make maintainability easier.
+
 = 2022.04.13    - version 1.6.10 =
 * Fix           - Fixed an issue with the Mexico integration.
 * Fix           - Fixed a potential call to a undefined variable.
