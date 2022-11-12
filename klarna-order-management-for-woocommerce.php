@@ -413,8 +413,15 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 							$order = wc_get_order( $order_id );
 							$order->add_order_note( __( 'Klarna could not charge the customer. Please try again later. If that still fails, the customer may have to create a new subscription or add funds to their payment method if they wish to continue.', 'klarna-order-management-for-woocommerce' ) );
 						} else {
+							$error_message = $response->get_error_message();
+
+							if ( ! is_array( $error_message ) && false !== strpos( $error_message, 'Captured amount is higher than the remaining authorized amount.' ) ) {
+								$error_message = str_replace( '. Capture not possible.', sprintf( ': %s %s.', $klarna_order->remaining_authorized_amount / 100, $klarna_order->purchase_currency ), $error_message );
+							}
+
 							// translators: %s: Error message from Klarna.
-							$order->add_order_note( __( sprintf( 'Could not capture Klarna order. %s', $response->get_error_message() ), 'klarna-order-management-for-woocommerce' ) );
+							$order->add_order_note( __( sprintf( 'Could not capture Klarna order. %s', $error_message ), 'klarna-order-management-for-woocommerce' ) );
+
 						}
 
 						$order->set_status( 'on-hold' );
