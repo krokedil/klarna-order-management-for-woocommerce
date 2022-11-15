@@ -420,7 +420,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 							}
 
 							// translators: %s: Error message from Klarna.
-							$order->add_order_note( __( sprintf( 'Could not capture Klarna order. %s', $error_message ), 'klarna-order-management-for-woocommerce' ) );
+							$order->add_order_note( sprintf( __( 'Could not capture Klarna order. %s', 'klarna-order-management-for-woocommerce' ), $error_message ) );
 
 						}
 
