@@ -131,7 +131,7 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 					$refund_price_amount = round( abs( $refund_order->get_line_subtotal( $item, false ) ) * 100 );
 					$total_discount      = $order_lines_processor->get_item_discount_amount( $item );
 					$refund_tax_amount   = $separate_sales_tax ? 0 : abs( $order_lines_processor->get_item_tax_amount( $item ) );
-					$unit_price          = round( $refund_price_amount + $refund_tax_amount );
+					$unit_price          = round( ( $refund_price_amount + $refund_tax_amount ) / $quantity );
 					$total               = round( $quantity * $unit_price );
 					$item_data           = array(
 						'type'                  => $type,
