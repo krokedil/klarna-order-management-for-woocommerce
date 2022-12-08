@@ -5,12 +5,12 @@
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
  * Author: klarna, krokedil
  * Author URI: https://krokedil.se/
- * Version: 1.7.0
+ * Version: 1.7.1
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
  *
  * WC requires at least: 3.4.0
- * WC tested up to: 7.0.0
+ * WC tested up to: 7.2.0
  *
  * Copyright (c) 2018-2022 Krokedil
  *
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.7.0' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.7.1' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -413,8 +413,15 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 							$order = wc_get_order( $order_id );
 							$order->add_order_note( __( 'Klarna could not charge the customer. Please try again later. If that still fails, the customer may have to create a new subscription or add funds to their payment method if they wish to continue.', 'klarna-order-management-for-woocommerce' ) );
 						} else {
+							$error_message = $response->get_error_message();
+
+							if ( ! is_array( $error_message ) && false !== strpos( $error_message, 'Captured amount is higher than the remaining authorized amount.' ) ) {
+								$error_message = str_replace( '. Capture not possible.', sprintf( ': %s %s.', $klarna_order->remaining_authorized_amount / 100, $klarna_order->purchase_currency ), $error_message );
+							}
+
 							// translators: %s: Error message from Klarna.
-							$order->add_order_note( __( sprintf( 'Could not capture Klarna order. %s', $response->get_error_message() ), 'klarna-order-management-for-woocommerce' ) );
+							$order->add_order_note( sprintf( __( 'Could not capture Klarna order. %s', 'klarna-order-management-for-woocommerce' ), $error_message ) );
+
 						}
 
 						$order->set_status( 'on-hold' );

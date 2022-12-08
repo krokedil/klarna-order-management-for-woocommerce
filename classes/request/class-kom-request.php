@@ -160,7 +160,7 @@ abstract class KOM_Request {
 	public function request() {
 		$url  = $this->get_request_url();
 		$args = $this->get_request_args();
-		if ( is_wp_error( $args ) ) {
+		if ( is_wp_error( $args ) || ( isset( $args['body'] ) && is_null( json_decode( $args['body'] ) ) ) ) {
 			return $args;
 		}
 		$response = wp_remote_request( $url, $args );

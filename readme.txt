@@ -3,10 +3,10 @@ Contributors: klarna, krokedil, NiklasHogefjord, automattic
 Tags: woocommerce, klarna
 Donate link: https://klarna.com
 Requires at least: 4.0
-Tested up to: 6.1
+Tested up to: 6.1.1
 Requires PHP: 7.0
 WC requires at least: 4.0.0
-WC tested up to: 7.0.0
+WC tested up to: 7.2.0
 Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -23,6 +23,11 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2022.12.08    - version 1.7.1 =
+* Tweak         - The remaining authorized amount will now be written to the order note if the capture fails.
+* Tweak         - Better error handling when the request body is missing.
+* Fix           - The unit price should now account for quantity on refund.
+
 = 2022.10.26    - version 1.7.0 =
 * Feature       - Added support for "PW WooCommerce Gift Cards"
 * Fix           - Fixed division by zero.
