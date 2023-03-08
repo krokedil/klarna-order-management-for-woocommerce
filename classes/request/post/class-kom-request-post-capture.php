@@ -37,7 +37,7 @@ class KOM_Request_Post_Capture extends KOM_Request_Post {
 	 */
 	protected function get_body() {
 		// If force full capture is enabled, set to true.
-		$settings                 = get_option( 'kom_settings' );
+		$settings                 = WC_Klarna_Order_Management::get_instance()->settings->get_settings( $this->order_id );
 		$force_capture_full_order = ( isset( $settings['kom_force_full_capture'] ) && 'yes' === $settings['kom_force_full_capture'] ) ? true : false;
 		$order                    = wc_get_order( $this->order_id );
 

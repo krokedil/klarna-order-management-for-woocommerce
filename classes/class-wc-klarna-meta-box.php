@@ -86,7 +86,7 @@ class WC_Klarna_Meta_Box {
 	 */
 	public function print_standard_content( $klarna_order ) {
 		$order_id           = get_the_ID();
-		$settings           = get_option( 'kom_settings' );
+		$settings           = WC_Klarna_Order_Management::get_instance()->settings->get_settings( $order_id );
 		$actions            = array();
 		$actions['capture'] = ( ! isset( $settings['kom_auto_capture'] ) || 'yes' === $settings['kom_auto_capture'] ) ? false : true;
 		$actions['cancel']  = ( ! isset( $settings['kom_auto_cancel'] ) || 'yes' === $settings['kom_auto_cancel'] ) ? false : true;
