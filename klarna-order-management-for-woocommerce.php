@@ -96,15 +96,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * Init the plugin at plugins_loaded.
 		 */
 		public function init() {
-			// Check if we have KP settings, so we can retrieve credentials.
-			if ( ! get_option( 'woocommerce_klarna_payments_settings' ) && ! get_option( 'woocommerce_kco_settings' ) ) {
-				return;
-			}
-
-			if ( ! is_array( get_option( 'woocommerce_klarna_payments_settings' ) ) && ! is_array( get_option( 'woocommerce_kco_settings' ) ) ) {
-				return;
-			}
-
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/klarna-order-management-functions.php';
 
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-sellers-app.php';
