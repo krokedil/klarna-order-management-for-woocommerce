@@ -54,6 +54,13 @@ abstract class KOM_Request {
 	protected $arguments;
 
 	/**
+	 * The plugin settings for the order.
+	 *
+	 * @var array
+	 */
+	protected $settings;
+
+	/**
 	 * Class constructor.
 	 *
 	 * @param array $arguments The request args.
@@ -61,8 +68,18 @@ abstract class KOM_Request {
 	public function __construct( $arguments = array() ) {
 		$this->arguments       = $arguments;
 		$this->order_id        = $arguments['order_id'];
+		$this->settings  	   = $this->get_settings();
 		$this->klarna_order_id = $this->get_klarna_order_id();
 		$this->klarna_order    = array_key_exists( 'klarna_order', $arguments ) ? $arguments['klarna_order'] : false;
+	}
+
+	/**
+	 * Returns the settings for the plugin based on the orders payment method.
+	 *
+	 * @return array
+	 */
+	private function get_settings() {
+		return WC_Klarna_Order_Management::get_instance()->settings->get_settings( $this->order_id );
 	}
 
 	/**
@@ -355,6 +372,6 @@ abstract class KOM_Request {
 	 */
 	protected function log_response( $response, $request_args, $code ) {
 		$log = WC_Klarna_Logger::format_log( $this->klarna_order_id, $this->method, $this->log_title, $request_args, $response, $code );
-		WC_Klarna_Logger::log( $log );
+		WC_Klarna_Logger::log( $log, $this->settings );
 	}
 }
