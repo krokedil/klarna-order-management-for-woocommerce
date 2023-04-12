@@ -88,6 +88,10 @@ class WC_Klarna_Order_Management_Settings {
 				'kom_settings',
 				array_map(
 					function( $setting ) {
+						if( 'title' === $setting['type'] || ! isset( $setting['default'] ) ){
+							return null;
+						}
+
 						return $setting['default'];
 					},
 					$this->extend_settings( array() )
