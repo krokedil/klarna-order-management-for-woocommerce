@@ -22,14 +22,17 @@ class WC_Klarna_Order_Management_Settings {
 	}
 
 	public function extend_settings( $settings ) {
-		$default_values = get_option( 'kom_settings', array(
-			'kom_auto_capture' => 'yes',
-			'kom_auto_cancel' => 'yes',
-			'kom_auto_update'  => 'yes',
-			'kom_auto_order_sync'  => 'yes',
-			'kom_force_full_capture'  => 'no',
-			'kom_debug_log'  => 'yes',
-		) );
+		$default_values = get_option(
+			'kom_settings',
+			array(
+				'kom_auto_capture'       => 'yes',
+				'kom_auto_cancel'        => 'yes',
+				'kom_auto_update'        => 'yes',
+				'kom_auto_order_sync'    => 'yes',
+				'kom_force_full_capture' => 'no',
+				'kom_debug_log'          => 'yes',
+			)
+		);
 
 		$settings['kom'] = array(
 			'title' => 'Klarna Order Management',
@@ -88,7 +91,7 @@ class WC_Klarna_Order_Management_Settings {
 				'kom_settings',
 				array_map(
 					function( $setting ) {
-						if( 'title' === $setting['type'] || ! isset( $setting['default'] ) ){
+						if ( 'title' === $setting['type'] || ! isset( $setting['default'] ) ) {
 							return null;
 						}
 
@@ -103,7 +106,7 @@ class WC_Klarna_Order_Management_Settings {
 		$payment_method = $order->get_payment_method();
 
 		if ( 'kco' === $payment_method ) {
-			return get_option( 'kco_wc_gateway_settings' );
+			return get_option( 'woocommerce_kco_settings' );
 		} elseif ( 'klarna_payments' === $payment_method ) {
 			return get_option( 'woocommerce_klarna_payments_settings' );
 		} else {
