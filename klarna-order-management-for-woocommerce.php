@@ -366,7 +366,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					return;
 				}
 				// Do nothing if we don't have Klarna order ID.
-				if ( ! $order->get_meta( '_wc_klarna_order_id', true ) && ! $order->get_meta( '_transaction_id', true ) ) {
+				if ( ! $order->get_meta( '_wc_klarna_order_id', true ) && ! $order->get_transaction_id() ) {
 					$order->add_order_note( 'Klarna order ID is missing, Klarna order could not be captured at this time.' );
 					$order->set_status( 'on-hold' );
 					$order->save();
