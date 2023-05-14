@@ -93,7 +93,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			$this->separate_sales_tax = true;
 		}
 
-		$this->klarna_country = strtoupper( get_post_meta( $order_id, '_wc_klarna_country', true ) );
+		$this->klarna_country = strtoupper( $this->order->get_meta( '_wc_klarna_country', true ) );
 	}
 
 	/**
@@ -194,7 +194,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 			$this->order_lines[] = $order_item;
 		}
 
-		$added_surcharge = json_decode( get_post_meta( $this->order_id, '_kco_added_surcharge', true ), true );
+		$added_surcharge = json_decode( $this->order->get_meta( '_kco_added_surcharge', true ), true );
 
 		if ( ! empty( $added_surcharge ) ) {
 			$this->order_lines[] = $added_surcharge;
@@ -237,7 +237,7 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 * @return array
 	 */
 	public function process_order_item_shipping( $order_item, $order ) {
-		$reference = json_decode( get_post_meta( $order->get_id(), '_kco_kss_data', true ), true );
+		$reference = json_decode( $this->order->get_meta( '_kco_kss_data', true ), true );
 
 		return array(
 			'reference'             => ( isset( $reference['id'] ) ) ? $reference['id'] : $this->get_item_reference( $order_item ),
