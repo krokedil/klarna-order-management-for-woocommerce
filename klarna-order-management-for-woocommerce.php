@@ -147,16 +147,20 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				2
 			);
 
-			// Declare HPOS compatibility
-			add_action(
-				'before_woocommerce_init',
-				function() {
-					if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
-						\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
-					}
-				}
-			);
+			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatability' ) );
+		}
 
+		/**
+		 * Declare compatibility with WooCommerce features.
+		 *
+		 * @return void
+		 */
+		public function declare_wc_compatability() {
+
+			// Declare HPOS compatibility.
+			if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+				\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+			}
 		}
 
 		/**
