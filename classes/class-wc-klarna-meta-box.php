@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Automattic\WooCommerce\Utilities\OrderUtil;
+use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
+
 /**
  * WC_Klarna_Pending_Orders class.
  *
@@ -43,11 +46,14 @@ class WC_Klarna_Meta_Box {
 	 * @return void
 	 */
 	public function kom_meta_box( $post_type ) {
-		if ( 'shop_order' === $post_type ) {
-			$order_id = get_the_ID();
-			$order    = wc_get_order( $order_id );
+		$hpos_enabled = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled();
+		$screen       = $hpos_enabled ? wc_get_page_screen_id( 'shop-order' ) : 'shop_order';
+		$order_id     = $hpos_enabled ? filter_input( INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT ) : get_the_ID();
+
+		if ( 'shop_order' === OrderUtil::get_order_type( $order_id ) ) {
+			$order = wc_get_order( $order_id );
 			if ( in_array( $order->get_payment_method(), array( 'kco', 'klarna_payments' ), true ) ) {
-				add_meta_box( 'kom_meta_box', __( 'Klarna Order Management', 'klarna-order-management-for-woocommerce' ), array( $this, 'kom_meta_box_content' ), 'shop_order', 'side', 'core' );
+				add_meta_box( 'kom_meta_box', __( 'Klarna Order Management', 'klarna-order-management-for-woocommerce' ), array( $this, 'kom_meta_box_content' ), $screen, 'side', 'core' );
 			}
 		}
 	}
