@@ -59,7 +59,7 @@ class WC_Klarna_Sellers_App {
 			// Set post metas.
 			$order->update_meta_data( '_wc_klarna_order_id', $order->get_transaction_id() );
 			$order->update_meta_data( '_wc_klarna_country', wc_get_base_location()['country'] );
-			$order->update_meta_data( '_wc_klarna_enviroment', self::get_klarna_environment( $order->get_payment_method() ) );
+			$order->update_meta_data( '_wc_klarna_environment', self::get_klarna_environment( $order->get_payment_method() ) );
 			$order->save();
 
 			$klarna_order = WC_Klarna_Order_Management::get_instance()->retrieve_klarna_order( $post_id );
