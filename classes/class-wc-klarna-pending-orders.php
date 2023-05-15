@@ -86,15 +86,17 @@ class WC_Klarna_Pending_Orders {
 	private static function get_order_id_from_klarna_order_id( $klarna_order_id ) {
 		$orders = wc_get_orders(
 			array(
-				'status'     => array_keys( wc_get_order_statuses() ),
-				'meta_key'   => '_wc_klarna_order_id',
-				'meta_value' => $klarna_order_id,
+				'meta_query' => array(
+					'meta_key'   => '_wc_klarna_order_id',
+					'meta_value' => $klarna_order_id,
+					'compare'    => '=',
+				),
 			)
 		);
-		$order  = reset( $orders );
 
-		// If zero matching orders were found, return.
-		if ( ! $orders ) {
+		$order = reset( $orders );
+
+		if ( empty( $orders ) ) {
 			return;
 		}
 
