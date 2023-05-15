@@ -147,7 +147,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				2
 			);
 
-			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatability' ) );
+			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatibility' ) );
 		}
 
 		/**
@@ -155,7 +155,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 *
 		 * @return void
 		 */
-		public function declare_wc_compatability() {
+		public function declare_wc_compatibility() {
 
 			// Declare HPOS compatibility.
 			if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
