@@ -243,16 +243,16 @@ abstract class KOM_Request {
 	 * @return string
 	 */
 	protected function get_auth_component( $component_name ) {
-		$component = get_post_meta( $this->order_id, "_wc_klarna_${component_name}", true );
+		$component = get_post_meta( $this->order_id, "_wc_klarna_{$component_name}", true );
 		if ( ! empty( $component ) ) {
-			return utf8_encode( $component );
+			return iconv( mb_detect_encoding( $component, mb_detect_order(), true ), 'UTF-8', $component );
 		}
 
 		$variant = $this->get_klarna_variant();
 		if ( empty( $variant ) ) {
 			return '';
 		}
-		$options = get_option( "woocommerce_${variant}_settings" );
+		$options = get_option( "woocommerce_{$variant}_settings" );
 		if ( ! $options ) {
 			return '';
 		}
@@ -269,7 +269,7 @@ abstract class KOM_Request {
 			}
 		}
 
-		$key = "${prefix}${component_name}_${country_string}";
+		$key = "{$prefix}{$component_name}_{$country_string}";
 
 		if ( key_exists( $key, $options ) ) {
 			return $options[ $key ];
