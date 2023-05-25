@@ -24,7 +24,7 @@ class WC_Klarna_Logger {
 	 * Logs an event.
 	 *
 	 * @param string $data The data string.
-	 * @param array $settings The plugin settings for the order.
+	 * @param array  $settings The plugin settings for the order.
 	 */
 	public static function log( $data, $settings ) {
 		if ( ! isset( $settings['kom_debug_log'] ) || 'yes' === $settings['kom_debug_log'] ) {
@@ -87,9 +87,9 @@ class WC_Klarna_Logger {
 			$extra_data = '';
 			if ( ! in_array( $data['function'], array( 'get_stack', 'format_log' ), true ) ) {
 				if ( in_array( $data['function'], array( 'do_action', 'apply_filters' ), true ) ) {
-					if ( isset( $data['object'] ) ) {
+					if ( isset( $data['object'] ) && $data['object'] instanceof WP_Hook ) {
 						$priority   = $data['object']->current_priority();
-						$name       = key( $data['object']->current() );
+						$name       = is_array( $data['object']->current() ) ? key( $data['object']->current() ) : '';
 						$extra_data = $name . ' : ' . $priority;
 					}
 				}
