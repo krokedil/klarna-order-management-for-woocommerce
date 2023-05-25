@@ -23,6 +23,9 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2023.05.25    - version 1.7.2 =
+* Fix           - Fixed a critical error that happened sometimes when logging is enabled.
+
 = 2022.12.08    - version 1.7.1 =
 * Tweak         - The remaining authorized amount will now be written to the order note if the capture fails.
 * Tweak         - Better error handling when the request body is missing.
