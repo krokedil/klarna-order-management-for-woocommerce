@@ -10,7 +10,7 @@
  * Domain Path: /languages
  *
  * WC requires at least: 3.4.0
- * WC tested up to: 7.3.0
+ * WC tested up to: 7.7.0
  *
  * Copyright (c) 2018-2022 Krokedil
  *
@@ -42,6 +42,13 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @var $instance
 		 */
 		private static $instance;
+
+		/**
+		 * Klarna Order Management settings.
+		 *
+		 * @var WC_Klarna_Order_Management_Settings $settings
+		 */
+		public $settings;
 
 		/**
 		 * Returns the *Singleton* instance of this class.
@@ -89,15 +96,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * Init the plugin at plugins_loaded.
 		 */
 		public function init() {
-			// Check if we have KP settings, so we can retrieve credentials.
-			if ( ! get_option( 'woocommerce_klarna_payments_settings' ) && ! get_option( 'woocommerce_kco_settings' ) ) {
-				return;
-			}
-
-			if ( ! is_array( get_option( 'woocommerce_klarna_payments_settings' ) ) && ! is_array( get_option( 'woocommerce_kco_settings' ) ) ) {
-				return;
-			}
-
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/klarna-order-management-functions.php';
 
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-sellers-app.php';
@@ -148,6 +146,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			);
 
 			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatibility' ) );
+			$this->settings = new WC_Klarna_Order_Management_Settings();
 		}
 
 		/**
@@ -171,24 +170,19 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @return array Filtered links.
 		 */
 		public function plugin_action_links( $links ) {
+			$plugin_links = array();
 
-			$setting_link = $this->get_setting_link();
+			if ( class_exists( 'KCO' ) ) {
+				$plugin_links[] = '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=checkout&section=kco' ) . '">' . __( 'Settings (Klarna Checkout)', 'klarna-order-management-for-woocommerce' ) . '</a>';
+			}
 
-			$plugin_links = array(
-				'<a href="' . $setting_link . '">' . __( 'Settings', 'klarna-order-management-for-woocommerce' ) . '</a>',
-				'<a target="_blank" href="https://docs.krokedil.com/article/149-klarna-order-management">Docs</a>',
-			);
+			if ( class_exists( 'WC_Klarna_Payments' ) ) {
+				$plugin_links[] = '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=checkout&section=klarna_payments' ) . '">' . __( 'Settings (Klarna Payments)', 'klarna-order-management-for-woocommerce' ) . '</a>';
+			}
+
+			$plugin_links[] = '<a target="_blank" href="https://docs.krokedil.com/article/149-klarna-order-management">Docs</a>';
 
 			return array_merge( $plugin_links, $links );
-		}
-
-		/**
-		 * Return the proper link for the settings page of KOM.
-		 *
-		 * @return string The full settings page URL.
-		 */
-		protected function get_setting_link() {
-			return admin_url( 'admin.php?page=kom-settings' );
 		}
 
 		/**
@@ -211,7 +205,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @param bool $action If this was triggered through an action or not.
 		 */
 		public function cancel_klarna_order( $order_id, $action = false ) {
-			$options = get_option( 'kom_settings' );
+			$options = self::get_instance()->settings->get_settings( $order_id );
 			if ( ! isset( $options['kom_auto_cancel'] ) || 'yes' === $options['kom_auto_cancel'] || $action ) {
 				$order = wc_get_order( $order_id );
 
@@ -278,7 +272,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @param bool  $action If this was triggered by an action.
 		 */
 		public function update_klarna_order_items( $order_id, $items, $action = false ) {
-			$options = get_option( 'kom_settings' );
+			$options = self::get_instance()->settings->get_settings( $order_id );
 			if ( ! isset( $options['kom_auto_update'] ) || 'yes' === $options['kom_auto_update'] || $action ) {
 
 				$order = wc_get_order( $order_id );
@@ -343,7 +337,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @param bool $action If this was triggered by an action.
 		 */
 		public function capture_klarna_order( $order_id, $action = false ) {
-			$options = get_option( 'kom_settings' );
+			$options = self::get_instance()->settings->get_settings( $order_id );
 			if ( ! isset( $options['kom_auto_capture'] ) || 'yes' === $options['kom_auto_capture'] || $action ) {
 				$order = wc_get_order( $order_id );
 
