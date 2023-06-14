@@ -494,7 +494,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				$response = $request->request();
 
 				if ( ! is_wp_error( $response ) ) {
-					$order->add_order_note( wc_price( $amount, array( 'currency' => $order->get_meta( '_order_currency', true ) ) ) . ' refunded via Klarna.' );
+					$order->add_order_note( wc_price( $amount, array( 'currency' => $order->get_currency() ) ) . ' refunded via Klarna.' );
 					$order->update_meta_data( '_wc_klarna_capture_id', $response );
 					$order->save();
 
