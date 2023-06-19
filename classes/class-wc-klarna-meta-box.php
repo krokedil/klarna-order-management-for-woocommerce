@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Automattic\WooCommerce\Utilities\OrderUtil;
+use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
+
 /**
  * WC_Klarna_Pending_Orders class.
  *
@@ -43,11 +46,14 @@ class WC_Klarna_Meta_Box {
 	 * @return void
 	 */
 	public function kom_meta_box( $post_type ) {
-		if ( 'shop_order' === $post_type ) {
-			$order_id = get_the_ID();
-			$order    = wc_get_order( $order_id );
+		$hpos_enabled = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled();
+		$screen       = $hpos_enabled ? wc_get_page_screen_id( 'shop-order' ) : 'shop_order';
+		$order_id     = $hpos_enabled ? filter_input( INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT ) : get_the_ID();
+
+		if ( 'shop_order' === OrderUtil::get_order_type( $order_id ) ) {
+			$order = wc_get_order( $order_id );
 			if ( in_array( $order->get_payment_method(), array( 'kco', 'klarna_payments' ), true ) ) {
-				add_meta_box( 'kom_meta_box', __( 'Klarna Order Management', 'klarna-order-management-for-woocommerce' ), array( $this, 'kom_meta_box_content' ), 'shop_order', 'side', 'core' );
+				add_meta_box( 'kom_meta_box', __( 'Klarna Order Management', 'klarna-order-management-for-woocommerce' ), array( $this, 'kom_meta_box_content' ), $screen, 'side', 'core' );
 			}
 		}
 	}
@@ -66,7 +72,7 @@ class WC_Klarna_Meta_Box {
 			return;
 		}
 		// False if automatic settings are enabled, true if not. If true then show the option.
-		if ( ! empty( get_post_meta( $order_id, '_transaction_id', true ) ) || ! empty( get_post_meta( $order_id, '_wc_klarna_order_id', true ) ) ) {
+		if ( ! empty( $order->get_transaction_id() ) || ! empty( $order->get_meta( '_wc_klarna_order_id', true ) ) ) {
 
 			$klarna_order = WC_Klarna_Order_Management::get_instance()->retrieve_klarna_order( $order_id );
 
@@ -86,13 +92,15 @@ class WC_Klarna_Meta_Box {
 	 */
 	public function print_standard_content( $klarna_order ) {
 		$order_id           = get_the_ID();
+		$order              = wc_get_order( $order_id );
 		$settings           = WC_Klarna_Order_Management::get_instance()->settings->get_settings( $order_id );
-		$actions            = array();
+		
+    $actions            = array();
 		$actions['capture'] = ( ! isset( $settings['kom_auto_capture'] ) || 'yes' === $settings['kom_auto_capture'] ) ? false : true;
 		$actions['cancel']  = ( ! isset( $settings['kom_auto_cancel'] ) || 'yes' === $settings['kom_auto_cancel'] ) ? false : true;
 		$actions['sync']    = ( ! isset( $settings['kom_auto_order_sync'] ) || 'yes' === $settings['kom_auto_order_sync'] ) ? false : true;
 		$actions['any']     = ( $actions['capture'] || $actions['cancel'] || $actions['sync'] );
-		$environment        = ! empty( get_post_meta( $order_id, '_wc_klarna_environment', true ) ) ? get_post_meta( $order_id, '_wc_klarna_environment', true ) : '';
+		$environment        = ! empty( $order->get_meta( '_wc_klarna_environment', true ) ) ? $order->get_meta( '_wc_klarna_environment', true ) : '';
 
 		?>
 		<div class="kom-meta-box-content">
@@ -192,10 +200,11 @@ class WC_Klarna_Meta_Box {
 	 * @return bool Should Capture-related stuff be in the output?
 	 */
 	public function want_output_capture( $order_id, $klarna_order, $actions ) {
+		$order = wc_get_order( $order_id );
 		if ( ! $actions['capture'] ) {
 			return false; // Capture is on auto, don't present action.
 		}
-		if ( ! empty( get_post_meta( $order_id, '_wc_klarna_capture_id' ) ) ) {
+		if ( ! empty( $order->get_meta( '_wc_klarna_capture_id' ) ) ) {
 			return false; // Already captured, can't capture again.
 		}
 		if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED', 'CANCELLED' ), true ) ) {
@@ -218,10 +227,11 @@ class WC_Klarna_Meta_Box {
 	 * @return bool Should Capture-related stuff be in the output?
 	 */
 	public function want_output_cancel( $order_id, $klarna_order, $actions ) {
+		$order = wc_get_order( $order_id );
 		if ( ! $actions['cancel'] ) {
 			return false; // Cancel is on auto, don't present action.
 		}
-		if ( ! empty( get_post_meta( $order_id, '_wc_klarna_pending_to_cancelled' ) ) ) {
+		if ( ! empty( $order->get_meta( '_wc_klarna_pending_to_cancelled', true ) ) ) {
 			return false; // A cancellation is already pending, can't cancel again.
 		}
 		if ( ! in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
@@ -344,7 +354,7 @@ class WC_Klarna_Meta_Box {
 			return;
 		}
 		if ( ! empty( $klarna_order_id ) ) {
-			update_post_meta( $post_id, '_wc_klarna_order_id', $klarna_order_id );
+			$order->update_meta_data( '_wc_klarna_order_id', $klarna_order_id );
 			$order->set_transaction_id( $klarna_order_id );
 			$order->save();
 		}

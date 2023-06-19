@@ -111,12 +111,8 @@ abstract class KOM_Request {
 	 * @return mixed
 	 */
 	public function get_klarna_order_id() {
-		$transaction_id = get_post_meta( $this->order_id, '_transaction_id', true );
-		if ( $transaction_id ) {
-			return $transaction_id;
-		}
-
-		return get_post_meta( $this->order_id, '_wc_klarna_order_id', true );
+		$order = wc_get_order( $this->order_id );
+		return ! empty( $order->get_transaction_id() ) ? $order->get_transaction_id() : $order->get_meta( '_wc_klarna_order_id', true );
 	}
 
 	/**
@@ -141,14 +137,12 @@ abstract class KOM_Request {
 	/**
 	 * Get the country code for the underlaying order.
 	 *
-	 * @return mixed
+	 * @return string
 	 */
 	protected function get_klarna_country() {
-		$country = '';
-		if ( get_post_meta( $this->order_id, '_wc_klarna_country', true ) ) {
-			$country = get_post_meta( $this->order_id, '_wc_klarna_country', true );
-		}
-		return $country;
+		$order   = wc_get_order( $this->order_id );
+		$country = $order->get_meta( '_wc_klarna_country', true );
+		return $country ? $country : '';
 	}
 
 	/**
@@ -260,7 +254,8 @@ abstract class KOM_Request {
 	 * @return string
 	 */
 	protected function get_auth_component( $component_name ) {
-		$component = get_post_meta( $this->order_id, "_wc_klarna_{$component_name}", true );
+		$order     = wc_get_order( $this->order_id );
+		$component = $order->get_meta( "_wc_klarna_{$component_name}", true );
 		if ( ! empty( $component ) ) {
 			return iconv( mb_detect_encoding( $component, mb_detect_order(), true ), 'UTF-8', $component );
 		}

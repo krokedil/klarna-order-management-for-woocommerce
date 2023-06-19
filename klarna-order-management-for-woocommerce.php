@@ -145,7 +145,21 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				2
 			);
 
+			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatibility' ) );
 			$this->settings = new WC_Klarna_Order_Management_Settings();
+		}
+
+		/**
+		 * Declare compatibility with WooCommerce features.
+		 *
+		 * @return void
+		 */
+		public function declare_wc_compatibility() {
+
+			// Declare HPOS compatibility.
+			if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+				\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+			}
 		}
 
 		/**
@@ -213,7 +227,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				}
 
 				// Don't do this if the order is being rejected in pending flow.
-				if ( get_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true ) ) {
+				if ( $order->get_meta( '_wc_klarna_pending_to_cancelled', true ) ) {
 					return;
 				}
 
@@ -241,7 +255,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order cancelled.' );
-						update_post_meta( $order_id, '_wc_klarna_cancelled', 'yes', true );
+						$order->update_meta_data( '_wc_klarna_cancelled', 'yes' );
+						$order->save();
 					} else {
 						$order->add_order_note( 'Could not cancel Klarna order. ' . $response->get_error_message() . '.' );
 					}
@@ -343,13 +358,13 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					return;
 				}
 				// Do nothing if Klarna order was already captured.
-				if ( get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) {
+				if ( $order->get_meta( '_wc_klarna_capture_id', true ) ) {
 					$order->add_order_note( 'Klarna order has already been captured.' );
 
 					return;
 				}
 				// Do nothing if we don't have Klarna order ID.
-				if ( ! get_post_meta( $order_id, '_wc_klarna_order_id', true ) && ! get_post_meta( $order_id, '_transaction_id', true ) ) {
+				if ( ! $order->get_meta( '_wc_klarna_order_id', true ) && ! $order->get_transaction_id() ) {
 					$order->add_order_note( 'Klarna order ID is missing, Klarna order could not be captured at this time.' );
 					$order->set_status( 'on-hold' );
 					$order->save();
@@ -374,7 +389,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				// Check if Klarna order has already been captured.
 				if ( in_array( $klarna_order->status, array( 'CAPTURED' ), true ) ) {
 					$order->add_order_note( 'Klarna order has already been captured on ' . $klarna_order->captures[0]->captured_at );
-					update_post_meta( $order_id, '_wc_klarna_capture_id', $klarna_order->captures[0]->capture_id );
+					$order->update_meta_data( '_wc_klarna_capture_id', $klarna_order->captures[0]->capture_id );
+					$order->save();
 					return;
 				}
 				// Check if Klarna order has already been canceled.
@@ -400,7 +416,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order captured. Capture amount: ' . $order->get_formatted_order_total( '', false ) . '. Capture ID: ' . $response );
-						update_post_meta( $order_id, '_wc_klarna_capture_id', $response, true );
+						$order->update_meta_data( '_wc_klarna_capture_id', $response );
 					} else {
 
 						/* The suggested approach by Klarna is to try again after some time. If that still fails, the merchant should inform the customer, and ask them to either "create a new subscription or add funds to their payment method if they wish to continue." */
@@ -420,8 +436,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 						}
 
 						$order->set_status( 'on-hold' );
-						$order->save();
 					}
+					$order->save();
 				}
 			}
 		}
@@ -452,7 +468,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			}
 
 			// Do nothing if Klarna order was already captured.
-			if ( ! get_post_meta( $order_id, '_wc_klarna_capture_id', true ) ) {
+			if ( ! $order->get_meta( '_wc_klarna_capture_id', true ) ) {
 				$order->add_order_note( 'Klarna order has not been captured and cannot be refunded.' );
 
 				return false;
@@ -478,9 +494,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				$response = $request->request();
 
 				if ( ! is_wp_error( $response ) ) {
-					$order->add_order_note( wc_price( $amount, array( 'currency' => get_post_meta( $order_id, '_order_currency', true ) ) ) . ' refunded via Klarna.' );
-					update_post_meta( $order_id, '_wc_klarna_capture_id', $response, true );
-
+					$order->add_order_note( wc_price( $amount, array( 'currency' => $order->get_currency() ) ) . ' refunded via Klarna.' );
 					return true;
 				} else {
 					$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() . '.' );
