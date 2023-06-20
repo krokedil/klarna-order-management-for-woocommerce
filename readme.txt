@@ -23,6 +23,13 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2023.06.20    - version 1.8.0 =
+* Feature       - The plugin now supports WooCommerce's "High-Performance Order Storage" ("HPOS") feature.
+* Tweak         - The plugin settings have been relocated to the payment gateways' plugin settings.
+* Fix           - Addressed undefined index notices and resolved a PHP 8 deprecation warning.
+* Fix           - Fixed a critical error that occasionally occurred when logging was enabled.
+
+
 = 2022.12.08    - version 1.7.1 =
 * Tweak         - The remaining authorized amount will now be written to the order note if the capture fails.
 * Tweak         - Better error handling when the request body is missing.
