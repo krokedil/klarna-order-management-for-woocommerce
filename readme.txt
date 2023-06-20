@@ -27,8 +27,9 @@ For help setting up and configuring Klarna Order Management for WooCommerce plea
 * Feature       - The plugin now supports WooCommerce's "High-Performance Order Storage" ("HPOS") feature.
 * Tweak         - The plugin settings have been relocated to the payment gateways' plugin settings.
 * Fix           - Addressed undefined index notices and resolved a PHP 8 deprecation warning.
-* Fix           - Fixed a critical error that occasionally occurred when logging was enabled.
 
+= 2023.05.25    - version 1.7.2 =
+* Fix           - Fixed a critical error that happened sometimes when logging is enabled.
 
 = 2022.12.08    - version 1.7.1 =
 * Tweak         - The remaining authorized amount will now be written to the order note if the capture fails.
