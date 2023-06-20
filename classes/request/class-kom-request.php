@@ -54,6 +54,13 @@ abstract class KOM_Request {
 	protected $arguments;
 
 	/**
+	 * The plugin settings for the order.
+	 *
+	 * @var array
+	 */
+	protected $settings;
+
+	/**
 	 * Class constructor.
 	 *
 	 * @param array $arguments The request args.
@@ -61,8 +68,18 @@ abstract class KOM_Request {
 	public function __construct( $arguments = array() ) {
 		$this->arguments       = $arguments;
 		$this->order_id        = $arguments['order_id'];
+		$this->settings  	   = $this->get_settings();
 		$this->klarna_order_id = $this->get_klarna_order_id();
 		$this->klarna_order    = array_key_exists( 'klarna_order', $arguments ) ? $arguments['klarna_order'] : false;
+	}
+
+	/**
+	 * Returns the settings for the plugin based on the orders payment method.
+	 *
+	 * @return array
+	 */
+	private function get_settings() {
+		return WC_Klarna_Order_Management::get_instance()->settings->get_settings( $this->order_id );
 	}
 
 	/**
@@ -94,12 +111,8 @@ abstract class KOM_Request {
 	 * @return mixed
 	 */
 	public function get_klarna_order_id() {
-		$transaction_id = get_post_meta( $this->order_id, '_transaction_id', true );
-		if ( $transaction_id ) {
-			return $transaction_id;
-		}
-
-		return get_post_meta( $this->order_id, '_wc_klarna_order_id', true );
+		$order = wc_get_order( $this->order_id );
+		return ! empty( $order->get_transaction_id() ) ? $order->get_transaction_id() : $order->get_meta( '_wc_klarna_order_id', true );
 	}
 
 	/**
@@ -124,14 +137,12 @@ abstract class KOM_Request {
 	/**
 	 * Get the country code for the underlaying order.
 	 *
-	 * @return mixed
+	 * @return string
 	 */
 	protected function get_klarna_country() {
-		$country = '';
-		if ( get_post_meta( $this->order_id, '_wc_klarna_country', true ) ) {
-			$country = get_post_meta( $this->order_id, '_wc_klarna_country', true );
-		}
-		return $country;
+		$order   = wc_get_order( $this->order_id );
+		$country = $order->get_meta( '_wc_klarna_country', true );
+		return $country ? $country : '';
 	}
 
 	/**
@@ -243,16 +254,17 @@ abstract class KOM_Request {
 	 * @return string
 	 */
 	protected function get_auth_component( $component_name ) {
-		$component = get_post_meta( $this->order_id, "_wc_klarna_${component_name}", true );
+		$order     = wc_get_order( $this->order_id );
+		$component = $order->get_meta( "_wc_klarna_{$component_name}", true );
 		if ( ! empty( $component ) ) {
-			return utf8_encode( $component );
+			return iconv( mb_detect_encoding( $component, mb_detect_order(), true ), 'UTF-8', $component );
 		}
 
 		$variant = $this->get_klarna_variant();
 		if ( empty( $variant ) ) {
 			return '';
 		}
-		$options = get_option( "woocommerce_${variant}_settings" );
+		$options = get_option( "woocommerce_{$variant}_settings" );
 		if ( ! $options ) {
 			return '';
 		}
@@ -269,7 +281,7 @@ abstract class KOM_Request {
 			}
 		}
 
-		$key = "${prefix}${component_name}_${country_string}";
+		$key = "{$prefix}{$component_name}_{$country_string}";
 
 		if ( key_exists( $key, $options ) ) {
 			return $options[ $key ];
@@ -355,6 +367,6 @@ abstract class KOM_Request {
 	 */
 	protected function log_response( $response, $request_args, $code ) {
 		$log = WC_Klarna_Logger::format_log( $this->klarna_order_id, $this->method, $this->log_title, $request_args, $response, $code );
-		WC_Klarna_Logger::log( $log );
+		WC_Klarna_Logger::log( $log, $this->settings );
 	}
 }

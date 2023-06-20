@@ -62,8 +62,9 @@ class WC_Klarna_Pending_Orders {
 			$order->add_order_note( 'Payment with Klarna is accepted.' );
 		} elseif ( 'REJECTED' === $klarna_order->fraud_status || 'STOPPED' === $klarna_order->fraud_status ) {
 			// Set meta field so order cancellation doesn't trigger Klarna API requests.
-			update_post_meta( $order_id, '_wc_klarna_pending_to_cancelled', true, true );
+			$order->update_meta_data( '_wc_klarna_pending_to_cancelled', true );
 			$order->update_status( 'cancelled', 'Klarna order rejected.' );
+			$order->save();
 			wc_mail(
 				get_option( 'admin_email' ),
 				'Klarna order rejected',
@@ -83,23 +84,23 @@ class WC_Klarna_Pending_Orders {
 	 * @return $order_id
 	 */
 	private static function get_order_id_from_klarna_order_id( $klarna_order_id ) {
-		$query_args = array(
-			'post_type'   => wc_get_order_types(),
-			'post_status' => array_keys( wc_get_order_statuses() ),
-			'meta_key'    => '_wc_klarna_order_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- Slow DB Query is ok here, we need to limit to our meta key.
-			'meta_value'  => $klarna_order_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- Slow DB Query is ok here, we need to limit to our meta key.
+		$orders = wc_get_orders(
+			array(
+				'meta_query' => array(
+					'meta_key'   => '_wc_klarna_order_id',
+					'meta_value' => $klarna_order_id,
+					'compare'    => '=',
+				),
+			)
 		);
 
-		$orders = get_posts( $query_args );
+		$order = reset( $orders );
 
-		// If zero matching orders were found, return.
 		if ( empty( $orders ) ) {
 			return;
 		}
 
-		$order_id = $orders[0]->ID;
-
-		return $order_id;
+		return $order->get_id();
 	}
 
 	/**
@@ -109,6 +110,6 @@ class WC_Klarna_Pending_Orders {
 	 * @return string|bool
 	 */
 	private static function get_klarna_order_id_from_order_id( $order_id ) {
-		return get_post_meta( $order_id, '_wc_klarna_order_id', true );
+		return wc_get_order( $order_id )->get_meta( '_wc_klarna_order_id', true );
 	}
 }

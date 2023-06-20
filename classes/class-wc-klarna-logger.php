@@ -24,9 +24,9 @@ class WC_Klarna_Logger {
 	 * Logs an event.
 	 *
 	 * @param string $data The data string.
+	 * @param array  $settings The plugin settings for the order.
 	 */
-	public static function log( $data ) {
-		$settings = get_option( 'kom_settings', array() );
+	public static function log( $data, $settings ) {
 		if ( ! isset( $settings['kom_debug_log'] ) || 'yes' === $settings['kom_debug_log'] ) {
 			$message = self::format_data( $data );
 			if ( empty( self::$log ) ) {
