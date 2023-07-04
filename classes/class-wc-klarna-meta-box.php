@@ -59,7 +59,7 @@ class WC_Klarna_Meta_Box {
 		// OrderUtil was introduced in WC 6.9.
 		$order_type = class_exists( 'OrderUtil' ) ? OrderUtil::get_order_type( $order_id ) : get_post_type( $order_id );
 
-		if ( 'shop_order' === $order_type ) {
+		if ( in_array( $post_type, array( 'woocommerce_page_wc-orders', 'shop_order' ) ) ) {
 			$order = wc_get_order( $order_id );
 			if ( in_array( $order->get_payment_method(), array( 'kco', 'klarna_payments' ), true ) ) {
 				add_meta_box( 'kom_meta_box', __( 'Klarna Order Management', 'klarna-order-management-for-woocommerce' ), array( $this, 'kom_meta_box_content' ), $screen, 'side', 'core' );
