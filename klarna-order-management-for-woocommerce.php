@@ -9,7 +9,7 @@
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
  *
- * WC requires at least: 3.4.0
+ * WC requires at least: 5.0.0
  * WC tested up to: 7.7.0
  *
  * Copyright (c) 2018-2023 Krokedil
