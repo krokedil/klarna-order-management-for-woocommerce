@@ -49,15 +49,12 @@ class WC_Klarna_Meta_Box {
 		$hpos_enabled = false;
 
 		// CustomOrdersTableController was introduced in WC 6.4.
-		if ( class_exists( 'CustomOrdersTableController' ) ) {
+		if ( class_exists( CustomOrdersTableController::class ) ) {
 			$hpos_enabled = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled();
 		}
 
-		$screen   = $hpos_enabled ? wc_get_page_screen_id( 'shop-order' ) : 'shop_order';
+		$screen   = $hpos_enabled ? wc_get_page_screen_id( 'shop-order' ) : $post_type;
 		$order_id = $hpos_enabled ? filter_input( INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT ) : get_the_ID();
-
-		// OrderUtil was introduced in WC 6.9.
-		$order_type = class_exists( 'OrderUtil' ) ? OrderUtil::get_order_type( $order_id ) : get_post_type( $order_id );
 
 		if ( in_array( $post_type, array( 'woocommerce_page_wc-orders', 'shop_order' ) ) ) {
 			$order = wc_get_order( $order_id );
