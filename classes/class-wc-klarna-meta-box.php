@@ -46,11 +46,17 @@ class WC_Klarna_Meta_Box {
 	 * @return void
 	 */
 	public function kom_meta_box( $post_type ) {
-		$hpos_enabled = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled();
-		$screen       = $hpos_enabled ? wc_get_page_screen_id( 'shop-order' ) : 'shop_order';
-		$order_id     = $hpos_enabled ? filter_input( INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT ) : get_the_ID();
+		$hpos_enabled = false;
 
-		if ( 'shop_order' === OrderUtil::get_order_type( $order_id ) ) {
+		// CustomOrdersTableController was introduced in WC 6.4.
+		if ( class_exists( CustomOrdersTableController::class ) ) {
+			$hpos_enabled = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled();
+		}
+
+		$screen   = $hpos_enabled ? wc_get_page_screen_id( 'shop-order' ) : $post_type;
+		$order_id = $hpos_enabled ? filter_input( INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT ) : get_the_ID();
+
+		if ( in_array( $post_type, array( 'woocommerce_page_wc-orders', 'shop_order' ) ) ) {
 			$order = wc_get_order( $order_id );
 			if ( in_array( $order->get_payment_method(), array( 'kco', 'klarna_payments' ), true ) ) {
 				add_meta_box( 'kom_meta_box', __( 'Klarna Order Management', 'klarna-order-management-for-woocommerce' ), array( $this, 'kom_meta_box_content' ), $screen, 'side', 'core' );
@@ -91,11 +97,11 @@ class WC_Klarna_Meta_Box {
 	 * @return void
 	 */
 	public function print_standard_content( $klarna_order ) {
-		$order_id           = get_the_ID();
-		$order              = wc_get_order( $order_id );
-		$settings           = WC_Klarna_Order_Management::get_instance()->settings->get_settings( $order_id );
-		
-    $actions            = array();
+		$order_id = get_the_ID();
+		$order    = wc_get_order( $order_id );
+		$settings = WC_Klarna_Order_Management::get_instance()->settings->get_settings( $order_id );
+
+		$actions            = array();
 		$actions['capture'] = ( ! isset( $settings['kom_auto_capture'] ) || 'yes' === $settings['kom_auto_capture'] ) ? false : true;
 		$actions['cancel']  = ( ! isset( $settings['kom_auto_cancel'] ) || 'yes' === $settings['kom_auto_cancel'] ) ? false : true;
 		$actions['sync']    = ( ! isset( $settings['kom_auto_order_sync'] ) || 'yes' === $settings['kom_auto_order_sync'] ) ? false : true;

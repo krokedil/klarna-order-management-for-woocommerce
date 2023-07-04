@@ -4,8 +4,8 @@ Tags: woocommerce, klarna
 Donate link: https://klarna.com
 Requires at least: 4.0
 Tested up to: 6.2
-Requires PHP: 7.0
-WC requires at least: 4.0.0
+Requires PHP: 7.3
+WC requires at least: 5.0.0
 WC tested up to: 7.7.0
 Stable tag: trunk
 License: GPLv3 or later
@@ -23,6 +23,10 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2023.07.04    - version 1.8.1 =
+* Fix           - Resolved a critical error that occurred on older versions of WooCommerce when displaying the metabox.
+* Tweak         - Increased the minimum required PHP version to 7.3 and the minimum required WooCommerce version to 5.0.0.
+
 = 2023.06.20    - version 1.8.0 =
 * Feature       - The plugin now supports WooCommerce's "High-Performance Order Storage" ("HPOS") feature.
 * Tweak         - The plugin settings have been relocated to the payment gateways' plugin settings.
