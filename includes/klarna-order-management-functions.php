@@ -20,11 +20,15 @@ function kom_maybe_add_product_urls( $item ) {
 	$settings     = get_option( 'woocommerce_kco_settings', array() );
 	if ( isset( $settings['send_product_urls'] ) && 'yes' === $settings['send_product_urls'] ) {
 		$product = wc_get_product( $item->get_product_id() );
-		if ( $product->get_image_id() > 0 ) {
-			$image_id                  = $product->get_image_id();
-			$image_url                 = wp_get_attachment_image_url( $image_id, 'shop_single', false );
-			$product_data['image_url'] = $image_url;
+
+		if ( $product instanceof WC_Product ) {
+			if ( $product->get_image_id() > 0 ) {
+				$image_id                  = $product->get_image_id();
+				$image_url                 = wp_get_attachment_image_url( $image_id, 'shop_single', false );
+				$product_data['image_url'] = $image_url;
+			}
 		}
+
 		$product_data['product_url'] = $product->get_permalink();
 	}
 	return $product_data;
