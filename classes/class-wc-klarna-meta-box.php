@@ -108,6 +108,31 @@ class WC_Klarna_Meta_Box {
 		$actions['any']     = ( $actions['capture'] || $actions['cancel'] || $actions['sync'] );
 		$environment        = ! empty( $order->get_meta( '_wc_klarna_environment', true ) ) ? $order->get_meta( '_wc_klarna_environment', true ) : '';
 
+		$kom_disconnected_key    = '_kom_disconnect';
+		$kom_disconnected_status = __( 'Disconnect', 'klarna-order-management-for-woocommerce' );
+		if ( isset( $_GET['kom'] ) ) {
+			if ( 'connect' === $_GET['kom'] ) {
+				$order->delete_meta_data( $kom_disconnected_key );
+			} elseif ( 'disconnect' === $_GET['kom'] ) {
+				$order->update_meta_data( $kom_disconnected_key, 1 );
+			}
+			$order->save();
+
+		}
+
+		if ( $order->get_meta( $kom_disconnected_key ) ) {
+			$kom_disconnected_status = __( 'Connect', 'klarna-order-management-for-woocommerce' );
+		} else {
+			$kom_disconnected_status = __( 'Disconnect', 'klarna-order-management-for-woocommerce' );
+		}
+
+		$kom_disconnected_url = add_query_arg(
+			array(
+				'kom' => strtolower( $kom_disconnected_status ),
+			),
+			admin_url( 'post.php?post=' . absint( $order->id ) . '&action=edit' )
+		);
+
 		?>
 		<div class="kom-meta-box-content">
 			<?php do_action( 'kom_meta_begin' ); ?>
@@ -137,6 +162,7 @@ class WC_Klarna_Meta_Box {
 					<?php endif; ?>	
 				</ul>
 
+
 			<?php else : ?>
 
 				<ul class="kom_order_actions_wrapper submitbox">
@@ -150,6 +176,7 @@ class WC_Klarna_Meta_Box {
 			<?php endif; ?>
 
 			<?php do_action( 'kom_meta_end' ); ?>
+			<a href="<?php echo esc_url( $kom_disconnected_url ); ?>"><button type="button" class="button button-primary"><?php echo esc_html( $kom_disconnected_status ); ?></button></a>
 		</div>
 		<?php
 	}

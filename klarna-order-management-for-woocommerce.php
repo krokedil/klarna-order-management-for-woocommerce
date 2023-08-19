@@ -209,6 +209,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			if ( ! isset( $options['kom_auto_cancel'] ) || 'yes' === $options['kom_auto_cancel'] || $action ) {
 				$order = wc_get_order( $order_id );
 
+				// The merchant has disconnected the order from the order manager.
+				if ( $order->get_meta( '_kom_disconnect' ) ) {
+					return;
+				}
+
 				// Check if the order has been paid.
 				if ( empty( $order->get_date_paid() ) ) {
 					return;
@@ -277,6 +282,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				$order = wc_get_order( $order_id );
 
+				// The merchant has disconnected the order from the order manager.
+				if ( $order->get_meta( '_kom_disconnect' ) ) {
+					return;
+				}
+
 					// Check if the order has been paid.
 				if ( empty( $order->get_date_paid() ) ) {
 					return;
@@ -340,6 +350,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$options = self::get_instance()->settings->get_settings( $order_id );
 			if ( ! isset( $options['kom_auto_capture'] ) || 'yes' === $options['kom_auto_capture'] || $action ) {
 				$order = wc_get_order( $order_id );
+
+				// The merchant has disconnected the order from the order manager.
+				if ( $order->get_meta( '_kom_disconnect' ) ) {
+					return;
+				}
 
 					// Check if the order has been paid.
 				if ( empty( $order->get_date_paid() ) ) {
@@ -454,6 +469,10 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		public function refund_klarna_order( $result, $order_id, $amount = null, $reason = '' ) {
 			$order = wc_get_order( $order_id );
+			// The merchant has disconnected the order from the order manager.
+			if ( $order->get_meta( '_kom_disconnect' ) ) {
+				return true;
+			}
 
 			// Not going to do this for non-KP and non-KCO orders.
 			if ( ! in_array(
