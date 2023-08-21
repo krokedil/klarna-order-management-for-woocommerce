@@ -68,7 +68,7 @@ abstract class KOM_Request {
 	public function __construct( $arguments = array() ) {
 		$this->arguments       = $arguments;
 		$this->order_id        = $arguments['order_id'];
-		$this->settings  	   = $this->get_settings();
+		$this->settings        = $this->get_settings();
 		$this->klarna_order_id = $this->get_klarna_order_id();
 		$this->klarna_order    = array_key_exists( 'klarna_order', $arguments ) ? $arguments['klarna_order'] : false;
 	}
@@ -151,9 +151,9 @@ abstract class KOM_Request {
 	 * @return string
 	 */
 	protected function get_api_url_base() {
-		$region     = $this->get_klarna_api_region();
+		$region     = strtolower( apply_filters( 'klarna_base_region', $this->get_klarna_api_region() ) );
 		$playground = $this->use_playground() ? '.playground' : '';
-		return "https://api${region}${playground}.klarna.com/";
+		return "https://api{$region}{$playground}.klarna.com/";
 	}
 
 	/**
