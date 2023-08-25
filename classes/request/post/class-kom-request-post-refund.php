@@ -106,7 +106,7 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 						if ( $item->get_product_id() === $order_item->get_product_id() ) {
 							$order_line_total    = round( ( $order->get_line_subtotal( $order_item, false ) * 100 ) );
 							$order_line_tax      = round( ( $order->get_line_tax( $order_item ) * 100 ) );
-							$order_line_tax_rate = ( 0 !== $order_line_tax && 0 !== $order_line_total ) ? reset( WC_Tax::get_base_tax_rates( $product->get_tax_class() ) )['rate'] * 100 ?? round( ( $order_line_tax / $order_line_total ) * 100 * 100 ) : 0;
+							$order_line_tax_rate = ( 0 !== $order_line_tax && 0 !== $order_line_total ) ? reset( WC_Tax::get_base_tax_rates( $order_item->get_tax_class() ) )['rate'] * 100 ?? round( ( $order_line_tax / $order_line_total ) * 100 * 100 ) : 0;
 						}
 					}
 
