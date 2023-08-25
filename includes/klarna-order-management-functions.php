@@ -21,10 +21,10 @@ function kom_maybe_add_product_urls( $item ) {
 	if ( isset( $settings['send_product_urls'] ) && 'yes' === $settings['send_product_urls'] ) {
 		$product = wc_get_product( $item->get_product_id() );
 
-		if( ! $product || ! is_object($product) || ! method_exists('get_image_id',$product)){ 
-			return $product_data; 
+		if( ! $product || ! is_object($product) || ! method_exists('get_image_id',$product)) {
+			return $product_data;
 		}
-		
+
 		if ( $product->get_image_id() > 0 ) {
 			$image_id                  = $product->get_image_id();
 			$image_url                 = wp_get_attachment_image_url( $image_id, 'shop_single', false );
