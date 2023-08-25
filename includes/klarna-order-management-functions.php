@@ -21,7 +21,7 @@ function kom_maybe_add_product_urls( $item ) {
 	if ( isset( $settings['send_product_urls'] ) && 'yes' === $settings['send_product_urls'] ) {
 		$product = wc_get_product( $item->get_product_id() );
 
-		if( ! $product || ! is_object($product) || ! method_exsits('get_image_id',$product)){ 
+		if( ! $product || ! is_object($product) || ! method_exists('get_image_id',$product)){ 
 			return $product_data; 
 		}
 		
