@@ -12,9 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use Automattic\WooCommerce\Utilities\OrderUtil;
-use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
-
 /**
  * WC_Klarna_Pending_Orders class.
  *
@@ -46,20 +43,11 @@ class WC_Klarna_Meta_Box {
 	 * @return void
 	 */
 	public function kom_meta_box( $post_type ) {
-		$hpos_enabled = false;
-
-		// CustomOrdersTableController was introduced in WC 6.4.
-		if ( class_exists( CustomOrdersTableController::class ) ) {
-			$hpos_enabled = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled();
-		}
-
-		$screen   = $hpos_enabled ? wc_get_page_screen_id( 'shop-order' ) : $post_type;
-		$order_id = $hpos_enabled ? filter_input( INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT ) : get_the_ID();
-
 		if ( in_array( $post_type, array( 'woocommerce_page_wc-orders', 'shop_order' ) ) ) {
-			$order = wc_get_order( $order_id );
+			$order_id = kom_get_the_ID();
+			$order    = wc_get_order( $order_id );
 			if ( in_array( $order->get_payment_method(), array( 'kco', 'klarna_payments' ), true ) ) {
-				add_meta_box( 'kom_meta_box', __( 'Klarna Order Management', 'klarna-order-management-for-woocommerce' ), array( $this, 'kom_meta_box_content' ), $screen, 'side', 'core' );
+				add_meta_box( 'kom_meta_box', __( 'Klarna Order Management', 'klarna-order-management-for-woocommerce' ), array( $this, 'kom_meta_box_content' ), $post_type, 'side', 'core' );
 			}
 		}
 	}
@@ -70,7 +58,7 @@ class WC_Klarna_Meta_Box {
 	 * @return void
 	 */
 	public function kom_meta_box_content() {
-		$order_id = get_the_ID();
+		$order_id = kom_get_the_ID();
 		$order    = wc_get_order( $order_id );
 		// Check if the order has been paid.
 		if ( empty( $order->get_date_paid() ) && ! in_array( $order->get_status(), array( 'on-hold' ), true ) ) {
@@ -97,7 +85,7 @@ class WC_Klarna_Meta_Box {
 	 * @return void
 	 */
 	public function print_standard_content( $klarna_order ) {
-		$order_id = get_the_ID();
+		$order_id = kom_get_the_ID();
 		$order    = wc_get_order( $order_id );
 		$settings = WC_Klarna_Order_Management::get_instance()->settings->get_settings( $order_id );
 
@@ -106,8 +94,9 @@ class WC_Klarna_Meta_Box {
 		$actions['cancel']  = ( ! isset( $settings['kom_auto_cancel'] ) || 'yes' === $settings['kom_auto_cancel'] ) ? false : true;
 		$actions['sync']    = ( ! isset( $settings['kom_auto_order_sync'] ) || 'yes' === $settings['kom_auto_order_sync'] ) ? false : true;
 		$actions['any']     = ( $actions['capture'] || $actions['cancel'] || $actions['sync'] );
-		$environment        = ! empty( $order->get_meta( '_wc_klarna_environment', true ) ) ? $order->get_meta( '_wc_klarna_environment', true ) : '';
+		$environment        = ! empty( $order->get_meta( '_wc_klarna_environment' ) ) ? $order->get_meta( '_wc_klarna_environment' ) : '';
 
+		// Release/Disconnect.
 		$kom_disconnected_key    = '_kom_disconnect';
 		$kom_disconnected_status = __( 'Disconnect', 'klarna-order-management-for-woocommerce' );
 		if ( isset( $_GET['kom'] ) ) {
@@ -130,7 +119,7 @@ class WC_Klarna_Meta_Box {
 			array(
 				'kom' => strtolower( $kom_disconnected_status ),
 			),
-			admin_url( 'post.php?post=' . absint( $order->id ) . '&action=edit' )
+			admin_url( 'post.php?post=' . absint( $order_id ) . '&action=edit' )
 		);
 
 		?>
