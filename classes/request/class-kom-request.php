@@ -75,6 +75,8 @@ abstract class KOM_Request {
 
 	/**
 	 * Returns the settings for the plugin based on the orders payment method.
+	 *
+	 * @return array
 	 */
 	private function get_settings() {
 		return WC_Klarna_Order_Management::get_instance()->settings->get_settings( $this->order_id );
@@ -149,9 +151,9 @@ abstract class KOM_Request {
 	 * @return string
 	 */
 	protected function get_api_url_base() {
-		$region     = $this->get_klarna_api_region();
+		$region     = strtolower( apply_filters( 'klarna_base_region', $this->get_klarna_api_region() ) );
 		$playground = $this->use_playground() ? '.playground' : '';
-		return "https://api${region}${playground}.klarna.com/";
+		return "https://api{$region}{$playground}.klarna.com/";
 	}
 
 	/**
@@ -358,13 +360,13 @@ abstract class KOM_Request {
 	/**
 	 * Standardized logging format for requests/responses.
 	 *
-	 * @param object|WP_Error $response The request response.
-	 * @param array           $request_args The arguments of the request.
-	 * @param int             $code The HTTP Response Code this request returned.
+	 * @param array|WP_Error $response The request response.
+	 * @param array          $request_args The arguments of the request.
+	 * @param int            $code The HTTP Response Code this request returned.
 	 * @return void
 	 */
 	protected function log_response( $response, $request_args, $code ) {
 		$log = WC_Klarna_Logger::format_log( $this->klarna_order_id, $this->method, $this->log_title, $request_args, $response, $code );
-		WC_Klarna_Logger::log( $log, $this->settings );
+		WC_Klarna_Logger::log( $log, $this->order_id );
 	}
 }

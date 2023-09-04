@@ -21,9 +21,15 @@ class WC_Klarna_Order_Management_Settings {
 		add_filter( 'kco_wc_gateway_settings', array( $this, 'extend_settings' ) );
 	}
 
+	/**
+	 * Given a settings array, they will be extended by KOM's settings.
+	 *
+	 * @param array $settings A settings array.
+	 * @return array
+	 */
 	public function extend_settings( $settings ) {
-		$default_values = get_option(
-			'kom_settings',
+		$default_values = wp_parse_args(
+			get_option( 'kom_settings', array() ),
 			array(
 				'kom_auto_capture'       => 'yes',
 				'kom_auto_cancel'        => 'yes',
