@@ -3,10 +3,10 @@ Contributors: klarna, krokedil, NiklasHogefjord, automattic
 Tags: woocommerce, klarna
 Donate link: https://klarna.com
 Requires at least: 4.0
-Tested up to: 6.2
+Tested up to: 6.3
 Requires PHP: 7.3
 WC requires at least: 5.0.0
-WC tested up to: 7.7.0
+WC tested up to: 8.0.1
 Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -23,6 +23,12 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2023.09.04    - version 1.8.2 =
+* Enhancement   - You now have the ability to utilize the 'klarna_base_region' filter, allowing you to modify the regional endpoint (EU, US, or OC).
+* Fix           - Fixed an issue where a warning about an undefined array key would appear.
+* Fix           - Resolved a critical error that occurred when creating an order in conjunction with the Klarna Sellers app/PoS.
+* Fix           - Addressed a critical error that arose while managing an order containing an item that had been permanently deleted.
+
 = 2023.07.04    - version 1.8.1 =
 * Fix           - Resolved a critical error that occurred on older versions of WooCommerce when displaying the metabox.
 * Tweak         - Increased the minimum required PHP version to 7.3 and the minimum required WooCommerce version to 5.0.0.
