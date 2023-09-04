@@ -43,7 +43,7 @@ class WC_Klarna_Meta_Box {
 	 * @return void
 	 */
 	public function kom_meta_box( $post_type ) {
-		if ( in_array( $post_type, array( 'woocommerce_page_wc-orders', 'shop_order' ) ) ) {
+		if ( in_array( $post_type, array( 'woocommerce_page_wc-orders', 'shop_order', true ) ) ) {
 			$order_id = kom_get_the_ID();
 			$order    = wc_get_order( $order_id );
 			if ( in_array( $order->get_payment_method(), array( 'kco', 'klarna_payments' ), true ) ) {
@@ -99,10 +99,11 @@ class WC_Klarna_Meta_Box {
 		// Release/Disconnect.
 		$kom_disconnected_key    = '_kom_disconnect';
 		$kom_disconnected_status = __( 'Disconnect', 'klarna-order-management-for-woocommerce' );
-		if ( isset( $_GET['kom'] ) ) {
-			if ( 'connect' === $_GET['kom'] ) {
+		if ( isset( $_GET['kom'] ) && isset( $_GET[ $kom_disconnected_key ] ) && wp_verify_nonce( $_GET[ $kom_disconnected_key ], 'kom_disconnect' ) ) {
+			$action = sanitize_text_field( (string) wp_unslash( $_GET['kom'] ) );
+			if ( 'connect' === $action ) {
 				$order->delete_meta_data( $kom_disconnected_key );
-			} elseif ( 'disconnect' === $_GET['kom'] ) {
+			} elseif ( 'disconnect' === $action ) {
 				$order->update_meta_data( $kom_disconnected_key, 1 );
 			}
 			$order->save();
@@ -164,8 +165,8 @@ class WC_Klarna_Meta_Box {
 				</ul>
 			<?php endif; ?>
 
+			<a href="<?php echo esc_url( wp_nonce_url( $kom_disconnected_url, 'kom_disconnect', $kom_disconnected_key ) ); ?>"><button type="button" class="button button-primary"><?php echo esc_html( $kom_disconnected_status ); ?></button></a>
 			<?php do_action( 'kom_meta_end' ); ?>
-			<a href="<?php echo esc_url( $kom_disconnected_url ); ?>"><button type="button" class="button button-primary"><?php echo esc_html( $kom_disconnected_status ); ?></button></a>
 		</div>
 		<?php
 	}

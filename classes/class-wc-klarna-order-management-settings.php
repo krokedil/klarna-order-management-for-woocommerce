@@ -84,6 +84,14 @@ class WC_Klarna_Order_Management_Settings {
 		return $settings;
 	}
 
+	/**
+	 * Retrieve the plugin settings.
+	 *
+	 * If the plugin's settings could not be found, we'll default to KP's or KCO's settings depending on the payment method.
+	 *
+	 * @param int $order_id WooCommerce order ID.
+	 * @return array|false
+	 */
 	public function get_settings( $order_id ) {
 		if ( empty( $order_id ) ) {
 			/* If "kom_settings" is not available, use default values. */
