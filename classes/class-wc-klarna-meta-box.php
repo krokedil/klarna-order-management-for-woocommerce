@@ -43,7 +43,7 @@ class WC_Klarna_Meta_Box {
 	 * @return void
 	 */
 	public function kom_meta_box( $post_type ) {
-		if ( in_array( $post_type, array( 'woocommerce_page_wc-orders', 'shop_order' ) ) ) {
+		if ( in_array( $post_type, array( 'woocommerce_page_wc-orders', 'shop_order' ), true ) ) {
 			$order_id = kom_get_the_ID();
 			$order    = wc_get_order( $order_id );
 			if ( in_array( $order->get_payment_method(), array( 'kco', 'klarna_payments' ), true ) ) {

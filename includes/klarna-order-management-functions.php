@@ -16,8 +16,7 @@ use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableControlle
  *
  * @return int the order ID or false.
  */
-//phpcs:ignore
-function kom_get_the_ID() {
+function kom_get_the_ID() { // phpcs:ignore -- Function name is not in snake case format.
 	$hpos_enabled = kom_is_hpos_enabled();
 	$order_id     = $hpos_enabled ? filter_input( INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT ) : get_the_ID();
 	if ( empty( $order_id ) ) {
@@ -44,7 +43,7 @@ function kom_is_hpos_enabled() {
 /**
  * Get the product and its image URLs.
  *
- * @param WC_Order_Item_Product The order item.
+ * @param WC_Order_Item_Product $item The order item.
  * @return array The product and image URL if available, otherwise an empty array.
  */
 function kom_maybe_add_product_urls( $item ) {
