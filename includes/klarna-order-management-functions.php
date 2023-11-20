@@ -16,8 +16,7 @@ use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableControlle
  *
  * @return int the order ID or false.
  */
-//phpcs:ignore
-function kom_get_the_ID() {
+function kom_get_the_ID() { // phpcs:ignore -- Function name is not in snake case format.
 	$hpos_enabled = kom_is_hpos_enabled();
 	$order_id     = $hpos_enabled ? filter_input( INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT ) : get_the_ID();
 	if ( empty( $order_id ) ) {
