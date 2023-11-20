@@ -28,6 +28,7 @@ define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.8.1' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL', untrailingslashit( plugins_url( '/', __FILE__ ) ) );
 
 if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
@@ -147,7 +148,20 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatibility' ) );
 			$this->settings = new WC_Klarna_Order_Management_Settings();
+
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin' ) );
 		}
+
+		/**
+		 * Register and enqueue scripts for the admin.
+		 *
+		 * @return void
+		 */
+		public function enqueue_admin() {
+			wp_enqueue_style( 'kom-admin-style', WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL . '/assets/css/klarna-order-management.css', array(), WC_KLARNA_ORDER_MANAGEMENT_VERSION );
+			wp_enqueue_script( 'kom-admin-js', WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL . '/assets/js/klarna-order-management.js', array( 'jquery' ), WC_KLARNA_ORDER_MANAGEMENT_VERSION );
+		}
+
 
 		/**
 		 * Declare compatibility with WooCommerce features.
