@@ -159,7 +159,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		public function enqueue_admin() {
 			wp_enqueue_style( 'kom-admin-style', WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL . '/assets/css/klarna-order-management.css', array(), WC_KLARNA_ORDER_MANAGEMENT_VERSION );
-			wp_enqueue_script( 'kom-admin-js', WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL . '/assets/js/klarna-order-management.js', array( 'jquery' ), WC_KLARNA_ORDER_MANAGEMENT_VERSION );
+			wp_enqueue_script( 'kom-admin-js', WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL . '/assets/js/klarna-order-management.js', array( 'jquery' ), WC_KLARNA_ORDER_MANAGEMENT_VERSION, true );
 		}
 
 

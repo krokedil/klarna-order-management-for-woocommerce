@@ -24,7 +24,7 @@ class WC_Klarna_Meta_Box {
 	 * Class constructor.
 	 */
 	public function __construct() {
-		 add_action( 'add_meta_boxes', array( $this, 'kom_meta_box' ) );
+		add_action( 'add_meta_boxes', array( $this, 'kom_meta_box' ) );
 		add_action( 'woocommerce_process_shop_order_meta', array( $this, 'process_kom_actions' ), 45, 2 );
 
 		add_filter( 'kom_meta_environment', array( $this, 'filter_environment' ), 10, 1 );
@@ -100,24 +100,22 @@ class WC_Klarna_Meta_Box {
 
 		// Release/Disconnect.
 		$kom_disconnected_key    = '_kom_disconnect';
+		$kom_disconnect          = isset( $_GET[ $kom_disconnected_key ] ) ? sanitize_key( $_GET[ $kom_disconnected_key ] ) : false;
 		$kom_disconnected_status = __( 'Disconnect', 'klarna-order-management-for-woocommerce' );
-		if ( isset( $_GET['kom'] ) && isset( $_GET[ $kom_disconnected_key ] ) && wp_verify_nonce( $_GET[ $kom_disconnected_key ], 'kom_disconnect' ) ) {
-			$action = sanitize_text_field( (string) wp_unslash( $_GET['kom'] ) );
-			if ( 'enabled' === $action ) {
-				$order->delete_meta_data( $kom_disconnected_key );
-			} elseif ( 'disabled' === $action ) {
+
+		if ( isset( $_GET['kom'] ) && wp_verify_nonce( $kom_disconnect, 'kom_disconnect' ) ) {
+			$action = sanitize_text_field( wp_unslash( $_GET['kom'] ) );
+			// Disabled mean it is disconnected, not that the feature is disabled.
+			if ( 'disabled' === $action ) {
 				$order->update_meta_data( $kom_disconnected_key, 1 );
+			} elseif ( 'disabled' === $action ) {
+				$order->delete_meta_data( $kom_disconnected_key );
 			}
 			$order->save();
 		}
 
-		if ( $order->get_meta( $kom_disconnected_key ) ) {
-			$kom_disconnected_status = 'disabled';
-		} else {
-			$kom_disconnected_status = 'enabled';
-		}
-
-		$kom_disconnected_url = add_query_arg(
+		$kom_disconnected_status = $order->get_meta( $kom_disconnected_key ) ? 'disabled' : 'enabled';
+		$kom_disconnected_url    = add_query_arg(
 			array(
 				'kom' => strtolower( $kom_disconnected_status ),
 			),
@@ -184,7 +182,7 @@ class WC_Klarna_Meta_Box {
 				<div class="kom_order_sync--box">
 					<div class="kom_order_sync--toggle">
 						<p><label>Order synchronization
-								<?php echo wc_help_tip( __( 'Disable this to turn off the automatic synchronization with the Klarna Merchant Portal. When disabled, any changes in either system have to be done manually.', 'klarna-order-management-for-woocommerce' ) ); ?>
+								<?php echo wc_help_tip( __( 'Disable this to turn off the automatic synchronization with the Klarna Merchant Portal. When disabled, any changes in either system have to be done manually.', 'klarna-order-management-for-woocommerce' ) ); //phpcs:ignore -- string literal. ?>
 							</label></p>
 						<span
 							class="woocommerce-input-toggle woocommerce-input-toggle--<?php echo esc_attr( $kom_disconnected_status ); ?>">
