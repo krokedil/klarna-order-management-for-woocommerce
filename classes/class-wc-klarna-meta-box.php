@@ -99,16 +99,15 @@ class WC_Klarna_Meta_Box {
 		$environment        = ! empty( $order->get_meta( '_wc_klarna_environment' ) ) ? $order->get_meta( '_wc_klarna_environment' ) : '';
 
 		// Release/Disconnect.
-		$kom_disconnected_key    = '_kom_disconnect';
-		$kom_disconnect          = isset( $_GET[ $kom_disconnected_key ] ) ? sanitize_key( $_GET[ $kom_disconnected_key ] ) : false;
-		$kom_disconnected_status = __( 'Disconnect', 'klarna-order-management-for-woocommerce' );
+		$kom_disconnected_key = '_kom_disconnect';
+		$kom_disconnect       = isset( $_GET[ $kom_disconnected_key ] ) ? sanitize_key( $_GET[ $kom_disconnected_key ] ) : false;
 
 		if ( isset( $_GET['kom'] ) && wp_verify_nonce( $kom_disconnect, 'kom_disconnect' ) ) {
 			$action = sanitize_text_field( wp_unslash( $_GET['kom'] ) );
 			// Disabled mean it is disconnected, not that the feature is disabled.
 			if ( 'disabled' === $action ) {
 				$order->update_meta_data( $kom_disconnected_key, 1 );
-			} elseif ( 'disabled' === $action ) {
+			} elseif ( 'enabled' === $action ) {
 				$order->delete_meta_data( $kom_disconnected_key );
 			}
 			$order->save();
