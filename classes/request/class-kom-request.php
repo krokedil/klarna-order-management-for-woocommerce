@@ -221,7 +221,7 @@ abstract class KOM_Request {
 		$playground = false;
 		$variant    = $this->get_klarna_variant();
 		if ( $variant ) {
-			$payment_method_settings = get_option( "woocommerce_${variant}_settings" );
+			$payment_method_settings = get_option( "woocommerce_{$variant}_settings" );
 			if ( ! $payment_method_settings || 'yes' == $payment_method_settings['testmode'] ) {
 				$playground = true;
 			}
@@ -244,7 +244,7 @@ abstract class KOM_Request {
 		$merchant_id   = $this->get_auth_component( 'merchant_id' );
 		$shared_secret = $this->get_auth_component( 'shared_secret' );
 		if ( '' === $merchant_id || '' === $shared_secret ) {
-			return new WP_Error( 'missing_credentials', "${gateway_title} credentials are missing" );
+			return new WP_Error( 'missing_credentials', "{$gateway_title} credentials are missing" );
 		}
 		return 'Basic ' . base64_encode( $merchant_id . ':' . htmlspecialchars_decode( $shared_secret ) );
 	}
@@ -307,8 +307,8 @@ abstract class KOM_Request {
 		$body          = json_decode( wp_remote_retrieve_body( $response ) );
 
 		if ( $response_code < 200 || $response_code >= 300 ) { // Anything not in the 200 range is an error.
-			$data          = "URL: ${request_url} - " . wp_json_encode( $request_args );
-			$error_message = "API Error ${response_code}";
+			$data          = "URL: {$request_url} - " . wp_json_encode( $request_args );
+			$error_message = "API Error {$response_code}";
 
 			if ( null !== $body && property_exists( $body, 'error_messages' ) ) {
 				$error_message = join( ' ', $body->error_messages );
