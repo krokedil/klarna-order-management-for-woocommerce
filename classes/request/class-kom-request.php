@@ -76,8 +76,6 @@ abstract class KOM_Request {
 	/**
 	 * Returns the settings for the plugin based on the orders payment method.
 	 *
-	 * @param int $order_id WooCommerce order ID.
-	 *
 	 * @return array
 	 */
 	private function get_settings() {

@@ -28,6 +28,7 @@ define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.8.3' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL', untrailingslashit( plugins_url( '/', __FILE__ ) ) );
 
 if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
@@ -147,7 +148,20 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatibility' ) );
 			$this->settings = new WC_Klarna_Order_Management_Settings();
+
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin' ) );
 		}
+
+		/**
+		 * Register and enqueue scripts for the admin.
+		 *
+		 * @return void
+		 */
+		public function enqueue_admin() {
+			wp_enqueue_style( 'kom-admin-style', WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL . '/assets/css/klarna-order-management.css', array(), WC_KLARNA_ORDER_MANAGEMENT_VERSION );
+			wp_enqueue_script( 'kom-admin-js', WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL . '/assets/js/klarna-order-management.js', array( 'jquery' ), WC_KLARNA_ORDER_MANAGEMENT_VERSION, true );
+		}
+
 
 		/**
 		 * Declare compatibility with WooCommerce features.
@@ -210,6 +224,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$options = self::get_instance()->settings->get_settings( $order_id );
 			if ( ! isset( $options['kom_auto_cancel'] ) || 'yes' === $options['kom_auto_cancel'] || $action ) {
 				$order = wc_get_order( $order_id );
+
+				// The merchant has disconnected the order from the order manager.
+				if ( $order->get_meta( '_kom_disconnect' ) ) {
+					return;
+				}
 
 				// Check if the order has been paid.
 				if ( empty( $order->get_date_paid() ) ) {
@@ -288,6 +307,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				$order = wc_get_order( $order_id );
 
+				// The merchant has disconnected the order from the order manager.
+				if ( $order->get_meta( '_kom_disconnect' ) ) {
+					return;
+				}
+
 					// Check if the order has been paid.
 				if ( empty( $order->get_date_paid() ) ) {
 					return new \WP_Error( 'not_paid', 'Order has not been paid.' );
@@ -355,6 +379,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$options = self::get_instance()->settings->get_settings( $order_id );
 			if ( ! isset( $options['kom_auto_capture'] ) || 'yes' === $options['kom_auto_capture'] || $action ) {
 				$order = wc_get_order( $order_id );
+
+				// The merchant has disconnected the order from the order manager.
+				if ( $order->get_meta( '_kom_disconnect' ) ) {
+					return;
+				}
 
 					// Check if the order has been paid.
 				if ( empty( $order->get_date_paid() ) ) {
@@ -475,6 +504,10 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		public function refund_klarna_order( $result, $order_id, $amount = null, $reason = '' ) {
 			$order = wc_get_order( $order_id );
+			// The merchant has disconnected the order from the order manager.
+			if ( $order->get_meta( '_kom_disconnect' ) ) {
+				return true;
+			}
 
 			// Not going to do this for non-KP and non-KCO orders.
 			if ( ! in_array(
