@@ -56,6 +56,11 @@ class WC_Klarna_Pending_Orders {
 
 		$order = wc_get_order( $order_id );
 
+		// If a paid date is set, the order has already been processed. It is therefore not a pending order.
+		if ( ! empty( $order->get_date_paid() ) ) {
+			return;
+		}
+
 		// Use the order from Klarna for the fraud status check.
 		if ( 'ACCEPTED' === $klarna_order->fraud_status ) {
 			$order->payment_complete( $klarna_order_id );
