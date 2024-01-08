@@ -58,9 +58,9 @@ function kom_maybe_add_product_urls( $item ) {
 				$image_url                 = wp_get_attachment_image_url( $image_id, 'shop_single', false );
 				$product_data['image_url'] = $image_url;
 			}
-		}
 
-		$product_data['product_url'] = $product->get_permalink();
+			$product_data['product_url'] = $product->get_permalink();
+		}
 	}
 	return $product_data;
 }
