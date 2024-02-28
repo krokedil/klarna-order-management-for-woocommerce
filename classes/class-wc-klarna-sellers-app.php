@@ -135,12 +135,13 @@ class WC_Klarna_Sellers_App {
 	 * Processes order lines with order data received from Klarna.
 	 *
 	 * @param Klarna_Checkout_Order $klarna_order Klarna order.
-	 * @param WooCommerce_Order     $order WooCommerce order.
+	 * @param WC_Order              $order WooCommerce order.
 	 *
 	 * @throws Exception WC_Data_Exception.
 	 */
 	private static function process_order_lines( $klarna_order, $order ) {
-		WC_Klarna_Logger::log( 'Processing order lines (from Klarna order) during sellers app creation for Klarna order ID ' . $klarna_order->order_id );
+		$order_id = $order->get_id();
+		WC_Klarna_Logger::log( 'Processing order lines (from Klarna order) during sellers app creation for Klarna order ID ' . $klarna_order->order_id, $order_id );
 		foreach ( $klarna_order->order_lines as $cart_item ) {
 
 			// Only try to add the item to the order if we got a reference in the Klarna order.
@@ -174,7 +175,7 @@ class WC_Klarna_Sellers_App {
 					$order->add_item( $item );
 
 				} catch ( Exception $e ) {
-					WC_Klarna_Logger::log( 'Error during process order lines. Add to cart error:   ' . $e->getCode() . ' - ' . $e->getMessage() );
+					WC_Klarna_Logger::log( 'Error during process order lines. Add to cart error:   ' . $e->getCode() . ' - ' . $e->getMessage(), $order_id );
 				}
 			}
 
@@ -195,7 +196,7 @@ class WC_Klarna_Sellers_App {
 					);
 					$order->add_item( $item );
 				} catch ( Exception $e ) {
-					WC_Klarna_Logger::log( 'Error during process order lines. Add shipping error:   ' . $e->getCode() . ' - ' . $e->getMessage() );
+					WC_Klarna_Logger::log( 'Error during process order lines. Add shipping error:   ' . $e->getCode() . ' - ' . $e->getMessage(), $order_id );
 				}
 			}
 
@@ -217,7 +218,7 @@ class WC_Klarna_Sellers_App {
 					$fee->set_props( $args );
 					$order->add_item( $fee );
 				} catch ( Exception $e ) {
-					WC_Klarna_Logger::log( 'Error during process order lines. Add fee error:   ' . $e->getCode() . ' - ' . $e->getMessage() );
+					WC_Klarna_Logger::log( 'Error during process order lines. Add fee error:   ' . $e->getCode() . ' - ' . $e->getMessage(), $order_id );
 				}
 			}
 		}

@@ -24,10 +24,16 @@ class WC_Klarna_Logger {
 	 * Logs an event.
 	 *
 	 * @param string $data The data string.
-	 * @param array  $settings The plugin settings for the order.
+	 * @param int    $order_id WooCommerce order ID.
 	 */
-	public static function log( $data, $settings ) {
-		if ( ! isset( $settings['kom_debug_log'] ) || 'yes' === $settings['kom_debug_log'] ) {
+	public static function log( $data, $order_id = null ) {
+		// Use default $order_id, and return rather than causing a fatal error if the $order_id is forgotten.
+		if ( empty( $order_id ) || ! class_exists( 'WC_Klarna_Order_Management' ) ) {
+			return;
+		}
+
+		$settings = WC_Klarna_Order_Management::get_instance()->settings->get_settings( $order_id );
+		if ( isset( $settings['kom_debug_log'] ) && 'yes' === $settings['kom_debug_log'] ) {
 			$message = self::format_data( $data );
 			if ( empty( self::$log ) ) {
 				self::$log = new WC_Logger();

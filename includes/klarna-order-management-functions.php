@@ -9,10 +9,41 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
+
+/**
+ * Equivalent to WP's get_the_ID() with HPOS support.
+ *
+ * @return int the order ID or false.
+ */
+function kom_get_the_ID() { // phpcs:ignore -- Function name is not in snake case format.
+	$hpos_enabled = kom_is_hpos_enabled();
+	$order_id     = $hpos_enabled ? filter_input( INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT ) : get_the_ID();
+	if ( empty( $order_id ) ) {
+		return false;
+	}
+
+	return $order_id;
+}
+
+/**
+ * Whether HPOS is enabled.
+ *
+ * @return bool
+ */
+function kom_is_hpos_enabled() {
+	// CustomOrdersTableController was introduced in WC 6.4.
+	if ( class_exists( CustomOrdersTableController::class ) ) {
+		return wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled();
+	}
+
+	return false;
+}
+
 /**
  * Get the product and its image URLs.
  *
- * @param WC_Order_Item_Product The order item.
+ * @param WC_Order_Item_Product $item The order item.
  * @return array The product and image URL if available, otherwise an empty array.
  */
 function kom_maybe_add_product_urls( $item ) {
@@ -30,7 +61,6 @@ function kom_maybe_add_product_urls( $item ) {
 			$image_url                 = wp_get_attachment_image_url( $image_id, 'shop_single', false );
 			$product_data['image_url'] = $image_url;
 		}
-		$product_data['product_url'] = $product->get_permalink();
 	}
 	return $product_data;
 }
