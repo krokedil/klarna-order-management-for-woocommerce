@@ -52,15 +52,16 @@ function kom_maybe_add_product_urls( $item ) {
 	if ( isset( $settings['send_product_urls'] ) && 'yes' === $settings['send_product_urls'] ) {
 		$product = wc_get_product( $item->get_product_id() );
 
-		if ( $product instanceof WC_Product ) {
-			if ( $product->get_image_id() > 0 ) {
-				$image_id                  = $product->get_image_id();
-				$image_url                 = wp_get_attachment_image_url( $image_id, 'shop_single', false );
-				$product_data['image_url'] = $image_url;
-			}
+		if ( empty( $product ) || ! method_exists( 'get_image_id', $product ) ) {
+			return $product_data;
+		}
 
-			$product_data['product_url'] = $product->get_permalink();
+		if ( $product->get_image_id() > 0 ) {
+			$image_id                  = $product->get_image_id();
+			$image_url                 = wp_get_attachment_image_url( $image_id, 'shop_single', false );
+			$product_data['image_url'] = $image_url;
 		}
 	}
 	return $product_data;
 }
+
