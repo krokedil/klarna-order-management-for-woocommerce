@@ -23,6 +23,11 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2024.03.05    - version 1.9.1 =
+* Fix           - Fixed a critical error when refunding an order that contain a product that was permanently deleted from the store (thanks @Zaglov!).
+* Fix           - Fixed a critical error when attempting to retrieve the product URLs of a product that was permanently deleted from the store (thanks @Zaglov!).
+* Fix           - Closed an open HTML tag.
+
 = 2023.12.06    - version 1.9.0 =
 * Feature       - Added a toggle in the order metabox that allow you to disable the order synchronization. When disabled, you can modify the WooCommerce order in any way (e.g., change order status, modify order lines) without effecting the corresponding Klarna order. By default, order synchronization is always enabled.
 * Fix           - Fixed an issue where metadata was not properly saved.
