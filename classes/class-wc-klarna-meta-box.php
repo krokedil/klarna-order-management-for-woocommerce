@@ -183,8 +183,7 @@ class WC_Klarna_Meta_Box {
 						<p><label>Order synchronization
 								<?php echo wc_help_tip( __( 'Disable this to turn off the automatic synchronization with the Klarna Merchant Portal. When disabled, any changes in either system have to be done manually.', 'klarna-order-management-for-woocommerce' ) ); //phpcs:ignore -- string literal. ?>
 							</label></p>
-						<span
-							class="woocommerce-input-toggle woocommerce-input-toggle--<?php echo esc_attr( $kom_disconnected_status ); ?>">
+						<span class="woocommerce-input-toggle woocommerce-input-toggle--<?php echo esc_attr( $kom_disconnected_status ); ?>"></span>
 					</div>
 					<div class="kom_order_sync--action">
 						<a class="button submit_button"
