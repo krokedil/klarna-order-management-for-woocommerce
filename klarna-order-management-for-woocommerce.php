@@ -344,7 +344,14 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 						$order->save();
 						return true;
 					} else {
-						$order_note = 'Could not update Klarna order lines' . ( ! empty( $response->get_error_message() ) ? ": {$response->get_error_messages()}." : '.' );
+						$reason = $response->get_error_message();
+						if ( ! empty( $reason ) ) {
+							// translators: %s: error message from Klarna.
+							$order_note = sprintf( __( 'Could not update Klarna order lines: %s.', 'klarna-order-management-for-woocommerce' ), $reason );
+						} else {
+							$order_note = __( 'Could not update Klarna order lines. An unknown error occurred.', 'klarna-order-management-for-woocommerce' );
+						}
+
 						$order->add_order_note( $order_note );
 						$order->save();
 						return new \WP_Error( 'unknown_error', 'Response object is of type WP_Error.', $response );
