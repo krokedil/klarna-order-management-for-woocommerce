@@ -61,6 +61,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				self::$instance = new self();
 			}
 
+			// If called through a snippet, the init() call may not have been invoked yet, rendering certain properties null (such as the settings).
+			if ( ! isset( self::$instance->settings ) ) {
+				self::$instance->init();
+			}
+
 			return self::$instance;
 		}
 
