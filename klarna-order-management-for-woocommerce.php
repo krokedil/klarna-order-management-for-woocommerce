@@ -298,13 +298,19 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$options = self::get_instance()->settings->get_settings( $order_id );
 			$order   = wc_get_order( $order_id );
 
+			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'kco' ), true ) ) {
+				return new \WP_Error( 'not_klarna_order', 'Order does not have klarna_payments or kco payment method.' );
+			}
+
 			// Are we on the subscription page?
 			if ( wcs_is_subscription( $order ) ) {
+				$token_key = 'klarna_payments' === $order->get_payment_method() ? KP_Subscription::RECURRING_TOKEN : '_kco_recurring_token';
+
 				// Did the customer update the subscription's recurring token?
-				$recurring_token = wc_get_var( $items['_kco_recurring_token'] );
-				$existing_token  = $order->get_meta( '_kco_recurring_token' );
+				$recurring_token = wc_get_var( $items[ $token_key ] );
+				$existing_token  = $order->get_meta( $token_key );
 				if ( ! empty( $recurring_token ) && $existing_token !== $recurring_token ) {
-					$order->update_meta_data( '_kco_recurring_token', $recurring_token );
+					$order->update_meta_data( $token_key, $recurring_token );
 					$order->add_order_note(
 						sprintf(
 						// translators: 1: User name, 2: Existing token, 3: New token.
@@ -331,11 +337,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					// Check if the order has been paid.
 				if ( empty( $order->get_date_paid() ) ) {
 					return new \WP_Error( 'not_paid', 'Order has not been paid.' );
-				}
-
-				// Not going to do this for non-KP and non-KCO orders.
-				if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'kco' ), true ) ) {
-					return new \WP_Error( 'not_klarna_order', 'Order does not have klarna_payments or kco payment method.' );
 				}
 
 				// Changes are only possible if order is an allowed order status.
