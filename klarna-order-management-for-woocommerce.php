@@ -334,7 +334,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					return new \WP_Error( 'order_sync_off', 'Order synchronization is disabled' );
 				}
 
-					// Check if the order has been paid.
+				// Check if the order has been paid.
 				if ( empty( $order->get_date_paid() ) ) {
 					return new \WP_Error( 'not_paid', 'Order has not been paid.' );
 				}
