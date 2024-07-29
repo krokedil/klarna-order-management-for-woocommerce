@@ -303,7 +303,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			}
 
 			// Are we on the subscription page?
-			if ( wcs_is_subscription( $order ) ) {
+			if ( 'shop_subscription' === $order->get_type() ) {
 				$token_key = 'klarna_payments' === $order->get_payment_method() ? KP_Subscription::RECURRING_TOKEN : '_kco_recurring_token';
 
 				// Did the customer update the subscription's recurring token?
