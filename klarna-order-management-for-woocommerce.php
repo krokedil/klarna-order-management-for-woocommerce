@@ -54,16 +54,16 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		/**
 		 * Returns the *Singleton* instance of this class.
 		 *
-		 * @return self The *Singleton* instance.
+		 * @return self|null The *Singleton* instance. The function may return null if it is called before plugins_loaded action.
 		 */
 		public static function get_instance() {
-			if ( null === self::$instance ) {
-				self::$instance = new self();
+			if ( ! did_action( 'plugins_loaded' ) ) {
+				wc_doing_it_wrong( __FUNCTION__, 'This function should not be called before plugins_loaded.', '1.9.2' );
+				return;
 			}
 
-			// If called through a snippet, the init() call may not have been invoked yet, rendering certain properties null (such as the settings).
-			if ( ! isset( self::$instance->settings ) ) {
-				self::$instance->init();
+			if ( null === self::$instance ) {
+				self::$instance = new self();
 			}
 
 			return self::$instance;
