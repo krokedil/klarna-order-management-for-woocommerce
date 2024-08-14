@@ -297,27 +297,51 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @param array $items Order items.
 		 * @param bool  $action If this was triggered by an action.
 		 *
-		 * @return bool|WP_Error Returns bool true if updating was successful or a WP_Error object if not.
+		 * @return WP_Error|true Returns true if updating was successful or a WP_Error object if not.
 		 */
 		public function update_klarna_order_items( $order_id, $items, $action = false ) {
 			$options = self::get_instance()->settings->get_settings( $order_id );
-			if ( ! isset( $options['kom_auto_update'] ) || 'yes' === $options['kom_auto_update'] || $action ) {
+			$order   = wc_get_order( $order_id );
 
-				$order = wc_get_order( $order_id );
+			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'kco' ), true ) ) {
+				return new \WP_Error( 'not_klarna_order', 'Order does not have klarna_payments or kco payment method.' );
+			}
+
+			// Are we on the subscription page?
+			if ( 'shop_subscription' === $order->get_type() ) {
+				$token_key = 'klarna_payments' === $order->get_payment_method() ? KP_Subscription::RECURRING_TOKEN : '_kco_recurring_token';
+
+				// Did the customer update the subscription's recurring token?
+				$recurring_token = wc_get_var( $items[ $token_key ] );
+				$existing_token  = $order->get_meta( $token_key );
+				if ( ! empty( $recurring_token ) && $existing_token !== $recurring_token ) {
+					$order->update_meta_data( $token_key, $recurring_token );
+					$order->add_order_note(
+						sprintf(
+						// translators: 1: User name, 2: Existing token, 3: New token.
+							__( '%1$s updated the subscription recurring token from "%2$s" to "%3$s".', 'klarna-order-management-for-woocommerce' ),
+							ucfirst( wp_get_current_user()->display_name ),
+							$existing_token,
+							$recurring_token
+						)
+					);
+					$order->save();
+
+					// If the recurring token was changed, we can assume the merchant didn't update the subscription as that would require a recurring token which as has now been modified, but not yet saved.
+					return true;
+				}
+			}
+
+			if ( ! isset( $options['kom_auto_update'] ) || 'yes' === $options['kom_auto_update'] || $action ) {
 
 				// The merchant has disconnected the order from the order manager.
 				if ( $order->get_meta( '_kom_disconnect' ) ) {
 					return new \WP_Error( 'order_sync_off', 'Order synchronization is disabled' );
 				}
 
-					// Check if the order has been paid.
+				// Check if the order has been paid.
 				if ( empty( $order->get_date_paid() ) ) {
 					return new \WP_Error( 'not_paid', 'Order has not been paid.' );
-				}
-
-				// Not going to do this for non-KP and non-KCO orders.
-				if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'kco' ), true ) ) {
-					return new \WP_Error( 'not_klarna_order', 'Order does not have klarna_payments or kco payment method.' );
 				}
 
 				// Changes are only possible if order is an allowed order status.
@@ -327,7 +351,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				// Retrieve Klarna order first.
 				$klarna_order = $this->retrieve_klarna_order( $order_id );
-
 				if ( is_wp_error( $klarna_order ) ) {
 					$order->add_order_note( 'Klarna order could not be updated due to an error.' );
 					$order->save();
@@ -347,7 +370,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order updated.' );
 						$order->save();
-						return true;
 					} else {
 						$reason = $response->get_error_message();
 						if ( ! empty( $reason ) ) {
@@ -363,6 +385,8 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					}
 				}
 			}
+
+			return true;
 		}
 
 		/**
