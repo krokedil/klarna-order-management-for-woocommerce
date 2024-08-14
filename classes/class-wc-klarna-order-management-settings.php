@@ -96,7 +96,7 @@ class WC_Klarna_Order_Management_Settings {
 	 * If the plugin's settings could not be found, we'll default to KP's or KCO's settings depending on the payment method.
 	 *
 	 * @param int $order_id WooCommerce order ID.
-	 * @return array|false The plugin settings for the identified Klarna payment gateway or false.
+	 * @return array|false
 	 */
 	public function get_settings( $order_id ) {
 		if ( empty( $order_id ) ) {
@@ -104,9 +104,9 @@ class WC_Klarna_Order_Management_Settings {
 			return get_option(
 				'kom_settings',
 				array_map(
-					function ( $setting ) {
+					function( $setting ) {
 						if ( 'title' === $setting['type'] || ! isset( $setting['default'] ) ) {
-							return false;
+							return null;
 						}
 
 						return $setting['default'];
@@ -116,13 +116,7 @@ class WC_Klarna_Order_Management_Settings {
 			);
 		}
 
-		$order = wc_get_order( $order_id );
-
-		// Check if we have an order. Usually, we should always have one, however, if this function is called through a snippet, the order id might be retrieved incorrectly.
-		if ( empty( $order ) ) {
-			return false;
-		}
-
+		$order          = wc_get_order( $order_id );
 		$payment_method = $order->get_payment_method();
 
 		if ( 'kco' === $payment_method ) {
