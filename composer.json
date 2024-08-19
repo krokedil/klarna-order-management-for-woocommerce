@@ -1,5 +1,10 @@
 {
     "require-dev": {
         "wp-coding-standards/wpcs": "^2.3"
+    },
+      "config": {
+        "platform": {
+            "php": "7.4"
+        }
     }
 }

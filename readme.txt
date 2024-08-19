@@ -23,6 +23,10 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2024.08.19    - version 1.9.2 =
+* Tweak         - Allow error message to be translatable for unknown errors.
+* Fix           - You should now be able to overwrite the recurring payment token from the admin Subscription page.
+
 = 2024.03.05    - version 1.9.1 =
 * Fix           - Fixed a critical error when refunding an order that contain a product that was permanently deleted from the store (thanks @Zaglov!).
 * Fix           - Fixed a critical error when attempting to retrieve the product URLs of a product that was permanently deleted from the store (thanks @Zaglov!).
