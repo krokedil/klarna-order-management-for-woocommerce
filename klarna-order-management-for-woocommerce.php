@@ -553,7 +553,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					$order->save();
 					return true;
 				} else {
-					$order->add_order_note( 'Could not capture Klarna order. ' . $response->get_error_message() . '.' );
+					$order->add_order_note( 'Could not refund Klarna order. ' . $response->get_error_message() . '.' );
 					$order->save();
 					return new \WP_Error( 'unknown_error', 'Response object is of type WP_Error.', $response );
 				}
