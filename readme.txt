@@ -3,10 +3,10 @@ Contributors: klarna, krokedil, NiklasHogefjord, automattic
 Tags: woocommerce, klarna
 Donate link: https://klarna.com
 Requires at least: 4.0
-Tested up to: 6.6.1
+Tested up to: 6.7
 Requires PHP: 7.3
 WC requires at least: 5.0.0
-WC tested up to: 9.2.0
+WC tested up to: 9.4.0
 Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -23,6 +23,9 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2024.11.12    - version 1.9.3 =
+* Fix           - Fixed typo in order note, saying "capture" instead of "refund".
+
 = 2024.08.19    - version 1.9.2 =
 * Tweak         - Allow error message to be translatable for unknown errors.
 * Fix           - You should now be able to overwrite the recurring payment token from the admin Subscription page.
