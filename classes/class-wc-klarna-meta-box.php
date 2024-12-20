@@ -400,8 +400,8 @@ class WC_Klarna_Meta_Box {
 	 * @param WP_Post $post Post Object.
 	 */
 	public function process_kom_actions( $post_id, $post ) {
-		$klarna_order_id = filter_input( INPUT_POST, 'klarna_order_id', FILTER_SANITIZE_STRING );
-		$kom_action      = filter_input( INPUT_POST, 'kom_order_actions', FILTER_SANITIZE_STRING );
+		$klarna_order_id = filter_input( INPUT_POST, 'klarna_order_id', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$kom_action      = filter_input( INPUT_POST, 'kom_order_actions', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$order           = wc_get_order( $post_id );
 		// Bail if not a valid order.
 		if ( ! $order ) {
