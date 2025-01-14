@@ -23,6 +23,10 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2025.01.14    - version 1.9.4 =
+* Fix           - Resolved error for meta box content by not attempting to print content when Klarna order is not defined.
+* Fix           - Resolved PHP 8 deprecation warning.
+
 = 2024.11.12    - version 1.9.3 =
 * Fix           - Fixed typo in order note, saying "capture" instead of "refund".
 
