@@ -117,7 +117,10 @@ class WC_Klarna_Order_Management_Order_Lines {
 	 */
 	public function process_order_line_items() {
 		$order = wc_get_order( $this->order_id );
-		if ( 'capture' !== $this->request_type ) {
+
+		// Do not perform any calculations during a REST request. This is to prevent modifying the WooCommerce order,
+		// which might trigger a REST API hook that modifies the order again, causing an infinite loop.
+		if ( 'capture' !== $this->request_type && ! defined( 'REST_REQUEST' ) ) {
 			$order->calculate_shipping();
 			$order->calculate_taxes();
 			$order->calculate_totals();
@@ -300,21 +303,19 @@ class WC_Klarna_Order_Management_Order_Lines {
 			$coupon_amount     = - $order_item['discount_amount'] * 100;
 			$coupon_tax_amount = - $order_item['discount_amount_tax'] * 100;
 			$coupon_reference  = 'Discount';
-		} else {
-			if ( 'US' === $this->klarna_country ) {
+		} elseif ( 'US' === $this->klarna_country ) {
 				$coupon_amount     = 0;
 				$coupon_tax_amount = 0;
 
-				if ( $coupon->is_type( 'fixed_cart' ) || $coupon->is_type( 'percent' ) ) {
-					$coupon_type = 'Cart discount';
-				} elseif ( $coupon->is_type( 'fixed_product' ) || $coupon->is_type( 'percent_product' ) ) {
-					$coupon_type = 'Product discount';
-				} else {
-					$coupon_type = 'Discount';
-				}
+			if ( $coupon->is_type( 'fixed_cart' ) || $coupon->is_type( 'percent' ) ) {
+				$coupon_type = 'Cart discount';
+			} elseif ( $coupon->is_type( 'fixed_product' ) || $coupon->is_type( 'percent_product' ) ) {
+				$coupon_type = 'Product discount';
+			} else {
+				$coupon_type = 'Discount';
+			}
 
 				$coupon_reference = $coupon_type . ' (amount: ' . $order_item['discount_amount'] . ', tax amount: ' . $order_item['discount_amount_tax'] . ')';
-			}
 		}
 
 		// Add discount line item, only if it's a smart coupon or purchase country was US.
@@ -517,12 +518,10 @@ class WC_Klarna_Order_Management_Order_Lines {
 			}
 		} elseif ( 'coupon' === $order_line_item->get_type() ) {
 			$item_total_amount = $order_line_item->get_discount();
-		} else {
-			if ( $this->separate_sales_tax ) {
+		} elseif ( $this->separate_sales_tax ) {
 				$item_total_amount = $order_line_item->get_subtotal();
-			} else {
-				$item_total_amount = $order_line_item->get_total() + $order_line_item->get_total_tax();
-			}
+		} else {
+			$item_total_amount = $order_line_item->get_total() + $order_line_item->get_total_tax();
 		}
 
 		$item_total_amount = $item_total_amount * 100;
@@ -540,14 +539,12 @@ class WC_Klarna_Order_Management_Order_Lines {
 	public function get_item_tax_amount( $order_line_item ) {
 		if ( $this->separate_sales_tax ) {
 			$item_tax_amount = 00;
-		} else {
-			if ( in_array( $order_line_item->get_type(), array( 'line_item', 'fee', 'shipping' ), true ) ) {
+		} elseif ( in_array( $order_line_item->get_type(), array( 'line_item', 'fee', 'shipping' ), true ) ) {
 				$item_tax_amount = $order_line_item->get_total_tax() * 100;
-			} elseif ( 'coupon' === $order_line_item->get_type() ) {
-				$item_tax_amount = $order_line_item->get_discount_tax() * 100;
-			} else {
-				$item_tax_amount = 00;
-			}
+		} elseif ( 'coupon' === $order_line_item->get_type() ) {
+			$item_tax_amount = $order_line_item->get_discount_tax() * 100;
+		} else {
+			$item_tax_amount = 00;
 		}
 
 		return round( $item_tax_amount );

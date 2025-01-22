@@ -128,8 +128,17 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			// Capture an order.
 			add_action( 'woocommerce_order_status_completed', array( $this, 'capture_klarna_order' ) );
 
+			// add_action( 'woocommerce_saved_order_items', array( $this, 'update_klarna_order_items' ), 10, 2 );
+
 			// Update an order.
-			add_action( 'woocommerce_saved_order_items', array( $this, 'update_klarna_order_items' ), 10, 2 );
+			add_action(
+				'woocommerce_update_order',
+				function ( $order_id, $order ) {
+					$this->update_klarna_order_items( $order_id, $order->get_items() );
+				},
+				10,
+				2
+			);
 
 			// Refund an order.
 			add_filter( 'wc_klarna_payments_process_refund', array( $this, 'refund_klarna_order' ), 10, 4 );
