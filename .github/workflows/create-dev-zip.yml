@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PLUGIN_SLUG: qliro-one-for-woocommerce
+      PLUGIN_SLUG: klarna-order-management-for-woocommerce
 
     steps:
     - name: Checkout repository
