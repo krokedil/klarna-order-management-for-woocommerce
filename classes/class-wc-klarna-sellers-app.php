@@ -76,38 +76,47 @@ class WC_Klarna_Sellers_App {
 	 * @return void
 	 */
 	public static function populate_klarna_order( $post_id, $klarna_order ) {
+
+		if ( is_wp_error( $klarna_order ) || empty( $klarna_order ) ) {
+			return;
+		}
+
 		$order = wc_get_order( $post_id );
 
+		if ( empty( $order ) ) {
+			return;
+		}
+
+		// Clear existing order items before populating.
+		$order->remove_order_items();
+
 		// Set billing address.
-		$order->set_billing_first_name( sanitize_text_field( $klarna_order->billing_address->given_name ) );
-		$order->set_billing_last_name( sanitize_text_field( $klarna_order->billing_address->family_name ) );
-		$order->set_billing_address_1( sanitize_text_field( $klarna_order->billing_address->street_address ) );
-		$order->set_billing_address_2( sanitize_text_field( $klarna_order->billing_address->street_address2 ) );
-		$order->set_billing_city( sanitize_text_field( $klarna_order->billing_address->city ) );
-		$order->set_billing_state( sanitize_text_field( $klarna_order->billing_address->region ) );
-		$order->set_billing_postcode( sanitize_text_field( $klarna_order->billing_address->postal_code ) );
-		$order->set_billing_email( sanitize_text_field( $klarna_order->billing_address->email ) );
-		$order->set_billing_phone( sanitize_text_field( $klarna_order->billing_address->phone ) );
+		$order->set_billing_first_name( sanitize_text_field( $klarna_order->billing_address->given_name ?? '' ) );
+		$order->set_billing_last_name( sanitize_text_field( $klarna_order->billing_address->family_name ?? '' ) );
+		$order->set_billing_address_1( sanitize_text_field( $klarna_order->billing_address->street_address ?? '' ) );
+		$order->set_billing_address_2( sanitize_text_field( $klarna_order->billing_address->street_address2 ?? '' ) );
+		$order->set_billing_city( sanitize_text_field( $klarna_order->billing_address->city ?? '' ) );
+		$order->set_billing_state( sanitize_text_field( $klarna_order->billing_address->region ?? '' ) );
+		$order->set_billing_postcode( sanitize_text_field( $klarna_order->billing_address->postal_code ?? '' ) );
+		$order->set_billing_email( sanitize_text_field( $klarna_order->billing_address->email ?? '' ) );
+		$order->set_billing_phone( sanitize_text_field( $klarna_order->billing_address->phone ?? '' ) );
 
 		// Set shipping address.
-		$order->set_shipping_first_name( sanitize_text_field( $klarna_order->shipping_address->given_name ) );
-		$order->set_shipping_last_name( sanitize_text_field( $klarna_order->shipping_address->family_name ) );
-		$order->set_shipping_address_1( sanitize_text_field( $klarna_order->shipping_address->street_address ) );
-		$order->set_shipping_address_2( sanitize_text_field( $klarna_order->shipping_address->street_address2 ) );
-		$order->set_shipping_city( sanitize_text_field( $klarna_order->shipping_address->city ) );
-		$order->set_shipping_state( sanitize_text_field( $klarna_order->shipping_address->region ) );
-		$order->set_shipping_postcode( sanitize_text_field( $klarna_order->shipping_address->postal_code ) );
+		$order->set_shipping_first_name( sanitize_text_field( $klarna_order->shipping_address->given_name ?? '' ) );
+		$order->set_shipping_last_name( sanitize_text_field( $klarna_order->shipping_address->family_name ?? '' ) );
+		$order->set_shipping_address_1( sanitize_text_field( $klarna_order->shipping_address->street_address ?? '' ) );
+		$order->set_shipping_address_2( sanitize_text_field( $klarna_order->shipping_address->street_address2 ?? '' ) );
+		$order->set_shipping_city( sanitize_text_field( $klarna_order->shipping_address->city ?? '' ) );
+		$order->set_shipping_state( sanitize_text_field( $klarna_order->shipping_address->region ?? '' ) );
+		$order->set_shipping_postcode( sanitize_text_field( $klarna_order->shipping_address->postal_code ?? '' ) );
 
-		$process_order_lines = true;
-		if ( true === $process_order_lines ) {
-			self::process_order_lines( $klarna_order, $order );
-			$order->set_date_paid( time() );
-			$order->set_shipping_total( self::get_shipping_total( $klarna_order ) );
-			$order->set_cart_tax( self::get_cart_contents_tax( $klarna_order ) );
-			$order->set_shipping_tax( self::get_shipping_tax_total( $klarna_order ) );
-			$order->set_total( $klarna_order->order_amount / 100 );
-			$order->calculate_totals();
-		}
+		self::process_order_lines( $klarna_order, $order );
+		$order->set_date_paid( time() );
+		$order->set_shipping_total( self::get_shipping_total( $klarna_order ) );
+		$order->set_cart_tax( self::get_cart_contents_tax( $klarna_order ) );
+		$order->set_shipping_tax( self::get_shipping_tax_total( $klarna_order ) );
+		$order->set_total( $klarna_order->order_amount / 100 );
+		$order->calculate_totals();
 
 		$order->save();
 
@@ -283,6 +292,5 @@ class WC_Klarna_Sellers_App {
 
 		return $shipping_tax_total;
 	}
-
 }
 new WC_Klarna_Sellers_App();

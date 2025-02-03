@@ -359,7 +359,7 @@ class WC_Klarna_Meta_Box {
 	 */
 	public function output_option_sync( $order_id, $klarna_order, $actions ) {
 		if ( $actions['sync'] ) {
-			$this->print_option( 'kom_sync', __( 'Get customer', 'klarna-order-management-for-woocommerce' ) );
+			$this->print_option( 'kom_sync', __( 'Sync Klarna order', 'klarna-order-management-for-woocommerce' ) );
 		}
 	}
 
@@ -373,7 +373,7 @@ class WC_Klarna_Meta_Box {
 	 */
 	public function output_tip_sync( $order_id, $klarna_order, $actions ) {
 		if ( $actions['sync'] ) {
-			$this->print_tip_fragment( __( 'Get customer', 'klarna-order-management-for-woocommerce' ), __( 'Gets the customer data from Klarna and saves it to the WooCommerce order.', 'klarna-order-management-for-woocommerce' ) );
+			$this->print_tip_fragment( __( 'Sync Klarna order', 'klarna-order-management-for-woocommerce' ), __( 'Gets the order data from Klarna and saves it to the WooCommerce order.', 'klarna-order-management-for-woocommerce' ) );
 		}
 	}
 
