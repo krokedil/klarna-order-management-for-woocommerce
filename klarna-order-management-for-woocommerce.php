@@ -30,6 +30,8 @@ define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL', untrailingslashit( plugins_url( '/', __FILE__ ) ) );
 
+use Krokedil\Support\SystemReport;
+
 if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 	/**
@@ -50,6 +52,22 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @var WC_Klarna_Order_Management_Settings $settings
 		 */
 		public $settings;
+
+		/**
+		 * System report class.
+		 *
+		 * @var SystemReport
+		 */
+		private $support = null;
+
+		/**
+		 * System report instance.
+		 *
+		 * @return SystemReport
+		 */
+		public function support() {
+			return $this->support;
+		}
 
 		/**
 		 * Returns the *Singleton* instance of this class.
@@ -97,6 +115,11 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * Init the plugin at plugins_loaded.
 		 */
 		public function init() {
+			// Include the autoloader from composer. If it fails, we'll just return and not load the plugin. But an admin notice will show to the merchant.
+			if ( ! $this->init_composer() ) {
+				return;
+			}
+
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/klarna-order-management-functions.php';
 
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-sellers-app.php';
@@ -148,6 +171,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatibility' ) );
 			$this->settings = new WC_Klarna_Order_Management_Settings();
+			$this->support  = new SystemReport( 'klarna_order_management', 'Klarna Order Management for WooCommerce' );
 
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin' ) );
 		}
@@ -162,7 +186,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			wp_enqueue_script( 'kom-admin-js', WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL . '/assets/js/klarna-order-management.js', array( 'jquery' ), WC_KLARNA_ORDER_MANAGEMENT_VERSION, true );
 		}
 
-
 		/**
 		 * Declare compatibility with WooCommerce features.
 		 *
@@ -174,6 +197,48 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
 				\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
 			}
+		}
+
+		/**
+		 * Initialize composers autoloader.
+		 *
+		 * @return bool Whether it was initialized.
+		 */
+		public function init_composer() {
+			$autoloader = WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/vendor/autoload.php';
+
+			if ( ! is_readable( $autoloader ) ) {
+				self::missing_autoloader();
+				return false;
+			}
+
+			$autoloader_result = require $autoloader;
+			return $autoloader_result ? true : false;
+		}
+
+		/**
+		 * Checks if the autoloader is missing and displays an admin notice.
+		 *
+		 * @return void
+		 */
+		protected static function missing_autoloader() {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( // phpcs:ignore
+					esc_html__( 'Your installation of Klarna Order Management is not complete. If you installed this plugin directly from Github please refer to the README.DEV.md file in the plugin.', 'klarna-order-management-for-woocommerce' )
+				);
+			}
+			add_action(
+				'admin_notices',
+				function () {
+					?>
+					<div class="notice notice-error">
+						<p>
+							<?php echo esc_html__( 'Your installation of Klarna Order Management is not complete. If you installed this plugin directly from Github please refer to the README.DEV.md file in the plugin.', 'klarna-order-management-for-woocommerce' ); ?>
+						</p>
+					</div>
+					<?php
+				}
+			);
 		}
 
 		/**
@@ -266,7 +331,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					return new \WP_Error( 'already_cancelled', 'Klarna order is already cancelled.' );
 				} else {
 					$request  = new KOM_Request_Post_Cancel( array( 'order_id' => $order_id ) );
-					$response = $request->request();
+					$response = $this->support->request( $request->request() );
 
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order cancelled.' );
@@ -361,7 +426,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 							'klarna_order' => $klarna_order,
 						)
 					);
-					$response = $request->request();
+					$response = $this->support->request( $request->request() );
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order updated.' );
 						$order->save();
@@ -464,7 +529,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 							'klarna_order' => $klarna_order,
 						)
 					);
-					$response = $request->request();
+					$response = $this->support->request( $request->request() );
 
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order captured. Capture amount: ' . $order->get_formatted_order_total( '', false ) . '. Capture ID: ' . $response );
@@ -546,7 +611,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 						'refund_reason' => $reason,
 					)
 				);
-				$response = $request->request();
+				$response = $this->support->request( $request->request() );
 
 				if ( ! is_wp_error( $response ) ) {
 					$order->add_order_note( wc_price( $amount, array( 'currency' => $order->get_currency() ) ) . ' refunded via Klarna.' );
@@ -573,7 +638,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					'order_id' => $order_id,
 				)
 			);
-			$klarna_order = $request->request();
+			$klarna_order = $this->support->request( $request->request() );
 
 			return $klarna_order;
 		}

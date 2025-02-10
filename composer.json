@@ -1,10 +1,21 @@
 {
+    "require": {
+        "krokedil/support": "dev-develop-system-report-api-calls"
+    },
     "require-dev": {
         "wp-coding-standards/wpcs": "^2.3"
     },
-      "config": {
+    "config": {
         "platform": {
             "php": "7.4"
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:krokedil/support.git"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
