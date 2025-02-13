@@ -1,0 +1,19 @@
+{
+  "require": {
+    "php": ">=7.4",
+    "krokedil/support": "dev-develop-system-report-api-calls"
+  },
+  "config": {
+    "platform": {
+      "php": "7.4"
+    }
+  },
+  "repositories": [
+    {
+        "type": "vcs",
+        "url": "git@github.com:krokedil/support.git"
+    }
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}

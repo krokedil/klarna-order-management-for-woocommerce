@@ -30,7 +30,7 @@ define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL', untrailingslashit( plugins_url( '/', __FILE__ ) ) );
 
-use Krokedil\Support\SystemReport;
+use KrokedilKOMDeps\Krokedil\Support\SystemReport;
 
 if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
@@ -205,15 +205,18 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * @return bool Whether it was initialized.
 		 */
 		public function init_composer() {
-			$autoloader = WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/vendor/autoload.php';
+			$autoloader              = __DIR__ . '/vendor/autoload.php';
+			$autoloader_dependencies = __DIR__ . '/dependencies/scoper-autoload.php';
 
-			if ( ! is_readable( $autoloader ) ) {
+			// Check if the autoloaders was read.
+			$autoloader_result              = is_readable( $autoloader ) && require $autoloader;
+			$autoloader_dependencies_result = is_readable( $autoloader_dependencies ) && require $autoloader_dependencies;
+			if ( ! $autoloader_result || ! $autoloader_dependencies_result ) {
 				self::missing_autoloader();
 				return false;
 			}
 
-			$autoloader_result = require $autoloader;
-			return $autoloader_result ? true : false;
+			return true;
 		}
 
 		/**
