@@ -1,0 +1,82 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "f7058d25602b5004d8473b730ef7e8f3",
+    "packages": [
+        {
+            "name": "krokedil/support",
+            "version": "dev-develop-system-report-api-calls",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/krokedil/support.git",
+                "reference": "862ab3907d0b7f81117fccdf1e5cc60e5b9018ee"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/krokedil/support/zipball/862ab3907d0b7f81117fccdf1e5cc60e5b9018ee",
+                "reference": "862ab3907d0b7f81117fccdf1e5cc60e5b9018ee",
+                "shasum": ""
+            },
+            "require": {
+                "php": "~7.4 || ~8.0"
+            },
+            "require-dev": {
+                "php-stubs/woocommerce-stubs": "^8.1",
+                "phpcompatibility/php-compatibility": "^9.3",
+                "phpunit/phpunit": "^9.6",
+                "wp-coding-standards/wpcs": "^3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Krokedil\\Support\\": "src/"
+                }
+            },
+            "scripts": {
+                "phpcs": [
+                    "phpcs --extensions=php -s -p"
+                ],
+                "phpcbf": [
+                    "phpcbf -p"
+                ],
+                "phpunit": [
+                    "phpunit --configuration phpunit.xml"
+                ]
+            },
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Krokedil AB",
+                    "email": "info@krokedil.se"
+                }
+            ],
+            "description": "The support library allows you to extend your plugin with features that will help you troubleshooting support related issues.",
+            "support": {
+                "source": "https://github.com/krokedil/support/tree/develop-system-report-api-calls",
+                "issues": "https://github.com/krokedil/support/issues"
+            },
+            "time": "2025-02-06T23:16:37+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "krokedil/support": 20
+    },
+    "prefer-stable": true,
+    "prefer-lowest": false,
+    "platform": {
+        "php": ">=7.4"
+    },
+    "platform-dev": {},
+    "platform-overrides": {
+        "php": "7.4"
+    },
+    "plugin-api-version": "2.6.0"
+}
