@@ -142,6 +142,11 @@ class WC_Klarna_Meta_Box {
 				</strong>
 				<?php echo ( esc_html( apply_filters( 'kom_meta_payment_method', $klarna_order->initial_payment_method->description ) ) ); ?></br>
 
+				<strong>
+					<?php esc_html_e( 'Scheduled actions: ', 'klarna-order-management-for-woocommerce' ); ?>
+					<?php var_dump( $this->get_scheduled_actions_for_order( $order_id ) ); ?>
+				</strong>
+
 				<ul class="kom_order_actions_wrapper submitbox">
 					<?php if ( $actions['any'] ) : ?>
 						<li class="wide" id="kom-capture">
@@ -432,6 +437,32 @@ class WC_Klarna_Meta_Box {
 			$klarna_order = WC_Klarna_Order_Management::get_instance()->retrieve_klarna_order( $post_id );
 			WC_Klarna_Sellers_App::populate_klarna_order( $post_id, $klarna_order );
 		}
+	}
+
+	public function get_scheduled_actions_for_order( $order_id ) {
+		if ( ! class_exists( 'ActionScheduler' ) ) {
+			return array();
+		}
+
+		$actions = as_get_scheduled_actions(
+			array(
+				'args'     => array( $order_id ),
+				'per_page' => -1,
+				'status'   => '',
+			)
+		);
+
+		$action_list = array();
+
+		foreach ( $actions as $action ) {
+			$action_list[] = array(
+				'name'      => $action->get_hook(),
+				'status'    => $action->get_status(),
+				'scheduled' => $action->get_scheduled_date()->format( 'Y-m-d H:i:s' ),
+			);
+		}
+
+		return $action_list;
 	}
 }
 new WC_Klarna_Meta_Box();
