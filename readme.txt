@@ -24,7 +24,7 @@ For help setting up and configuring Klarna Order Management for WooCommerce plea
 
 == Changelog ==
 = 2025.02.18    - version 1.9.5 =
-* Tweak         - Added check for Klarna Payments for WooCommerce 4.0.0 credential-based visibility, to disable order managment when needed.
+* Tweak         - Added check for Klarna Payments for WooCommerce 4.0.0 credential-based visibility, to disable order management when needed.
 * Fix           - Fixed duplication of WooCommerce order items on order synchronization.
 * Fix           - Fixed PHP notice "Only variables should be passed by reference".
 
