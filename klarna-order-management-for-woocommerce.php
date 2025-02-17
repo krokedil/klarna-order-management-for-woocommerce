@@ -102,7 +102,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// If Klarna Order Management is an unavailable feature, do not include the rest of the plugin.
 			$kp_unavailable_feature_ids = get_option( 'kp_unavailable_feature_ids', array() );
-			if ( in_array( 'kom', $kp_unavailable_feature_ids ) ) {
+			if ( in_array( 'kom', $kp_unavailable_feature_ids, true ) ) {
 				return;
 			}
 
