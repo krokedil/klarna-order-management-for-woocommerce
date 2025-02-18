@@ -88,9 +88,10 @@ class WC_Klarna_Meta_Box {
 	 * @return void
 	 */
 	public function print_standard_content( $klarna_order ) {
-		$order_id = kom_get_the_ID();
-		$order    = wc_get_order( $order_id );
-		$settings = WC_Klarna_Order_Management::get_instance()->settings->get_settings( $order_id );
+		$order_id   = kom_get_the_ID();
+		$order      = wc_get_order( $order_id );
+		$settings   = WC_Klarna_Order_Management::get_instance()->settings->get_settings( $order_id );
+		$session_id = $order->get_meta( '_kp_session_id' );
 
 		$actions            = array();
 		$actions['capture'] = ( ! isset( $settings['kom_auto_capture'] ) || 'yes' === $settings['kom_auto_capture'] ) ? false : true;
@@ -143,45 +144,9 @@ class WC_Klarna_Meta_Box {
 				<?php echo ( esc_html( apply_filters( 'kom_meta_payment_method', $klarna_order->initial_payment_method->description ) ) ); ?></br>
 
 				<?php
-				$session_id = $order->get_meta( '_kp_session_id' );
-
-				if ( $session_id ) {
-					$session_query_url = admin_url( 'admin.php?page=wc-status&tab=action-scheduler&s=' . $session_id . '&action=-1&paged=1&action2=-1' );
-
-					$completed_actions = as_get_scheduled_actions(
-						array(
-							'search'   => $session_id,
-							'status'   => array( 'complete' ),
-							'per_page' => -1,
-						)
-					);
-
-					$failed_actions = as_get_scheduled_actions(
-						array(
-							'search'   => $session_id,
-							'status'   => array( 'failed' ),
-							'per_page' => -1,
-						)
-					);
-
-					$pending_actions = as_get_scheduled_actions(
-						array(
-							'search'   => $session_id,
-							'status'   => array( 'pending' ),
-							'per_page' => -1,
-						)
-					);
-					?>
-
-					<strong>
-						<?php esc_html_e( 'Scheduled actions ', 'klarna-order-management-for-woocommerce' ); ?><span class="woocommerce-help-tip"
-						data-tip="<?php esc_html_e( 'See all actions scheduled for this order.', 'klarna-order-management-for-woocommerce' ); ?>"></span>
-					</strong>
-					<br />
-					<a target="_blank" href="<?php echo esc_url( $session_query_url ); ?>"><?php echo count( $completed_actions ); ?> completed, <?php echo count( $failed_actions ); ?> failed, <?php echo count( $pending_actions ); ?> pending</a>
-					</br>
-					<?php
-				}
+				if ( ! empty( $session_id ) ) :
+					$this->display_scheduled_actions( $session_id );
+				endif;
 				?>
 
 				<ul class="kom_order_actions_wrapper submitbox">
@@ -473,6 +438,52 @@ class WC_Klarna_Meta_Box {
 			$klarna_order = WC_Klarna_Order_Management::get_instance()->retrieve_klarna_order( $post_id );
 			WC_Klarna_Sellers_App::populate_klarna_order( $post_id, $klarna_order );
 		}
+	}
+
+	/**
+	 * Display scheduled actions related to the order.
+	 *
+	 * @param string $session_id The session ID.
+	 * @return void
+	 */
+	public function display_scheduled_actions( $session_id ) {
+		$session_query_url = admin_url(
+			'admin.php?page=wc-status&tab=action-scheduler&s=' . urlencode( $session_id ) . '&action=-1&paged=1&action2=-1'
+		);
+		$statuses          = array( 'complete', 'failed', 'pending' );
+		$action_counts     = array();
+
+		foreach ( $statuses as $status ) {
+			$action_counts[ $status ] = count(
+				as_get_scheduled_actions(
+					array(
+						'search'   => $session_id,
+						'status'   => array( $status ),
+						'per_page' => -1,
+					)
+				)
+			);
+		}
+		?>
+		<strong>
+			<?php esc_html_e( 'Scheduled actions ', 'klarna-order-management-for-woocommerce' ); ?>
+			<span class="woocommerce-help-tip"
+					data-tip="<?php esc_html_e( 'See all actions scheduled for this order.', 'klarna-order-management-for-woocommerce' ); ?>">
+			</span>
+		</strong>
+		<br />
+		<a target="_blank" href="<?php echo esc_url( $session_query_url ); ?>">
+			<?php
+			printf(
+				esc_html__( '%1$d completed, %2$d failed, %3$d pending', 'klarna-order-management-for-woocommerce' ),
+				$action_counts['complete'],
+				$action_counts['failed'],
+				$action_counts['pending']
+			);
+			?>
+		</a>
+		<br />
+		<?php
 	}
 }
 new WC_Klarna_Meta_Box();
