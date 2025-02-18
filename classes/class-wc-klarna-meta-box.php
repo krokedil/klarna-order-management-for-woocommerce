@@ -179,7 +179,7 @@ class WC_Klarna_Meta_Box {
 					</strong>
 					</br>
 					<a target="_blank" href="<?php echo $session_query_url; ?>"><?php echo count( $completed_actions ); ?> completed, <?php echo count( $failed_actions ); ?> failed, <?php echo count( $pending_actions ); ?> pending</a>
-					</br></br></br>
+					</br>
 					<?php
 				}
 				?>
