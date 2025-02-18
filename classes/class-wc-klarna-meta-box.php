@@ -172,13 +172,13 @@ class WC_Klarna_Meta_Box {
 						)
 					);
 					?>
-					
+
 					<strong>
 						<?php esc_html_e( 'Scheduled actions ', 'klarna-order-management-for-woocommerce' ); ?><span class="woocommerce-help-tip"
 						data-tip="<?php esc_html_e( 'See all actions scheduled for this order.', 'klarna-order-management-for-woocommerce' ); ?>"></span>
 					</strong>
-					</br>
-					<a target="_blank" href="<?php echo $session_query_url; ?>"><?php echo count( $completed_actions ); ?> completed, <?php echo count( $failed_actions ); ?> failed, <?php echo count( $pending_actions ); ?> pending</a>
+					<br />
+					<a target="_blank" href="<?php echo esc_url( $session_query_url ); ?>"><?php echo count( $completed_actions ); ?> completed, <?php echo count( $failed_actions ); ?> failed, <?php echo count( $pending_actions ); ?> pending</a>
 					</br>
 					<?php
 				}
