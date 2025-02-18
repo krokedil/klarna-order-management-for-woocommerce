@@ -88,6 +88,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		protected function __construct() {
 			add_action( 'plugins_loaded', array( $this, 'init' ) );
+			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatibility' ) );
 
 			// Add action links.
 			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_action_links' ) );
@@ -154,7 +155,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				2
 			);
 
-			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatibility' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin' ) );
 		}
 
