@@ -142,10 +142,47 @@ class WC_Klarna_Meta_Box {
 				</strong>
 				<?php echo ( esc_html( apply_filters( 'kom_meta_payment_method', $klarna_order->initial_payment_method->description ) ) ); ?></br>
 
-				<strong>
-					<?php esc_html_e( 'Scheduled actions: ', 'klarna-order-management-for-woocommerce' ); ?>
-					<?php var_dump( $this->get_scheduled_actions_for_order( $order_id ) ); ?>
-				</strong>
+				<?php
+				$session_id = $order->get_meta( '_kp_session_id' );
+
+				if ( $session_id ) {
+					$session_query_url = admin_url( 'admin.php?page=wc-status&tab=action-scheduler&s=' . $session_id . '&action=-1&paged=1&action2=-1' );
+
+					$completed_actions = as_get_scheduled_actions(
+						array(
+							'search'   => $session_id,
+							'status'   => array( 'complete' ),
+							'per_page' => -1,
+						)
+					);
+
+					$failed_actions = as_get_scheduled_actions(
+						array(
+							'search'   => $session_id,
+							'status'   => array( 'failed' ),
+							'per_page' => -1,
+						)
+					);
+
+					$pending_actions = as_get_scheduled_actions(
+						array(
+							'search'   => $session_id,
+							'status'   => array( 'pending' ),
+							'per_page' => -1,
+						)
+					);
+					?>
+					
+					<strong>
+						<?php esc_html_e( 'Scheduled actions ', 'klarna-order-management-for-woocommerce' ); ?><span class="woocommerce-help-tip"
+						data-tip="<?php esc_html_e( 'See all actions scheduled for this order.', 'klarna-order-management-for-woocommerce' ); ?>"></span>
+					</strong>
+					</br>
+					<a target="_blank" href="<?php echo $session_query_url; ?>"><?php echo count( $completed_actions ); ?> completed, <?php echo count( $failed_actions ); ?> failed, <?php echo count( $pending_actions ); ?> pending</a>
+					</br></br></br>
+					<?php
+				}
+				?>
 
 				<ul class="kom_order_actions_wrapper submitbox">
 					<?php if ( $actions['any'] ) : ?>
@@ -166,7 +203,6 @@ class WC_Klarna_Meta_Box {
 						<?php do_action( 'kom_meta_no_actions', $order_id, $klarna_order, $actions ); ?>
 					<?php endif; ?>
 				</ul>
-
 
 			<?php else : ?>
 
