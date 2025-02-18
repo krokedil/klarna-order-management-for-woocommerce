@@ -23,6 +23,11 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2025.02.18    - version 1.9.5 =
+* Tweak         - Added check for Klarna Payments for WooCommerce 4.0.0 credential-based visibility, to disable order management when needed.
+* Fix           - Fixed duplication of WooCommerce order items on order synchronization.
+* Fix           - Fixed PHP notice "Only variables should be passed by reference".
+
 = 2025.01.14    - version 1.9.4 =
 * Fix           - Resolved error for meta box content by not attempting to print content when Klarna order is not defined.
 * Fix           - Resolved PHP 8 deprecation warning.

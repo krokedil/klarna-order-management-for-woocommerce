@@ -1,10 +1,10 @@
 {
   "name": "klarna-order-management-for-woocommerce",
-  "version": "1.9.4",
+  "version": "1.9.5",
   "description": "Provides order management via Klarna API for Klarna Payments for WooCommerce plugin.",
   "scripts": {
     "prettier-js": "npx prettier assets/js --paren-spacing --tab-width 4 --print-width 120 --no-semi --write",
-    "build": "npm run prettier-js && npx grunt makepot && pnpx grunt cssmin"
+    "build": "npm run prettier-js && npx grunt makepot && npx grunt cssmin"
   },
   "repository": {
     "type": "git",

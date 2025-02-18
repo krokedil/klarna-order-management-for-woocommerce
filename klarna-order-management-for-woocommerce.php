@@ -5,7 +5,7 @@
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
  * Author: klarna, krokedil
  * Author URI: https://krokedil.se/
- * Version: 1.9.4
+ * Version: 1.9.5
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
  *
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.9.4' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.9.5' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -88,6 +88,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		protected function __construct() {
 			add_action( 'plugins_loaded', array( $this, 'init' ) );
+			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatibility' ) );
 
 			// Add action links.
 			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_action_links' ) );
@@ -97,11 +98,19 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * Init the plugin at plugins_loaded.
 		 */
 		public function init() {
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-order-management-settings.php';
+			$this->settings = new WC_Klarna_Order_Management_Settings();
+
+			// If Klarna Order Management is an unavailable feature, do not include the rest of the plugin.
+			$kp_unavailable_feature_ids = get_option( 'kp_unavailable_feature_ids', array() );
+			if ( in_array( 'kom', $kp_unavailable_feature_ids, true ) ) {
+				return;
+			}
+
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/klarna-order-management-functions.php';
 
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-sellers-app.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-pending-orders.php';
-			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-order-management-settings.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-meta-box.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-order-management-order-lines.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-logger.php';
@@ -145,9 +154,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				10,
 				2
 			);
-
-			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatibility' ) );
-			$this->settings = new WC_Klarna_Order_Management_Settings();
 
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin' ) );
 		}
