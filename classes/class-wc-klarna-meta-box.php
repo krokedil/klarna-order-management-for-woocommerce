@@ -448,7 +448,7 @@ class WC_Klarna_Meta_Box {
 	 */
 	public function display_scheduled_actions( $session_id ) {
 		$session_query_url = admin_url(
-			'admin.php?page=wc-status&tab=action-scheduler&s=' . urlencode( $session_id ) . '&action=-1&paged=1&action2=-1'
+			'admin.php?page=wc-status&tab=action-scheduler&s=' . rawurlencode( $session_id ) . '&action=-1&paged=1&action2=-1'
 		);
 		$statuses          = array( 'complete', 'failed', 'pending' );
 		$action_counts     = array();
