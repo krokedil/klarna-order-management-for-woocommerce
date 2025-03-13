@@ -145,7 +145,7 @@ class WC_Klarna_Meta_Box {
 
 				<?php
 				if ( ! empty( $session_id ) ) :
-					WC_Klarna_Order_Actions_Display::get_scheduled_actions( $session_id );
+					WC_Klarna_Order_Management_Display_Actions::print_scheduled_actions( $session_id );
 				endif;
 				?>
 

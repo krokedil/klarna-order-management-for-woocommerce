@@ -13,48 +13,47 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * WC_Klarna_Order_Actions_Display class.
+ * WC_Klarna_Order_Management_Display_Actions class.
  *
  * Displays scheduled actions related to the order.
  */
-class WC_Klarna_Order_Actions_Display {
+class WC_Klarna_Order_Management_Display_Actions {
 
 	/**
-	 * Retrieves and displays scheduled actions for the order.
+	 * Gets the scheduled actions for the order.
 	 *
 	 * @param string $session_id The session ID.
-	 * @return void
+	 * @return array
 	 */
-	public static function get_scheduled_actions( $session_id ) {
-		$session_query_url = admin_url(
-			'admin.php?page=wc-status&tab=action-scheduler&s=' . rawurlencode( $session_id ) . '&action=-1&paged=1&action2=-1'
-		);
-
-		$statuses      = array( 'complete', 'failed', 'pending' );
-		$action_counts = array();
+	private static function get_scheduled_actions( $session_id ) {
+		$statuses          = array( 'complete', 'failed', 'pending' );
+		$scheduled_actions = array();
 
 		foreach ( $statuses as $status ) {
-			$action_counts[ $status ] = count(
+			$scheduled_actions[ $status ] =
 				as_get_scheduled_actions(
 					array(
 						'search'   => $session_id,
 						'status'   => array( $status ),
 						'per_page' => -1,
 					)
-				)
-			);
+				);
 		}
-		self::print_scheduled_actions( $session_query_url, $action_counts );
+
+		return $scheduled_actions;
 	}
 
 	/**
-	 * Print the scheduled actions.
+	 * Prints the scheduled actions for the order.
 	 *
-	 * @param string $session_query_url The session query URL.
-	 * @param array  $action_counts The action counts.
+	 * @param string $session_id The session ID.
 	 * @return void
 	 */
-	private static function print_scheduled_actions( $session_query_url, $action_counts ) {
+	public static function print_scheduled_actions( $session_id ) {
+		$scheduled_actions = self::get_scheduled_actions( $session_id );
+		$session_query_url = admin_url(
+			'admin.php?page=wc-status&tab=action-scheduler&s=' . rawurlencode( $session_id ) . '&action=-1&paged=1&action2=-1'
+		);
 		?>
 		<strong>
 			<?php esc_html_e( 'Scheduled actions ', 'klarna-order-management-for-woocommerce' ); ?>
@@ -68,9 +67,9 @@ class WC_Klarna_Order_Actions_Display {
 			printf(
 			// translators: %1$d: number of completed orders, %2$d: number of failed orders, %3$d: number of pending orders.
 				esc_html__( '%1$d completed, %2$d failed, %3$d pending', 'klarna-order-management-for-woocommerce' ),
-				esc_html( $action_counts['complete'] ),
-				esc_html( $action_counts['failed'] ),
-				esc_html( $action_counts['pending'] )
+				esc_html( count( $scheduled_actions['complete'] ) ),
+				esc_html( count( $scheduled_actions['failed'] ) ),
+				esc_html( count( $scheduled_actions['pending'] ) )
 			);
 			?>
 		</a>
@@ -78,4 +77,4 @@ class WC_Klarna_Order_Actions_Display {
 		<?php
 	}
 }
-new WC_Klarna_Order_Actions_Display();
+new WC_Klarna_Order_Management_Display_Actions();
