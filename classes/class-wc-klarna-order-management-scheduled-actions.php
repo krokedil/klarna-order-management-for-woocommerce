@@ -13,11 +13,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * WC_Klarna_Order_Management_Display_Actions class.
+ * WC_Klarna_Order_Management_Scheduled_Actions class.
  *
  * Displays scheduled actions related to the order.
  */
-class WC_Klarna_Order_Management_Display_Actions {
+class WC_Klarna_Order_Management_Scheduled_Actions {
 
 	/**
 	 * Gets the scheduled actions for the order.
@@ -77,4 +77,4 @@ class WC_Klarna_Order_Management_Display_Actions {
 		<?php
 	}
 }
-new WC_Klarna_Order_Management_Display_Actions();
+new WC_Klarna_Order_Management_Scheduled_Actions();
