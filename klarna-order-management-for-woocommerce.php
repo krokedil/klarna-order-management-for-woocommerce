@@ -128,16 +128,26 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			// Capture an order.
 			add_action( 'woocommerce_order_status_completed', array( $this, 'capture_klarna_order' ) );
 
-			// add_action( 'woocommerce_saved_order_items', array( $this, 'update_klarna_order_items' ), 10, 2 );
-
 			// Update an order.
+			add_action( 'woocommerce_saved_order_items', array( $this, 'update_klarna_order_items' ), 10, 2 );
 			add_action(
-				'woocommerce_update_order',
-				function ( $order_id, $order ) {
-					$this->update_klarna_order_items( $order_id, $order->get_items() );
+				'woocommerce_rest_insert_shop_order_object',
+				/**
+				* Fires after a single object is created or updated via the REST API.
+				*
+				* @param WC_Data         $object    Inserted object.
+				* @param WP_REST_Request $request   Request object.
+				* @param boolean         $creating  True when creating object, false when updating.
+				*/
+				function ( $order, $request, $is_new_order ) {
+					if ( $is_new_order ) {
+						return;
+					}
+
+					$this->update_klarna_order_items( $order->get_id(), $order->get_items() );
 				},
 				10,
-				2
+				3
 			);
 
 			// Refund an order.
@@ -376,7 +386,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 						$reason = $response->get_error_message();
 						if ( ! empty( $reason ) ) {
 							// translators: %s: error message from Klarna.
-							$order_note = sprintf( __( 'Could not update Klarna order lines: %s.', 'klarna-order-management-for-woocommerce' ), $reason );
+							$order_note = sprintf( __( 'Could not update Klarna order lines: %s', 'klarna-order-management-for-woocommerce' ), $reason );
 						} else {
 							$order_note = __( 'Could not update Klarna order lines. An unknown error occurred.', 'klarna-order-management-for-woocommerce' );
 						}
