@@ -357,7 +357,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				$klarna_order = $this->retrieve_klarna_order( $order_id );
 				if ( is_wp_error( $klarna_order ) ) {
 					$order->add_order_note( 'Klarna order could not be updated due to an error.' );
-					$order->save();
 
 					return new \WP_Error( 'object_error', 'Klarna order object is of type WP_Error.', $klarna_order );
 				}
@@ -373,7 +372,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					$response = $request->request();
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order updated.' );
-						$order->save();
 					} else {
 						$reason = $response->get_error_message();
 						if ( ! empty( $reason ) ) {
@@ -384,7 +382,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 						}
 
 						$order->add_order_note( $order_note );
-						$order->save();
 						return new \WP_Error( 'unknown_error', 'Response object is of type WP_Error.', $response );
 					}
 				}
