@@ -3,10 +3,10 @@ Contributors: klarna, krokedil, NiklasHogefjord, automattic
 Tags: woocommerce, klarna
 Donate link: https://klarna.com
 Requires at least: 4.0
-Tested up to: 6.7.1
+Tested up to: 6.8.1
 Requires PHP: 7.3
 WC requires at least: 5.0.0
-WC tested up to: 9.5.2
+WC tested up to: 9.8.3
 Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -23,6 +23,9 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2025.05.05    - version 1.9.6 =
+* Tweak         - Added filter 'kom_order_update_args', allowing you to modify the arguments sent to Klarna through the update order request.
+
 = 2025.02.18    - version 1.9.5 =
 * Tweak         - Added check for Klarna Payments for WooCommerce 4.0.0 credential-based visibility, to disable order management when needed.
 * Fix           - Fixed duplication of WooCommerce order items on order synchronization.
