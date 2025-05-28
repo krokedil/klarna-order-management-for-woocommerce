@@ -109,6 +109,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/klarna-order-management-functions.php';
 
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-assets.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-sellers-app.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-pending-orders.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-meta-box.php';
@@ -155,17 +156,9 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 				2
 			);
 
-			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin' ) );
-		}
-
-		/**
-		 * Register and enqueue scripts for the admin.
-		 *
-		 * @return void
-		 */
-		public function enqueue_admin() {
-			wp_enqueue_style( 'kom-admin-style', WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL . '/assets/css/klarna-order-management.css', array(), WC_KLARNA_ORDER_MANAGEMENT_VERSION );
-			wp_enqueue_script( 'kom-admin-js', WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL . '/assets/js/klarna-order-management.js', array( 'jquery' ), WC_KLARNA_ORDER_MANAGEMENT_VERSION, true );
+			// Return fee
+			add_action( 'woocommerce_admin_order_items_after_shipping', array( $this, 'add_return_fee_order_lines_html' ), PHP_INT_MAX );
+			add_action( 'woocommerce_after_order_refund_item_name', array( $this, 'show_return_fee_info' ) );
 		}
 
 
@@ -538,31 +531,68 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$klarna_order = $this->retrieve_klarna_order( $order_id );
 
 			if ( is_wp_error( $klarna_order ) ) {
-				$order->add_order_note( 'Could not capture Klarna order. ' . $klarna_order->get_error_message() . '.' );
+				$order->add_order_note( 'Could not refund Klarna order. ' . $klarna_order->get_error_message() . '.' );
 				$order->save();
 
 				return new \WP_Error( 'object_error', 'Klarna order object is of type WP_Error.', $klarna_order );
 			}
 
+			// Get the refund order ID.
+			$refund_order_id = $order->get_refunds()[0]->get_id();
+			$refund_order    = wc_get_order( $refund_order_id );
+
+			// Check that the refund order is valid.
+			if ( ! $refund_order ) {
+				$order->add_order_note( 'Could not retrieve the refund order.' );
+				$order->save();
+				return new \WP_Error( 'invalid_refund_order', 'Refund order is not valid.' );
+			}
+
+			// If the order is not captured, we cannot refund it.
 			if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
-				$request  = new KOM_Request_Post_Refund(
+				$return_fee = $this->get_return_fee_from_post();
+				$request    = new KOM_Request_Post_Refund(
 					array(
 						'order_id'      => $order_id,
 						'refund_amount' => $amount,
 						'refund_reason' => $reason,
+						'return_fee'    => $return_fee,
 					)
 				);
-				$response = $request->request();
+				$response   = $request->request();
 
-				if ( ! is_wp_error( $response ) ) {
-					$order->add_order_note( wc_price( $amount, array( 'currency' => $order->get_currency() ) ) . ' refunded via Klarna.' );
-					$order->save();
-					return true;
-				} else {
+				if ( is_wp_error( $response ) ) {
 					$order->add_order_note( 'Could not refund Klarna order. ' . $response->get_error_message() . '.' );
 					$order->save();
 					return new \WP_Error( 'unknown_error', 'Response object is of type WP_Error.', $response );
 				}
+
+				$applied_return_fees = apply_filters( 'klarna_applied_return_fees', array() );
+
+				// translators: refund amount, refund id.
+				$text = __( 'Processing a refund of %1$s with Klarna', 'klarna-order-management-for-woocommerce' );
+				if ( ! empty( $applied_return_fees ) ) {
+					$total_return_fee_amount     = $applied_return_fees['amount'] ?? 0;
+					$total_return_fee_tax_amount = $applied_return_fees['tax_amount'] ?? 0;
+					$total_return_fees           = $total_return_fee_amount + $total_return_fee_tax_amount;
+					$formatted_total_return_fees = wc_price( $total_return_fees, array( 'currency' => $order->get_currency() ) );
+					$refunded_total_to_customer  = wc_price( $this->get_refunded_total_to_customer( $total_return_fees, $refund_order ), array( 'currency' => $order->get_currency() ) );
+
+					// translators: return frees amount.
+					$extra_text = sprintf( __( ' (including return fee of %1$s). Refunded to customer %2$s.', 'klarna-order-management-for-woocommerce' ), $formatted_total_return_fees, $refunded_total_to_customer );
+					$text      .= $extra_text;
+				}
+
+				$formatted_text = sprintf( $text, wc_price( $amount, array( 'currency' => $order->get_currency() ) ) );
+				$order->add_order_note( $formatted_text );
+
+				if ( $refund_order && ! empty( $applied_return_fees ) ) {
+					// Add the return fees as meta data to the refund order. The return fees are added to the filter when the request is made.
+					$refund_order->update_meta_data( '_klarna_return_fees', $applied_return_fees );
+					$refund_order->save();
+				}
+				return true;
+
 			}
 		}
 
@@ -582,6 +612,151 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$klarna_order = $request->request();
 
 			return $klarna_order;
+		}
+
+		/**
+		 * Get the return fee from the posted data.
+		 *
+		 * @return array
+		 */
+		public static function get_return_fee_from_post() {
+			$return_fee = array(
+				'amount'      => 0,
+				'tax_amount'  => 0,
+				'tax_rate_id' => 0,
+			);
+
+			$line_item_totals_json     = filter_input( INPUT_POST, 'line_item_totals', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$line_item_tax_totals_json = filter_input( INPUT_POST, 'line_item_tax_totals', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+			$line_item_totals     = json_decode( htmlspecialchars_decode( $line_item_totals_json ), true ) ?? array();
+			$line_item_tax_totals = json_decode( htmlspecialchars_decode( $line_item_tax_totals_json ), true ) ?? array();
+
+			foreach ( $line_item_totals as $key => $total ) {
+				if ( 'klarna_return_fee' === $key ) {
+					$return_fee['amount'] = str_replace( ',', '.', $total );
+				}
+			}
+
+			foreach ( $line_item_tax_totals as $key => $tax_line ) {
+				if ( 'klarna_return_fee' === $key ) {
+					// Get the rate id from the tax by the first key in the line
+					$tax_rate_id               = array_keys( $tax_line )[0];
+					$return_fee['tax_rate_id'] = $tax_rate_id;
+					$return_fee['tax_amount']  = str_replace( ',', '.', $tax_line[ $tax_rate_id ] );
+				}
+			}
+
+			return $return_fee;
+		}
+
+		/**
+		 * Add the return fee order line.
+		 *
+		 * @param int $order_id The WooCommerce order.
+		 *
+		 * @return void
+		 */
+		public function add_return_fee_order_lines_html( $order_id ) {
+			$order = wc_get_order( $order_id );
+
+			if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'kco' ), true ) ) {
+				return;
+			}
+
+			if ( ! $order->get_meta( '_wc_klarna_capture_id' ) ) {
+				return;
+			}
+
+			?>
+			</tbody>
+			<tbody id="klarna_return_fee" data-klarna-hide="yes" style="display: none;">
+				<tr class="klarna-return-fee" data-order_item_id="klarna_return_fee">
+					<td class="thumb"><div></div></td>
+					<td class="name" >
+						<div class="view">
+							<?php esc_html_e( 'Klarna return fee', 'klarna-order-management-for-woocommerce' ); ?>
+						</div>
+					</td>
+					<td class="item_cost" width="1%">&nbsp;</td>
+					<td class="quantity" width="1%">&nbsp;</td>
+					<td class="line_cost" width="1%">
+						<div class="refund" style="display: none;">
+							<input type="text" name="klarna_return_fee_amount" placeholder="0" class="refund_line_total wc_input_price" />
+						</div>
+					</td>
+					<?php foreach ( $order->get_taxes() as $tax ) : ?>
+						<?php if ( empty( $tax->get_rate_percent() ) ) : ?>
+							<td class="line_tax" width="1%">&nbsp;</td>
+						<?php else : ?>
+							<td class="line_tax" width="1%">
+								<div class="refund" style="display: none;">
+									<input
+										type="text"
+										name="klarna_return_fee_tax_amount[<?php echo esc_attr( $tax->get_rate_id() ); ?>]"
+										placeholder="0"
+										class="refund_line_tax wc_input_price"
+										data-tax_id="<?php echo esc_attr( $tax->get_rate_id() ); ?>"
+									/>
+								</div>
+							</td>
+							<?php break; ?>
+					<?php endif; ?>
+				<?php endforeach; ?>
+					<td class="wc-order-edit-line-item">&nbsp;</td>
+				</tr>
+			<?php
+		}
+
+		/**
+		 * Show the return fee info in the refund order.
+		 *
+		 * @param WC_Order $refund_order The refund order..
+		 */
+		public function show_return_fee_info( $refund_order ) {
+			$return_fee = $refund_order->get_meta( '_klarna_return_fees' );
+
+			// If its empty, just return.
+			if ( empty( $return_fee ) ) {
+				return;
+			}
+
+			$amount     = floatval( $return_fee['amount'] ) ?? 0;
+			$tax_amount = floatval( $return_fee['tax_amount'] ) ?? 0;
+			$total      = $amount + $tax_amount;
+
+			// If the total is 0, just return.
+			if ( $total <= 0 ) {
+				return;
+			}
+
+			?>
+			<span class="klarna-return-fee-info display_meta" style="display: block; margin-top: 10px; color: #888; font-size: .92em!important;">
+				<span style="font-weight: bold;"><?php esc_html_e( 'Klarna return fee: ' ); ?></span>
+				<?php echo wp_kses_post( wc_price( $total, array( 'currency' => $refund_order->get_currency() ) ) . '. ' ); ?>
+				<span style="font-weight: bold;"><?php esc_html_e( 'Refunded to customer: ' ); ?></span>
+				<?php echo wp_kses_post( wc_price( $this->get_refunded_total_to_customer( $total, $refund_order ), array( 'currency' => $refund_order->get_currency() ) ) ); ?>
+			</span>
+			<?php
+		}
+
+		/**
+		 * Get the refunded total to customer.
+		 *
+		 * @param float    $total_return_fees Total return fees.
+		 * @param WC_Order $refund_order The refund order.
+		 *
+		 * @return float
+		 */
+		public function get_refunded_total_to_customer( $total_return_fees, $refund_order ) {
+			$refunded_total = abs( $refund_order->get_total() ) - $total_return_fees;
+
+			// If the refunded total is less than 0, set it to 0.
+			if ( $refunded_total < 0 ) {
+				$refunded_total = 0;
+			}
+
+			return $refunded_total;
 		}
 	}
 
