@@ -23,6 +23,9 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2025.05.19    - version 1.9.7 =
+* Fix           - Error messages are now displayed in certain cases where failed order returns previously showed none.
+
 = 2025.05.05    - version 1.9.6 =
 * Tweak         - Added filter 'kom_order_update_args', allowing you to modify the arguments sent to Klarna through the update order request.
 
