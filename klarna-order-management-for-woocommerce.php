@@ -21,6 +21,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use KrokedilKOMDeps\Krokedil\Support\Logger;
+use KrokedilKOMDeps\Krokedil\Support\SystemReport;
+
+
 /**
  * Required minimums and constants
  */
@@ -30,7 +34,6 @@ define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_CHECKOUT_URL', untrailingslashit( plugins_url( '/', __FILE__ ) ) );
 
-use KrokedilKOMDeps\Krokedil\Support\SystemReport;
 
 if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
@@ -54,19 +57,35 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		public $settings;
 
 		/**
-		 * System report class.
+		 * Logger instance.
+		 *
+		 * @var Logger
+		 */
+		private $logger;
+
+		/**
+		 * SystemReport instance.
 		 *
 		 * @var SystemReport
 		 */
-		private $support = null;
+		private $system_report;
 
 		/**
-		 * System report instance.
+		 * Logger instance.
+		 *
+		 * @return Logger
+		 */
+		public function logger() {
+			return $this->logger;
+		}
+
+		/**
+		 * System report.
 		 *
 		 * @return SystemReport
 		 */
-		public function support() {
-			return $this->support;
+		public function report() {
+			return $this->system_report;
 		}
 
 		/**
@@ -171,7 +190,18 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatibility' ) );
 			$this->settings = new WC_Klarna_Order_Management_Settings();
-			$this->support  = new SystemReport( 'klarna_order_management', 'Klarna Order Management for WooCommerce' );
+			$this->logger   = new Logger( 'klarna_order_management', wc_string_to_bool( $settings['logging'] ?? false ) );
+
+			$report_about = array(
+				array( 'id' => 'kom_auto_capture' ),
+				array( 'id' => 'kom_auto_cancel' ),
+				array( 'id' => 'kom_auto_update' ),
+				array( 'id' => 'kom_auto_order_sync' ),
+				array( 'id' => 'kom_force_full_capture' ),
+				array( 'id' => 'kom_debug_log' ),
+
+			);
+			$this->system_report = new SystemReport( 'klarna_payments', 'Klarna Order Management for WooCommerce', $report_about );
 
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin' ) );
 		}
@@ -334,7 +364,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					return new \WP_Error( 'already_cancelled', 'Klarna order is already cancelled.' );
 				} else {
 					$request  = new KOM_Request_Post_Cancel( array( 'order_id' => $order_id ) );
-					$response = $this->support->request( $request->request() );
+					$response = $this->report()->request( $request->request() );
 
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order cancelled.' );
@@ -429,7 +459,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 							'klarna_order' => $klarna_order,
 						)
 					);
-					$response = $this->support->request( $request->request() );
+					$response = $this->report()->request( $request->request() );
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order updated.' );
 						$order->save();
@@ -532,7 +562,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 							'klarna_order' => $klarna_order,
 						)
 					);
-					$response = $this->support->request( $request->request() );
+					$response = $this->report()->request( $request->request() );
 
 					if ( ! is_wp_error( $response ) ) {
 						$order->add_order_note( 'Klarna order captured. Capture amount: ' . $order->get_formatted_order_total( '', false ) . '. Capture ID: ' . $response );
@@ -614,7 +644,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 						'refund_reason' => $reason,
 					)
 				);
-				$response = $this->support->request( $request->request() );
+				$response = $this->report()->request( $request->request() );
 
 				if ( ! is_wp_error( $response ) ) {
 					$order->add_order_note( wc_price( $amount, array( 'currency' => $order->get_currency() ) ) . ' refunded via Klarna.' );
@@ -641,7 +671,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					'order_id' => $order_id,
 				)
 			);
-			$klarna_order = $this->support->request( $request->request() );
+			$klarna_order = $this->report()->request( $request->request() );
 
 			return $klarna_order;
 		}

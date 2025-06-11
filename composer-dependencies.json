@@ -1,7 +1,7 @@
 {
   "require": {
     "php": ">=7.4",
-    "krokedil/support": "dev-develop-system-report-api-calls"
+    "krokedil/support": "^1.0"
   },
   "config": {
     "platform": {
