@@ -145,6 +145,26 @@ abstract class KOM_Request {
 	}
 
 	/**
+	 * Get the domain to use for the request based on the merchant ID.
+	 *
+	 * @param string $merchant_id The Klarna merchant ID.
+	 * @param string $klarna_variant The Klarna variant to use (e.g., 'klarna_payments', 'kco').
+	 *
+	 * @return string The domain to use for the request.
+	 */
+	public static function get_api_domain( $merchant_id, $klarna_variant = 'klarna_payments' ) {
+		// If the klarna variant is not kco, just return the Klarna domain.
+		if ( 'kco' !== $klarna_variant ) {
+			return 'klarna.com';
+		}
+
+		// If the merchant ID starts with either M or PM, we need to use the Kustom.
+		$pattern = '/^(M|PM)/';
+		$domain = preg_match( $pattern, $merchant_id ) ? 'kustom.co' : 'klarna.com';
+		return apply_filters( 'kco_api_domain', $domain );
+	}
+
+	/**
 	 * Get the API base URL.
 	 *
 	 * @return string
@@ -152,7 +172,8 @@ abstract class KOM_Request {
 	protected function get_api_url_base() {
 		$region     = strtolower( apply_filters( 'klarna_base_region', $this->get_klarna_api_region() ) );
 		$playground = $this->use_playground() ? '.playground' : '';
-		return "https://api{$region}{$playground}.klarna.com/";
+		$domain     = self::get_api_domain( $this->get_auth_component( 'merchant_id' ), $this->get_klarna_variant() );
+		return "https://api{$region}{$playground}.{$domain}/";
 	}
 
 	/**
