@@ -6,7 +6,7 @@ Requires at least: 4.0
 Tested up to: 6.8.1
 Requires PHP: 7.3
 WC requires at least: 5.0.0
-WC tested up to: 9.8.3
+WC tested up to: 9.9.4
 Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -23,6 +23,9 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2025.06.17    - version 1.9.8 =
+* Tweak         - Updated API endpoints for merchants using Kustom credentials.
+
 = 2025.05.19    - version 1.9.7 =
 * Fix           - Error messages are now displayed in certain cases where failed order returns previously showed none.
 
