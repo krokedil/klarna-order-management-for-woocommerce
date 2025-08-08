@@ -63,13 +63,9 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 	 */
 	protected function get_body() {
 
-		// Get the return fee amount if it is set.
-		$return_fee_amount       = $this->return_fee['amount'] ?? 0;
-		$refund_fee_tax_amount   = $this->return_fee['tax_amount'] ?? 0;
-		$refund_fee_total_amount = $return_fee_amount + $refund_fee_tax_amount;
 		// Set the request body.
 		$data = array(
-			'refunded_amount' => round( ( $this->refund_amount - $refund_fee_total_amount ) * 100 ),
+			'refunded_amount' => round( $this->refund_amount * 100 ),
 			'description'     => $this->refund_reason,
 		);
 
@@ -236,11 +232,12 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 			if ( ! empty( $this->return_fee ) ) {
 				add_filter( 'klarna_applied_return_fees', fn( $fees ) => array_merge( $fees, $this->return_fee ), 10, 1 );
 				$return_fee = array(
-					'type'         => 'return_fee',
-					'name'         => __( 'Return fee', 'klarna-order-management-for-woocommerce' ),
-					'quantity'     => 1,
-					'unit_price'   => round( -1 * ( abs( $this->return_fee['amount'] + $this->return_fee['tax_amount'] ) * 100 ) ),
-					'total_amount' => round( -1 * ( abs( $this->return_fee['amount'] + $this->return_fee['tax_amount'] ) * 100 ) ),
+					'type'             => 'return_fee',
+					'name'             => __( 'Return fee', 'klarna-order-management-for-woocommerce' ),
+					'quantity'         => 1,
+					'unit_price'       => round( -1 * ( abs( $this->return_fee['amount'] + $this->return_fee['tax_amount'] ) * 100 ) ),
+					'total_amount'     => round( -1 * ( abs( $this->return_fee['amount'] + $this->return_fee['tax_amount'] ) * 100 ) ),
+					'total_tax_amount' => round( -1 * ( abs( $this->return_fee['tax_amount'] ) * 100 ) ),
 				);
 
 				$data[] = $return_fee;

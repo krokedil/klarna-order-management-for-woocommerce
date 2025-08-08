@@ -32,7 +32,7 @@ class WC_Klarna_Assets {
 		// Script Params.
 		$params = array(
 			'ajax_url'                                => admin_url( 'admin-ajax.php' ),
-			'with_return_fee_text'                    => __( 'With a return fee of', 'klarna-order-management-for-woocommerce' ),
+			'with_return_fee_text'                    => __( 'minus a return fee of', 'klarna-order-management-for-woocommerce' ),
 			'refund_amount_less_than_return_fee_text' => __( 'Refund amount is less than the return fee.', 'klarna-order-management-for-woocommerce' ),
 		);
 

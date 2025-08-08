@@ -572,22 +572,18 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					$total_return_fee_amount     = $applied_return_fees['amount'] ?? 0;
 					$total_return_fee_tax_amount = $applied_return_fees['tax_amount'] ?? 0;
 					$total_return_fees           = $total_return_fee_amount + $total_return_fee_tax_amount;
+					$original_amount             = wc_price( $amount + $total_return_fees, array( 'currency' => $order->get_currency() ) );
+
 					$formatted_total_return_fees = wc_price( $total_return_fees, array( 'currency' => $order->get_currency() ) );
-					$refunded_total_to_customer  = wc_price( WC_Klarna_Refund_Fee::get_refunded_total_to_customer( $total_return_fees, $refund_order ), array( 'currency' => $order->get_currency() ) );
 
 					// translators: return frees amount.
-					$extra_text = sprintf( __( ' (including return fee of %1$s). Refunded to customer %2$s.', 'klarna-order-management-for-woocommerce' ), $formatted_total_return_fees, $refunded_total_to_customer );
+					$extra_text = sprintf( __( ' (original amount of %1$s - return fee of %2$s).', 'klarna-order-management-for-woocommerce' ), $original_amount, $formatted_total_return_fees );
 					$text      .= $extra_text;
 				}
 
 				$formatted_text = sprintf( $text, wc_price( $amount, array( 'currency' => $order->get_currency() ) ) );
 				$order->add_order_note( $formatted_text );
 
-				if ( $refund_order && ! empty( $applied_return_fees ) ) {
-					// Add the return fees as meta data to the refund order. The return fees are added to the filter when the request is made.
-					$refund_order->update_meta_data( '_klarna_return_fees', $applied_return_fees );
-					$refund_order->save();
-				}
 				return true;
 
 			}

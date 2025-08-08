@@ -49,7 +49,7 @@ jQuery( function ( $ ) {
 				}
 
 				// Update the button text with the return fee amount by replacing inner text of the span#klarna_return_fee_total with the refund fee amount.
-				$klarnaReturnFeeTotalSpan.text(' ( ' + kom_admin_params.with_return_fee_text + ' ' + kom.format_number(refundFeeAmount) + ' )' );
+				$klarnaReturnFeeTotalSpan.text(' (' + kom_admin_params.with_return_fee_text + ' ' + kom.format_number(refundFeeAmount) + ')' );
 			},
 			format_number: function (number) {
 				// Format the number using accounting.js with the currency format settings from woocommerce_admin_meta_boxes.
