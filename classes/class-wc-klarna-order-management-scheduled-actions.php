@@ -30,14 +30,14 @@ class WC_Klarna_Order_Management_Scheduled_Actions {
 		$scheduled_actions = array();
 
 		foreach ( $statuses as $status ) {
-			$scheduled_actions[ $status ] =
-				as_get_scheduled_actions(
-					array(
-						'search'   => $session_id,
-						'status'   => array( $status ),
-						'per_page' => -1,
-					)
-				);
+			$scheduled_actions[ $status ] = as_get_scheduled_actions(
+				array(
+					'search'   => $session_id,
+					'status'   => array( $status ),
+					'per_page' => -1,
+				),
+				'ids'
+			);
 		}
 
 		return $scheduled_actions;
