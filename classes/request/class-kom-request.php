@@ -398,6 +398,13 @@ abstract class KOM_Request {
 	 * @return void
 	 */
 	protected function log_response( $response, $request_args, $code ) {
+		foreach ( $request_args['headers'] as $header => $value ) {
+			if ( 'authorization' === strtolower( $header ) ) {
+				// If it is longer than 15 char., it most likely has a token. This is an assumption that is safe even if it is wrong.
+				$request_args['headers'][ $header ] = strlen( $value ) > 15 ? '[REDACTED]' : '[MISSING]';
+				break;
+			}
+		}
 		$log = WC_Klarna_Logger::format_log( $this->klarna_order_id, $this->method, $this->log_title, $request_args, $response, $code );
 		WC_Klarna_Logger::log( $log, $this->order_id );
 	}
