@@ -120,8 +120,8 @@ jQuery( function ( $ ) {
 		kom.cancel_refund_button.on( "click", function () {
 			kom.hide_refund_fee_section()
 		} )
-		kom.refund_submit_button.on( "click", function () {
-			kom.on_refund_submit()
+		kom.refund_submit_button.on( "click", function (e) {
+			kom.on_refund_submit(e)
 		} )
 		kom.refund_amount_field.on( "change", function () {
 			kom.update_klarna_refund_amount()
