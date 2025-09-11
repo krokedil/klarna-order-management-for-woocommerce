@@ -555,6 +555,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 						'refund_amount' => $amount,
 						'refund_reason' => $reason,
 						'return_fee'    => $return_fee,
+						'refund_id'     => $refund_order_id,
 					)
 				);
 				$response   = $request->request();
