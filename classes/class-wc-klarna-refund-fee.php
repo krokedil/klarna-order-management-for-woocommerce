@@ -10,11 +10,7 @@ class WC_Klarna_Refund_Fee {
 
 
 	/**
-	 * Constructor.
-	 *
-	 * @param string $id          The fee ID.
-	 * @param float  $amount      The fee amount.
-	 * @param string $description The fee description.
+	 * Class constructor.
 	 */
 	public function __construct() {
 		// Add return fee order lines to the admin order edit page.
