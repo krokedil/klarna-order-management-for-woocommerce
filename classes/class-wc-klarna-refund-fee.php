@@ -261,7 +261,7 @@ class WC_Klarna_Refund_Fee {
 			$location['state']    = $order->get_billing_state();
 			$location['postcode'] = $order->get_billing_postcode();
 			$location['city']     = $order->get_billing_city();
-		} else { // 'shipping' eller 'base' (standard för frakt)
+		} else { // 'shipping' or default.
 			$location['country']  = $order->get_shipping_country();
 			$location['state']    = $order->get_shipping_state();
 			$location['postcode'] = $order->get_shipping_postcode();
@@ -279,12 +279,12 @@ class WC_Klarna_Refund_Fee {
 		$fee->set_tax_class( $tax_class_slug );
 		$fee->set_tax_status( 'taxable' );
 
-		// VIKTIGT: Sätt både belopp och skatt som negativa värden
+		// Set the amounts as negative values.
 		$fee_line_total = -1 * abs( $total_return_fee_amount );
 		$fee_tax_total  = -1 * abs( $total_return_fee_tax_amount );
 
-		$fee->set_amount( $total_return_fee_amount ); // Belopp exkl. moms
-		$fee->set_total( $total_return_fee_amount );  // Belopp exkl. moms
+		$fee->set_amount( $total_return_fee_amount );
+		$fee->set_total( $total_return_fee_amount );
 		$fee->calculate_taxes( $location );
 
 		// Add the item.

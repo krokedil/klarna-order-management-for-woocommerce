@@ -576,7 +576,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 					$formatted_total_return_fees = wc_price( $total_return_fees, array( 'currency' => $order->get_currency() ) );
 
-					// translators: return frees amount.
+					// translators: 1: original amount, 2: return fee amount.
 					$extra_text = sprintf( __( ' (original amount of %1$s - return fee of %2$s).', 'klarna-order-management-for-woocommerce' ), $original_amount, $formatted_total_return_fees );
 					$text      .= $extra_text;
 				}
