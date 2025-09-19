@@ -635,7 +635,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			foreach ( $line_item_tax_totals as $key => $tax_line ) {
 				if ( 'klarna_return_fee' === $key ) {
-					// Get the rate id from the tax by the first key in the line
+					// Get the rate id from the tax by the first key in the line.
 					$tax_rate_id               = array_keys( $tax_line )[0];
 					$return_fee['tax_rate_id'] = $tax_rate_id;
 					$return_fee['tax_amount']  = str_replace( ',', '.', $tax_line[ $tax_rate_id ] );
