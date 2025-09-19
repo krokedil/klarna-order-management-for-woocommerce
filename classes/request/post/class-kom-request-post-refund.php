@@ -77,9 +77,17 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 			'description'     => $this->refund_reason,
 		);
 
-		// Add the refund id if available.
+		// Get the original order number.
+		$order = wc_get_order( $this->order_id );
+		if ( $order ) {
+			$order_number = $order->get_order_number();
+		} else {
+			$order_number = $this->order_id;
+		}
+
+		// Add the order number and refund id if available.
 		if ( ! empty( $this->refund_id ) ) {
-			$data['reference'] = $this->refund_id;
+			$data['reference'] = $order_number . '|' . $this->refund_id;
 		}
 
 		$refund_order_lines = $this->get_refund_order_lines();
