@@ -37,7 +37,8 @@ class KOM_Request_Patch_Update extends KOM_Request_Patch {
 	 */
 	protected function get_body() {
 		$lines_processor = new WC_Klarna_Order_Management_Order_Lines( $this->order_id );
-		return $lines_processor->order_lines();
+		$data            = $lines_processor->order_lines();
+
+		return apply_filters( 'kom_order_update_args', $data, $this->order_id );
 	}
 }
-

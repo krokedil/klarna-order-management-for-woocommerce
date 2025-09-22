@@ -88,9 +88,10 @@ class WC_Klarna_Meta_Box {
 	 * @return void
 	 */
 	public function print_standard_content( $klarna_order ) {
-		$order_id = kom_get_the_ID();
-		$order    = wc_get_order( $order_id );
-		$settings = WC_Klarna_Order_Management::get_instance()->settings->get_settings( $order_id );
+		$order_id   = kom_get_the_ID();
+		$order      = wc_get_order( $order_id );
+		$settings   = WC_Klarna_Order_Management::get_instance()->settings->get_settings( $order_id );
+		$session_id = $order->get_meta( '_kp_session_id' );
 
 		$actions            = array();
 		$actions['capture'] = ( ! isset( $settings['kom_auto_capture'] ) || 'yes' === $settings['kom_auto_capture'] ) ? false : true;
@@ -142,6 +143,12 @@ class WC_Klarna_Meta_Box {
 				</strong>
 				<?php echo ( esc_html( apply_filters( 'kom_meta_payment_method', $klarna_order->initial_payment_method->description ) ) ); ?></br>
 
+				<?php
+				if ( ! empty( $session_id ) ) :
+					WC_Klarna_Order_Management_Scheduled_Actions::print_scheduled_actions( $session_id );
+				endif;
+				?>
+
 				<ul class="kom_order_actions_wrapper submitbox">
 					<?php if ( $actions['any'] ) : ?>
 						<li class="wide" id="kom-capture">
@@ -162,7 +169,6 @@ class WC_Klarna_Meta_Box {
 					<?php endif; ?>
 				</ul>
 
-
 			<?php else : ?>
 
 				<ul class="kom_order_actions_wrapper submitbox">
@@ -181,7 +187,7 @@ class WC_Klarna_Meta_Box {
 			<div class="kom_order_sync">
 				<div class="kom_order_sync--box">
 					<div class="kom_order_sync--toggle">
-						<p><label>Order synchronization
+						<p><label>Order management
 								<?php echo wc_help_tip( __( 'Disable this to turn off the automatic synchronization with the Klarna Merchant Portal. When disabled, any changes in either system have to be done manually.', 'klarna-order-management-for-woocommerce' ) ); //phpcs:ignore -- string literal. ?>
 							</label></p>
 						<span class="woocommerce-input-toggle woocommerce-input-toggle--<?php echo esc_attr( $kom_disconnected_status ); ?>"></span>

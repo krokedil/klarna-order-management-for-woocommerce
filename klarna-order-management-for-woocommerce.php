@@ -5,14 +5,14 @@
  * Description: Provides order management for Klarna Payments and Klarna Checkout gateways.
  * Author: klarna, krokedil
  * Author URI: https://krokedil.se/
- * Version: 1.9.4
+ * Version: 1.9.9
  * Text Domain: klarna-order-management-for-woocommerce
  * Domain Path: /languages
  *
  * WC requires at least: 5.0.0
- * WC tested up to: 9.5.2
+ * WC tested up to: 9.9.4
  *
- * Copyright (c) 2018-2024 Krokedil
+ * Copyright (c) 2018-2025 Krokedil
  *
  * @package WC_Klarna_Order_Management
  */
@@ -28,7 +28,7 @@ use KrokedilKOMDeps\Krokedil\Support\SystemReport;
 /**
  * Required minimums and constants
  */
-define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.9.4' );
+define( 'WC_KLARNA_ORDER_MANAGEMENT_VERSION', '1.9.9' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_PHP_VER', '5.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_MIN_WC_VER', '3.3.0' );
 define( 'WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
@@ -125,6 +125,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 */
 		protected function __construct() {
 			add_action( 'plugins_loaded', array( $this, 'init' ) );
+			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatibility' ) );
 
 			// Add action links.
 			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'plugin_action_links' ) );
@@ -136,17 +137,28 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		public function init() {
 			// Include the autoloader from composer. If it fails, we'll just return and not load the plugin. But an admin notice will show to the merchant.
 			if ( ! $this->init_composer() ) {
+        return;
+      }
+      
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-order-management-settings.php';
+			$this->settings = new WC_Klarna_Order_Management_Settings();
+
+			// If Klarna Order Management is an unavailable feature, do not include the rest of the plugin.
+			$kp_unavailable_feature_ids = get_option( 'kp_unavailable_feature_ids', array() );
+			if ( in_array( 'kom', $kp_unavailable_feature_ids, true ) ) {
 				return;
 			}
 
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/includes/klarna-order-management-functions.php';
 
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-assets.php';
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-order-management-scheduled-actions.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-sellers-app.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-pending-orders.php';
-			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-order-management-settings.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-meta-box.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-order-management-order-lines.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-logger.php';
+			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-refund-fee.php';
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/request/class-kom-request.php';
 
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/request/class-kom-request-get.php';
@@ -630,31 +642,64 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$klarna_order = $this->retrieve_klarna_order( $order_id );
 
 			if ( is_wp_error( $klarna_order ) ) {
-				$order->add_order_note( 'Could not capture Klarna order. ' . $klarna_order->get_error_message() . '.' );
+				$order->add_order_note( 'Could not refund Klarna order. ' . $klarna_order->get_error_message() . '.' );
 				$order->save();
 
 				return new \WP_Error( 'object_error', 'Klarna order object is of type WP_Error.', $klarna_order );
 			}
 
+			// Get the refund order ID.
+			$refund_order_id = $order->get_refunds()[0]->get_id();
+			$refund_order    = wc_get_order( $refund_order_id );
+
+			// Check that the refund order is valid.
+			if ( ! $refund_order ) {
+				$order->add_order_note( 'Could not retrieve the refund order.' );
+				$order->save();
+				return new \WP_Error( 'invalid_refund_order', 'Refund order is not valid.' );
+			}
+
+			// If the order is not captured, we cannot refund it.
 			if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
-				$request  = new KOM_Request_Post_Refund(
+				$return_fee = $this->get_return_fee_from_post();
+				$request    = new KOM_Request_Post_Refund(
 					array(
 						'order_id'      => $order_id,
 						'refund_amount' => $amount,
 						'refund_reason' => $reason,
+						'return_fee'    => $return_fee,
 					)
 				);
-				$response = $this->report()->request( $request->request() );
 
-				if ( ! is_wp_error( $response ) ) {
-					$order->add_order_note( wc_price( $amount, array( 'currency' => $order->get_currency() ) ) . ' refunded via Klarna.' );
-					$order->save();
-					return true;
-				} else {
+				$response = $this->report()->request( $request->request() );
+				if ( is_wp_error( $response ) ) {
 					$order->add_order_note( 'Could not refund Klarna order. ' . $response->get_error_message() . '.' );
 					$order->save();
 					return new \WP_Error( 'unknown_error', 'Response object is of type WP_Error.', $response );
 				}
+
+				$applied_return_fees = apply_filters( 'klarna_applied_return_fees', array() );
+
+				// translators: refund amount, refund id.
+				$text = __( 'Processing a refund of %1$s with Klarna', 'klarna-order-management-for-woocommerce' );
+				if ( ! empty( $applied_return_fees ) ) {
+					$total_return_fee_amount     = $applied_return_fees['amount'] ?? 0;
+					$total_return_fee_tax_amount = $applied_return_fees['tax_amount'] ?? 0;
+					$total_return_fees           = $total_return_fee_amount + $total_return_fee_tax_amount;
+					$original_amount             = wc_price( $amount + $total_return_fees, array( 'currency' => $order->get_currency() ) );
+
+					$formatted_total_return_fees = wc_price( $total_return_fees, array( 'currency' => $order->get_currency() ) );
+
+					// translators: 1: original amount, 2: return fee amount.
+					$extra_text = sprintf( __( ' (original amount of %1$s - return fee of %2$s).', 'klarna-order-management-for-woocommerce' ), $original_amount, $formatted_total_return_fees );
+					$text      .= $extra_text;
+				}
+
+				$formatted_text = sprintf( $text, wc_price( $amount, array( 'currency' => $order->get_currency() ) ) );
+				$order->add_order_note( $formatted_text );
+
+				return true;
+
 			}
 		}
 
@@ -674,6 +719,42 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 			$klarna_order = $this->report()->request( $request->request() );
 
 			return $klarna_order;
+		}
+
+		/**
+		 * Get the return fee from the posted data.
+		 *
+		 * @return array
+		 */
+		public static function get_return_fee_from_post() {
+			$return_fee = array(
+				'amount'      => 0,
+				'tax_amount'  => 0,
+				'tax_rate_id' => 0,
+			);
+
+			$line_item_totals_json     = filter_input( INPUT_POST, 'line_item_totals', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$line_item_tax_totals_json = filter_input( INPUT_POST, 'line_item_tax_totals', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+			$line_item_totals     = json_decode( htmlspecialchars_decode( $line_item_totals_json ), true ) ?? array();
+			$line_item_tax_totals = json_decode( htmlspecialchars_decode( $line_item_tax_totals_json ), true ) ?? array();
+
+			foreach ( $line_item_totals as $key => $total ) {
+				if ( 'klarna_return_fee' === $key ) {
+					$return_fee['amount'] = str_replace( ',', '.', $total );
+				}
+			}
+
+			foreach ( $line_item_tax_totals as $key => $tax_line ) {
+				if ( 'klarna_return_fee' === $key ) {
+					// Get the rate id from the tax by the first key in the line
+					$tax_rate_id               = array_keys( $tax_line )[0];
+					$return_fee['tax_rate_id'] = $tax_rate_id;
+					$return_fee['tax_amount']  = str_replace( ',', '.', $tax_line[ $tax_rate_id ] );
+				}
+			}
+
+			return $return_fee;
 		}
 	}
 

@@ -28,6 +28,13 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 	protected $refund_amount;
 
 	/**
+	 * The Return Fee
+	 *
+	 * @var array
+	 */
+	protected $return_fee;
+
+	/**
 	 * Class constructor.
 	 *
 	 * @param array $arguments The request arguments.
@@ -37,6 +44,7 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 		$this->log_title     = 'Refund Klarna order';
 		$this->refund_reason = $arguments['refund_reason'];
 		$this->refund_amount = $arguments['refund_amount'];
+		$this->return_fee    = $arguments['return_fee'] ?? array();
 	}
 
 	/**
@@ -54,6 +62,8 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 	 * @return array
 	 */
 	protected function get_body() {
+
+		// Set the request body.
 		$data = array(
 			'refunded_amount' => round( $this->refund_amount * 100 ),
 			'description'     => $this->refund_reason,
@@ -107,11 +117,12 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 							$order_line_total    = round( ( $order->get_line_subtotal( $order_item, false ) * 100 ) );
 							$order_line_tax      = round( ( $order->get_line_tax( $order_item ) * 100 ) );
 							$tax_rates           = WC_Tax::get_base_tax_rates( $order_item->get_tax_class() );
-							$order_line_tax_rate = ( 0 !== $order_line_tax && 0 !== $order_line_total ) ? reset( $tax_rates )['rate'] * 100 ?? round( ( $order_line_tax / $order_line_total ) * 100 * 100 ) : 0;
+							$first_tax_rate      = reset( $tax_rates );
+							$order_line_tax_rate = ( 0 !== $order_line_tax && 0 !== $order_line_total ) ? ( $first_tax_rate['rate'] * 100 ?? round( ( $order_line_tax / $order_line_total ) * 100 * 100 ) ) : 0;
 						}
 					}
 
-					 /**
+					/**
 					 *
 					 *  If a product is not available inside of WC anymore wc_get_product() will return false
 					 *  and the default check will fail resulting in an fatal error, creating the Refund with WC but not sending it to Klarna
@@ -121,9 +132,9 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 					 */
 
 					if ( is_object( $product ) && method_exists( $product, 'is_downloadable' ) ) {
-						  $type = $product->is_downloadable() || $product->is_virtual() ? 'digital' : 'physical';
+							$type = $product->is_downloadable() || $product->is_virtual() ? 'digital' : 'physical';
 					} else {
-						  $type = apply_filters( 'kom_line_item_product_type', 'physical', $item );
+							$type = apply_filters( 'kom_line_item_product_type', 'physical', $item );
 					}
 
 					$reference           = $order_lines_processor->get_item_reference( $item );
@@ -216,6 +227,21 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 
 				$data[] = $sales_tax;
 			}
+
+			// If return fees are set.
+			if ( ! empty( $this->return_fee ) ) {
+				add_filter( 'klarna_applied_return_fees', fn( $fees ) => array_merge( $fees, $this->return_fee ), 10, 1 );
+				$return_fee = array(
+					'type'             => 'return_fee',
+					'name'             => __( 'Return fee', 'klarna-order-management-for-woocommerce' ),
+					'quantity'         => 1,
+					'unit_price'       => round( -1 * ( abs( $this->return_fee['amount'] + $this->return_fee['tax_amount'] ) * 100 ) ),
+					'total_amount'     => round( -1 * ( abs( $this->return_fee['amount'] + $this->return_fee['tax_amount'] ) * 100 ) ),
+					'total_tax_amount' => round( -1 * ( abs( $this->return_fee['tax_amount'] ) * 100 ) ),
+				);
+
+				$data[] = $return_fee;
+			}
 		}
 
 		return apply_filters( 'kom_refund_order_args', $data, $this->order_id );
@@ -233,5 +259,4 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 		/* Always retrieve the most recent (current) refund (index 0). */
 		return $order->get_refunds()[0]->get_id();
 	}
-
 }
