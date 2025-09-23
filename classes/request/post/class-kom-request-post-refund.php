@@ -35,6 +35,13 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 	protected $return_fee;
 
 	/**
+	 * The Refund ID
+	 *
+	 * @var string
+	 */
+	protected $refund_id;
+
+	/**
 	 * Class constructor.
 	 *
 	 * @param array $arguments The request arguments.
@@ -45,6 +52,7 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 		$this->refund_reason = $arguments['refund_reason'];
 		$this->refund_amount = $arguments['refund_amount'];
 		$this->return_fee    = $arguments['return_fee'] ?? array();
+		$this->refund_id     = $arguments['refund_id'] ?? '';
 	}
 
 	/**
@@ -68,6 +76,19 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 			'refunded_amount' => round( $this->refund_amount * 100 ),
 			'description'     => $this->refund_reason,
 		);
+
+		// Get the original order number.
+		$order = wc_get_order( $this->order_id );
+		if ( $order ) {
+			$order_number = $order->get_order_number();
+		} else {
+			$order_number = $this->order_id;
+		}
+
+		// Add the order number and refund id if available.
+		if ( ! empty( $this->refund_id ) ) {
+			$data['reference'] = $order_number . '|' . $this->refund_id;
+		}
 
 		$refund_order_lines = $this->get_refund_order_lines();
 

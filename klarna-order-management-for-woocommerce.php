@@ -555,6 +555,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 						'refund_amount' => $amount,
 						'refund_reason' => $reason,
 						'return_fee'    => $return_fee,
+						'refund_id'     => $refund_order_id,
 					)
 				);
 				$response   = $request->request();
@@ -569,7 +570,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 				// translators: refund amount, refund id.
 				$text = __( 'Processing a refund of %1$s with Klarna', 'klarna-order-management-for-woocommerce' );
-				if ( ! empty( $applied_return_fees ) ) {
+				if ( ! empty( floatval( $applied_return_fees['amount'] ?? 0 ) ) ) {
 					$total_return_fee_amount     = $applied_return_fees['amount'] ?? 0;
 					$total_return_fee_tax_amount = $applied_return_fees['tax_amount'] ?? 0;
 					$total_return_fees           = $total_return_fee_amount + $total_return_fee_tax_amount;
@@ -578,12 +579,12 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					$formatted_total_return_fees = wc_price( $total_return_fees, array( 'currency' => $order->get_currency() ) );
 
 					// translators: 1: original amount, 2: return fee amount.
-					$extra_text = sprintf( __( ' (original amount of %1$s - return fee of %2$s).', 'klarna-order-management-for-woocommerce' ), $original_amount, $formatted_total_return_fees );
+					$extra_text = sprintf( __( ' (original amount of %1$s - return fee of %2$s)', 'klarna-order-management-for-woocommerce' ), $original_amount, $formatted_total_return_fees );
 					$text      .= $extra_text;
 				}
 
 				$formatted_text = sprintf( $text, wc_price( $amount, array( 'currency' => $order->get_currency() ) ) );
-				$order->add_order_note( $formatted_text );
+				$order->add_order_note( $formatted_text . '.' );
 
 				return true;
 
@@ -634,7 +635,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			foreach ( $line_item_tax_totals as $key => $tax_line ) {
 				if ( 'klarna_return_fee' === $key ) {
-					// Get the rate id from the tax by the first key in the line
+					// Get the rate id from the tax by the first key in the line.
 					$tax_rate_id               = array_keys( $tax_line )[0];
 					$return_fee['tax_rate_id'] = $tax_rate_id;
 					$return_fee['tax_amount']  = str_replace( ',', '.', $tax_line[ $tax_rate_id ] );
