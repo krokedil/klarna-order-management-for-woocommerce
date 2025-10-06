@@ -1,0 +1,236 @@
+# Copyright (C) 2025 
+# This file is distributed under the same license as the  package.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: "
+"https://wordpress.org/support/plugin/klarna-order-management-for-"
+"woocommerce\n"
+"POT-Creation-Date: 2025-10-06 09:27:53+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2025-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"X-Generator: grunt-wp-i18n 1.0.3\n"
+
+#: classes/class-wc-klarna-assets.php:35
+msgid "minus a return fee of"
+msgstr ""
+
+#: classes/class-wc-klarna-assets.php:36
+msgid "Refund amount is less than the return fee."
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:52
+msgid "Klarna Order Management"
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:67
+msgid "The payment has not been finalized with Klarna."
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:76
+msgid "Failed to retrieve the order from Klarna."
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:132
+msgid "Klarna Environment: "
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:137
+msgid "Klarna order status: "
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:142
+msgid "Initial Payment method: "
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:157
+msgid "Choose an action..."
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:162
+#: classes/class-wc-klarna-meta-box.php:180
+msgid "Apply"
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:191
+msgid ""
+"Disable this to turn off the automatic synchronization with the Klarna "
+"Merchant Portal. When disabled, any changes in either system have to be "
+"done manually."
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:198
+msgid "OK"
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:312
+#: classes/class-wc-klarna-meta-box.php:326
+msgid "Capture order"
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:326
+msgid "Activates the order with Klarna."
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:340
+#: classes/class-wc-klarna-meta-box.php:354
+msgid "Cancel order"
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:354
+msgid "Cancels the order with Klarna."
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:368
+#: classes/class-wc-klarna-meta-box.php:382
+msgid "Sync Klarna order"
+msgstr ""
+
+#: classes/class-wc-klarna-meta-box.php:382
+msgid "Gets the order data from Klarna and saves it to the WooCommerce order."
+msgstr ""
+
+#: classes/class-wc-klarna-order-management-order-lines.php:180
+msgid "gift_card"
+msgstr ""
+
+#: classes/class-wc-klarna-order-management-order-lines.php:185
+msgid "Gift card"
+msgstr ""
+
+#: classes/class-wc-klarna-order-management-order-lines.php:346
+#: classes/class-wc-klarna-order-management-order-lines.php:347
+#: classes/request/post/class-kom-request-post-refund.php:239
+#: classes/request/post/class-kom-request-post-refund.php:240
+msgid "Sales Tax"
+msgstr ""
+
+#: classes/class-wc-klarna-order-management-scheduled-actions.php:59
+msgid "Scheduled actions "
+msgstr ""
+
+#: classes/class-wc-klarna-order-management-scheduled-actions.php:61
+msgid "See all actions scheduled for this order."
+msgstr ""
+
+#: classes/class-wc-klarna-order-management-scheduled-actions.php:69
+#. translators: %1$d: number of completed orders, %2$d: number of failed
+#. orders, %3$d: number of pending orders.
+msgid "%1$d completed, %2$d failed, %3$d pending"
+msgstr ""
+
+#: classes/class-wc-klarna-order-management-settings.php:52
+msgid ""
+"Activate Klarna order automatically when WooCommerce order is marked "
+"complete."
+msgstr ""
+
+#: classes/class-wc-klarna-order-management-settings.php:59
+msgid "Cancel Klarna order automatically when WooCommerce order is marked canceled."
+msgstr ""
+
+#: classes/class-wc-klarna-order-management-settings.php:66
+msgid "Update Klarna order automatically when WooCommerce order is updated."
+msgstr ""
+
+#: classes/class-wc-klarna-order-management-settings.php:73
+msgid ""
+"Gets the customer information from Klarna when creating a manual admin "
+"order and adding a Klarna order id as a transaction id."
+msgstr ""
+
+#: classes/class-wc-klarna-order-management-settings.php:80
+msgid ""
+"Force capture full order. Useful if the Klarna order has been updated by an "
+"ERP system."
+msgstr ""
+
+#: classes/class-wc-klarna-order-management-settings.php:87
+msgid "Enable the debug log."
+msgstr ""
+
+#: classes/class-wc-klarna-refund-fee.php:60
+msgid "Klarna return fee"
+msgstr ""
+
+#: classes/class-wc-klarna-refund-fee.php:119
+msgid "Refund amount: "
+msgstr ""
+
+#: classes/class-wc-klarna-refund-fee.php:121
+msgid "Return fee: "
+msgstr ""
+
+#: classes/class-wc-klarna-refund-fee.php:123
+msgid "Refunded to customer: "
+msgstr ""
+
+#: classes/class-wc-klarna-refund-fee.php:174
+#: classes/request/post/class-kom-request-post-refund.php:257
+msgid "Return fee"
+msgstr ""
+
+#: classes/class-wc-klarna-refund-fee.php:274
+msgid "Return Fee"
+msgstr ""
+
+#: classes/class-wc-klarna-refund-fee.php:349
+#. translators: %1$s: return fee amount, %2$s: refund reason
+msgid "Return fee: %1$s.<br>%2$s"
+msgstr ""
+
+#: classes/class-wc-klarna-sellers-app.php:123
+msgid "Order address updated by Klarna Order management."
+msgstr ""
+
+#: classes/request/class-kom-request.php:209
+msgid "Invalid JSON response from the server."
+msgstr ""
+
+#: klarna-order-management-for-woocommerce.php:187
+msgid "Settings (Klarna Checkout)"
+msgstr ""
+
+#: klarna-order-management-for-woocommerce.php:191
+msgid "Settings (Klarna Payments)"
+msgstr ""
+
+#: klarna-order-management-for-woocommerce.php:314
+#. translators: 1: User name, 2: Existing token, 3: New token.
+msgid "%1$s updated the subscription recurring token from \"%2$s\" to \"%3$s\"."
+msgstr ""
+
+#: klarna-order-management-for-woocommerce.php:369
+#. translators: %s: error message from Klarna.
+msgid "Could not update Klarna order lines: %s."
+msgstr ""
+
+#: klarna-order-management-for-woocommerce.php:371
+msgid "Could not update Klarna order lines. An unknown error occurred."
+msgstr ""
+
+#: klarna-order-management-for-woocommerce.php:475
+msgid ""
+"Klarna could not charge the customer. Please try again later. If that still "
+"fails, the customer may have to create a new subscription or add funds to "
+"their payment method if they wish to continue."
+msgstr ""
+
+#: klarna-order-management-for-woocommerce.php:485
+#. translators: %s: Error message from Klarna.
+msgid "Could not capture Klarna order. %s"
+msgstr ""
+
+#: klarna-order-management-for-woocommerce.php:572
+#. translators: refund amount, refund id.
+msgid "Processing a refund of %1$s with Klarna"
+msgstr ""
+
+#: klarna-order-management-for-woocommerce.php:582
+#. translators: 1: original amount, 2: return fee amount.
+msgid " (original amount of %1$s - return fee of %2$s)"
+msgstr ""

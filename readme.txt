@@ -3,10 +3,10 @@ Contributors: klarna, krokedil, NiklasHogefjord, automattic
 Tags: woocommerce, klarna
 Donate link: https://klarna.com
 Requires at least: 4.0
-Tested up to: 6.8.1
+Tested up to: 6.8.3
 Requires PHP: 7.3
 WC requires at least: 5.0.0
-WC tested up to: 9.9.4
+WC tested up to: 10.2.2
 Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -23,6 +23,11 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2025.10.06    - version 1.10.0 =
+* Feature       - Added support for return fees on refunds; return fee is added as a fee to the refund order and shown in admin, customer emails, and "My account" page.
+* Feature       - Scheduled actions for the current order are now shown on the admin order view.
+* Enhancement   - Added refund order id as reference in request to Klarna.
+
 = 2025.08.27    - version 1.9.9 =
 * Tweak         - Redacted sensitive information from the log.
 
