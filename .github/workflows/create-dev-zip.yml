@@ -35,10 +35,14 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-npm-
 
+    # Build the plugin with dev dependencies to scope the dependency packages.
+    - name: Composer Install (Dev)
+      run: composer install --no-interaction
+
     - name: Install dependencies and build project
       run: |
         mkdir -p ~/.composer/cache
-        composer install --prefer-dist --no-progress
+        composer install --prefer-dist --no-progress --no-interaction
         npm ci && npm run build
 
     - name: Get branch name and commit hash
