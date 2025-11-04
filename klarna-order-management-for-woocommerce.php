@@ -560,7 +560,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					$request_args['return_fee'] = $return_fee;
 				}
 
-				$request = new KOM_Request_Post_Refund( $request_args );
+				$request  = new KOM_Request_Post_Refund( $request_args );
 				$response = $request->request();
 
 				if ( is_wp_error( $response ) ) {
