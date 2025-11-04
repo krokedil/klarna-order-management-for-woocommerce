@@ -13,6 +13,18 @@ class WC_Klarna_Refund_Fee {
 	 * Class constructor.
 	 */
 	public function __construct() {
+		add_action( 'init', array( $this, 'register_hooks' ) );
+	}
+
+	/**
+	 * Register hooks on init.
+	 */
+	public function register_hooks() {
+		// Check if the store country is supported for return fees.
+		if ( ! $this->is_return_fee_supported_country() ) {
+			return;
+		}
+
 		// Add return fee order lines to the admin order edit page.
 		add_action( 'woocommerce_admin_order_items_after_shipping', array( $this, 'add_return_fee_order_lines_html' ), PHP_INT_MAX );
 
@@ -394,6 +406,22 @@ class WC_Klarna_Refund_Fee {
 			return true;
 		}
 		if ( did_action( 'woocommerce_email_order_details' ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if the store base country supports return fees.
+	 *
+	 * @return bool True if supported, false otherwise.
+	 */
+	private function is_return_fee_supported_country() {
+		$allowed_countries = array( 'AT', 'DE', 'DK', 'FI', 'FR', 'NL', 'NO', 'SE' );
+		$store_country     = WC()->countries->get_base_country();
+
+		if ( in_array( $store_country, $allowed_countries, true ) ) {
 			return true;
 		}
 
