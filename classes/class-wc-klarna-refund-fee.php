@@ -40,11 +40,6 @@ class WC_Klarna_Refund_Fee {
 	 * @return void
 	 */
 	public function add_return_fee_order_lines_html( $order_id ) {
-		// Check if the store country is supported for return fees.
-		if ( ! $this->is_return_fee_supported_country() ) {
-			return;
-		}
-
 		$order = wc_get_order( $order_id );
 
 		if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'kco' ), true ) ) {
@@ -52,6 +47,11 @@ class WC_Klarna_Refund_Fee {
 		}
 
 		if ( ! $order->get_meta( '_wc_klarna_capture_id' ) ) {
+			return;
+		}
+
+		// Check if the store country is supported for return fees.
+		if ( ! $this->is_return_fee_supported_country( $order ) ) {
 			return;
 		}
 
@@ -408,13 +408,15 @@ class WC_Klarna_Refund_Fee {
 	/**
 	 * Check if the store base country supports return fees.
 	 *
+	 * @param WC_Order $order The WooCommerce order.
+	 *
 	 * @return bool True if supported, false otherwise.
 	 */
-	private function is_return_fee_supported_country() {
+	private function is_return_fee_supported_country( $order ) {
 		$allowed_countries = array( 'AT', 'DE', 'DK', 'FI', 'FR', 'NL', 'NO', 'SE' );
-		$store_country     = WC()->countries->get_base_country();
+		$order_country     = $order->get_billing_country();
 
-		if ( in_array( $store_country, $allowed_countries, true ) ) {
+		if ( in_array( $order_country, $allowed_countries, true ) ) {
 			return true;
 		}
 
