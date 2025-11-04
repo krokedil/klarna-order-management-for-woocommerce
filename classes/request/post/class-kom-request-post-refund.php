@@ -140,7 +140,7 @@ class KOM_Request_Post_Refund extends KOM_Request_Post {
 							$tax_rates           = WC_Tax::get_base_tax_rates( $order_item->get_tax_class() );
 							$first_tax           = reset( $tax_rates );
 							$first_tax_rate      = isset( $first_tax['rate'] ) ? $first_tax['rate'] : 0;
-							$order_line_tax_rate = ( 0 !== $order_line_tax && 0 !== $order_line_total ) ? ( $first_tax_rate * 100 ?? round( ( $order_line_tax / $order_line_total ) * 100 * 100 ) ) : 0;
+							$order_line_tax_rate = ( 0 !== $order_line_tax && 0 !== $order_line_total ) ? ( $first_tax_rate * 100 ) : 0;
 						}
 					}
 
