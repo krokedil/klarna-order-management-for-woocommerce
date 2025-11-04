@@ -13,7 +13,6 @@ class WC_Klarna_Refund_Fee {
 	 * Class constructor.
 	 */
 	public function __construct() {
-
 		// Add return fee order lines to the admin order edit page.
 		add_action( 'woocommerce_admin_order_items_after_shipping', array( $this, 'add_return_fee_order_lines_html' ), PHP_INT_MAX );
 
