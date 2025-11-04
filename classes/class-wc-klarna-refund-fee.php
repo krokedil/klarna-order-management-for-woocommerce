@@ -13,17 +13,6 @@ class WC_Klarna_Refund_Fee {
 	 * Class constructor.
 	 */
 	public function __construct() {
-		add_action( 'init', array( $this, 'register_hooks' ) );
-	}
-
-	/**
-	 * Register hooks on init.
-	 */
-	public function register_hooks() {
-		// Check if the store country is supported for return fees.
-		if ( ! $this->is_return_fee_supported_country() ) {
-			return;
-		}
 
 		// Add return fee order lines to the admin order edit page.
 		add_action( 'woocommerce_admin_order_items_after_shipping', array( $this, 'add_return_fee_order_lines_html' ), PHP_INT_MAX );
@@ -52,6 +41,11 @@ class WC_Klarna_Refund_Fee {
 	 * @return void
 	 */
 	public function add_return_fee_order_lines_html( $order_id ) {
+		// Check if the store country is supported for return fees.
+		if ( ! $this->is_return_fee_supported_country() ) {
+			return;
+		}
+
 		$order = wc_get_order( $order_id );
 
 		if ( ! in_array( $order->get_payment_method(), array( 'klarna_payments', 'kco' ), true ) ) {
