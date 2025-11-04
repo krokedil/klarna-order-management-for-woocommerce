@@ -548,17 +548,20 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 
 			// If the order is not captured, we cannot refund it.
 			if ( in_array( $klarna_order->status, array( 'CAPTURED', 'PART_CAPTURED' ), true ) ) {
-				$return_fee = $this->get_return_fee_from_post();
-				$request    = new KOM_Request_Post_Refund(
-					array(
-						'order_id'      => $order_id,
-						'refund_amount' => $amount,
-						'refund_reason' => $reason,
-						'return_fee'    => $return_fee,
-						'refund_id'     => $refund_order_id,
-					)
+				$return_fee   = $this->get_return_fee_from_post();
+				$request_args = array(
+					'order_id'      => $order_id,
+					'refund_amount' => $amount,
+					'refund_reason' => $reason,
+					'refund_id'     => $refund_order_id,
 				);
-				$response   = $request->request();
+
+				if ( ! empty( $return_fee['amount'] ) && 0 < floatval( $return_fee['amount'] ) ) {
+					$request_args['return_fee'] = $return_fee;
+				}
+
+				$request  = new KOM_Request_Post_Refund( $request_args );
+				$response = $request->request();
 
 				if ( is_wp_error( $response ) ) {
 					$order->add_order_note( 'Could not refund Klarna order. ' . $response->get_error_message() . '.' );
