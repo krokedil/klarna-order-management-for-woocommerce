@@ -6,7 +6,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: "
 "https://wordpress.org/support/plugin/klarna-order-management-for-"
 "woocommerce\n"
-"POT-Creation-Date: 2025-10-06 09:27:53+00:00\n"
+"POT-Creation-Date: 2025-11-05 09:40:29+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -104,8 +104,8 @@ msgstr ""
 
 #: classes/class-wc-klarna-order-management-order-lines.php:346
 #: classes/class-wc-klarna-order-management-order-lines.php:347
-#: classes/request/post/class-kom-request-post-refund.php:239
 #: classes/request/post/class-kom-request-post-refund.php:240
+#: classes/request/post/class-kom-request-post-refund.php:241
 msgid "Sales Tax"
 msgstr ""
 
@@ -153,32 +153,32 @@ msgstr ""
 msgid "Enable the debug log."
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:60
+#: classes/class-wc-klarna-refund-fee.php:65
 msgid "Klarna return fee"
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:119
+#: classes/class-wc-klarna-refund-fee.php:124
 msgid "Refund amount: "
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:121
+#: classes/class-wc-klarna-refund-fee.php:126
 msgid "Return fee: "
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:123
+#: classes/class-wc-klarna-refund-fee.php:128
 msgid "Refunded to customer: "
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:174
-#: classes/request/post/class-kom-request-post-refund.php:257
+#: classes/class-wc-klarna-refund-fee.php:179
+#: classes/request/post/class-kom-request-post-refund.php:258
 msgid "Return fee"
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:274
+#: classes/class-wc-klarna-refund-fee.php:279
 msgid "Return Fee"
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:349
+#: classes/class-wc-klarna-refund-fee.php:354
 #. translators: %1$s: return fee amount, %2$s: refund reason
 msgid "Return fee: %1$s.<br>%2$s"
 msgstr ""
@@ -225,12 +225,12 @@ msgstr ""
 msgid "Could not capture Klarna order. %s"
 msgstr ""
 
-#: klarna-order-management-for-woocommerce.php:572
+#: klarna-order-management-for-woocommerce.php:575
 #. translators: refund amount, refund id.
 msgid "Processing a refund of %1$s with Klarna"
 msgstr ""
 
-#: klarna-order-management-for-woocommerce.php:582
+#: klarna-order-management-for-woocommerce.php:585
 #. translators: 1: original amount, 2: return fee amount.
 msgid " (original amount of %1$s - return fee of %2$s)"
 msgstr ""
