@@ -47,6 +47,7 @@ jQuery( function ( $ ) {
 					kom.unformat_number( $klarnaReturnFeeTaxAmountField.val() )
 
 				if ( refundFeeAmount === 0 ) {
+					$klarnaReturnFeeTotalSpan.text( "" )
 					return
 				}
 
