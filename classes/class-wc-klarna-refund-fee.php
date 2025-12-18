@@ -381,8 +381,13 @@ class WC_Klarna_Refund_Fee {
 			return $is_partially_refunded;
 		}
 
+		// If no payment was refunded, just return the original value.
+		if ( ! $refund_order->get_refunded_payment() ) {
+			return $is_partially_refunded;
+		}
+
 		// If order total is greater then refund total, then it is partially refunded.
-		if ( $order->get_total() > $refund_order->get_total() ) {
+		if ( abs( $order->get_total() ) > abs( $refund_order->get_refunded_payment() ) ) {
 			return true;
 		}
 

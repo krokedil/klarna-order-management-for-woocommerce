@@ -584,12 +584,6 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 					// translators: 1: original amount, 2: return fee amount.
 					$extra_text = sprintf( __( ' (original amount of %1$s - return fee of %2$s)', 'klarna-order-management-for-woocommerce' ), $original_amount, $formatted_total_return_fees );
 					$text      .= $extra_text;
-
-					$remaining_refund_amount = $order->get_total() - ( $amount + $total_return_fees );
-					if ( 0 >= $remaining_refund_amount ) {
-						$order->update_status( 'refunded', __( 'Order fully refunded.', 'klarna-order-management-for-woocommerce' ) );
-						$order->save();
-					}
 				}
 
 				$formatted_text = sprintf( $text, wc_price( $amount, array( 'currency' => $order->get_currency() ) ) );
