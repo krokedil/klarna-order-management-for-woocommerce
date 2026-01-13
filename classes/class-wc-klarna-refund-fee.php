@@ -386,11 +386,20 @@ class WC_Klarna_Refund_Fee {
 			return $is_partially_refunded;
 		}
 
+		$refund_total = abs( $refund_order->get_amount() );
+		$return_fee   = $refund_order->get_meta( '_klarna_return_fees' );
+
+		if ( empty( $return_fee ) ) {
+			return $is_partially_refunded;
+		}
+
+		$refund_total += abs( floatval( $return_fee['amount'] ?? 0 ) ) + abs( floatval( $return_fee['tax_amount'] ?? 0 ) );
 		// If order total is greater then refund total, then it is partially refunded.
-		if ( abs( $order->get_total() ) > abs( $refund_order->get_refunded_payment() ) ) {
+		if ( abs( $order->get_total() ) > abs( $refund_total ) ) {
 			return true;
 		}
 
+		remove_action( 'woocommerce_order_status_refunded', 'wc_order_fully_refunded', 10 );
 		return $is_partially_refunded;
 	}
 
