@@ -1,4 +1,4 @@
-# Copyright (C) 2025 
+# Copyright (C) 2026 
 # This file is distributed under the same license as the  package.
 msgid ""
 msgstr ""
@@ -6,11 +6,11 @@ msgstr ""
 "Report-Msgid-Bugs-To: "
 "https://wordpress.org/support/plugin/klarna-order-management-for-"
 "woocommerce\n"
-"POT-Creation-Date: 2025-11-05 09:40:29+00:00\n"
+"POT-Creation-Date: 2026-01-21 06:56:13+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2025-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2026-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "X-Generator: grunt-wp-i18n 1.0.3\n"
@@ -153,32 +153,32 @@ msgstr ""
 msgid "Enable the debug log."
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:65
+#: classes/class-wc-klarna-refund-fee.php:74
 msgid "Klarna return fee"
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:124
+#: classes/class-wc-klarna-refund-fee.php:133
 msgid "Refund amount: "
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:126
+#: classes/class-wc-klarna-refund-fee.php:135
 msgid "Return fee: "
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:128
+#: classes/class-wc-klarna-refund-fee.php:137
 msgid "Refunded to customer: "
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:179
-#: classes/request/post/class-kom-request-post-refund.php:258
+#: classes/class-wc-klarna-refund-fee.php:188
+#: classes/request/post/class-kom-request-post-refund.php:269
 msgid "Return fee"
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:279
+#: classes/class-wc-klarna-refund-fee.php:288
 msgid "Return Fee"
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:354
+#: classes/class-wc-klarna-refund-fee.php:363
 #. translators: %1$s: return fee amount, %2$s: refund reason
 msgid "Return fee: %1$s.<br>%2$s"
 msgstr ""
