@@ -275,7 +275,7 @@ class WC_Klarna_Refund_Fee {
 			$location['state']    = $order->get_billing_state();
 			$location['postcode'] = $order->get_billing_postcode();
 			$location['city']     = $order->get_billing_city();
-		} else { // 'shipping' or default.
+		} else { // shipping or default.
 			$location['country']  = $order->get_shipping_country();
 			$location['state']    = $order->get_shipping_state();
 			$location['postcode'] = $order->get_shipping_postcode();
