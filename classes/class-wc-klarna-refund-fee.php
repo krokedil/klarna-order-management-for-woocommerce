@@ -1,7 +1,11 @@
 <?php
 /**
  * Refund fee class.
+ * Handles the addition of return fees to refunds for Klarna orders.
+ *
+ * @package Klarna_Order_Management_For_WooCommerce
  */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -471,5 +475,6 @@ class WC_Klarna_Refund_Fee {
 		}
 	}
 }
+
 // Initialize the class.
 new WC_Klarna_Refund_Fee();
