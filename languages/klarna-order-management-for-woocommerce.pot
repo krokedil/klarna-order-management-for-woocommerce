@@ -6,7 +6,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: "
 "https://wordpress.org/support/plugin/klarna-order-management-for-"
 "woocommerce\n"
-"POT-Creation-Date: 2026-01-21 06:56:13+00:00\n"
+"POT-Creation-Date: 2026-02-17 06:34:13+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -153,34 +153,34 @@ msgstr ""
 msgid "Enable the debug log."
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:74
+#: classes/class-wc-klarna-refund-fee.php:81
 msgid "Klarna return fee"
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:133
+#: classes/class-wc-klarna-refund-fee.php:140
 msgid "Refund amount: "
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:135
+#: classes/class-wc-klarna-refund-fee.php:142
 msgid "Return fee: "
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:137
+#: classes/class-wc-klarna-refund-fee.php:144
 msgid "Refunded to customer: "
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:188
+#: classes/class-wc-klarna-refund-fee.php:195
 #: classes/request/post/class-kom-request-post-refund.php:269
 msgid "Return fee"
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:288
+#: classes/class-wc-klarna-refund-fee.php:295
 msgid "Return Fee"
 msgstr ""
 
-#: classes/class-wc-klarna-refund-fee.php:363
+#: classes/class-wc-klarna-refund-fee.php:370
 #. translators: %1$s: return fee amount, %2$s: refund reason
-msgid "Return fee: %1$s.<br>%2$s"
+msgid "Return fee: %1$s<br>%2$s"
 msgstr ""
 
 #: classes/class-wc-klarna-sellers-app.php:123

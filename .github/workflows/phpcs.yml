@@ -26,4 +26,4 @@ jobs:
         with:
           files: "**.php"
           phpcs_path: ./vendor/bin/phpcs
-          standard: phpcs.ruleset.xml
+          standard: phpcs.xml

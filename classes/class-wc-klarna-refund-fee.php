@@ -1,10 +1,17 @@
 <?php
 /**
  * Refund fee class.
+ * Handles the addition of return fees to refunds for Klarna orders.
+ *
+ * @package Klarna_Order_Management_For_WooCommerce
  */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+/**
+ * WC_Klarna_Refund_Fee class.
+ */
 class WC_Klarna_Refund_Fee {
 
 	/**
@@ -222,7 +229,7 @@ class WC_Klarna_Refund_Fee {
 
 		foreach ( $line_item_tax_totals as $key => $tax_line ) {
 			if ( 'klarna_return_fee' === $key ) {
-				// Get the rate id from the tax by the first key in the line
+				// Get the rate id from the tax by the first key in the line.
 				$tax_rate_id               = array_keys( $tax_line )[0];
 				$return_fee['tax_rate_id'] = $tax_rate_id;
 				$return_fee['tax_amount']  = str_replace( ',', '.', $tax_line[ $tax_rate_id ] );
@@ -271,7 +278,7 @@ class WC_Klarna_Refund_Fee {
 			$location['state']    = $order->get_billing_state();
 			$location['postcode'] = $order->get_billing_postcode();
 			$location['city']     = $order->get_billing_city();
-		} else { // 'shipping' or default.
+		} else { // shipping or default.
 			$location['country']  = $order->get_shipping_country();
 			$location['state']    = $order->get_shipping_state();
 			$location['postcode'] = $order->get_shipping_postcode();
@@ -360,7 +367,7 @@ class WC_Klarna_Refund_Fee {
 
 		return sprintf(
 		/* translators: %1$s: return fee amount, %2$s: refund reason */
-			__( 'Return fee: %1$s.<br>%2$s', 'klarna-order-management-for-woocommerce' ),
+			__( 'Return fee: %1$s<br>%2$s', 'klarna-order-management-for-woocommerce' ),
 			wc_price( $total, array( 'currency' => $order->get_currency() ) ),
 			$reason
 		);
@@ -471,5 +478,6 @@ class WC_Klarna_Refund_Fee {
 		}
 	}
 }
+
 // Initialize the class.
 new WC_Klarna_Refund_Fee();

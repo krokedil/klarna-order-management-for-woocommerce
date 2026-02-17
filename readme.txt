@@ -6,7 +6,7 @@ Requires at least: 4.0
 Tested up to: 6.9
 Requires PHP: 7.3
 WC requires at least: 5.0.0
-WC tested up to: 10.4.3
+WC tested up to: 10.5.2
 Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -23,6 +23,9 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2026.02.17    - version 1.10.3 =
+* Fix           - Removed an unnecessary period from the return fee text.
+
 = 2026.01.21    - version 1.10.2 =
 * Fix           - Fully refunded orders are now always set to 'refunded' status.
 * Fix           - The return button text is now correctly updated when the return fee amount is zero.
