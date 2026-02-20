@@ -147,13 +147,12 @@ abstract class KOM_Request {
 	/**
 	 * Get the domain to use for the request based on the merchant ID.
 	 *
-	 * @param string $password The shared secret or password to check.
 	 * @param string $username The merchant ID or username to check.
 	 * @param string $klarna_variant The Klarna variant to use (e.g., 'klarna_payments', 'kco').
 	 *
 	 * @return string The domain to use for the request.
 	 */
-	public static function get_api_domain( $password, $username, $klarna_variant = 'klarna_payments' ) {
+	public static function get_api_domain( $username, $klarna_variant = 'klarna_payments' ) {
 		if ( 'kco' === $klarna_variant ) {
 			$domain = 'kustom.co';
 		} else {
@@ -177,7 +176,7 @@ abstract class KOM_Request {
 	protected function get_api_url_base() {
 		$region     = strtolower( apply_filters( 'klarna_base_region', $this->get_klarna_api_region() ) );
 		$playground = $this->use_playground() ? '.playground' : '';
-		$domain     = self::get_api_domain( $this->get_auth_component( 'shared_secret' ), $this->get_auth_component( 'merchant_id' ), $this->get_klarna_variant() );
+		$domain     = self::get_api_domain( $this->get_auth_component( 'merchant_id' ), $this->get_klarna_variant() );
 		return "https://api{$region}{$playground}.{$domain}/";
 	}
 
