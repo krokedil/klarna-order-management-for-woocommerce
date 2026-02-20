@@ -154,28 +154,19 @@ abstract class KOM_Request {
 	 * @return string The domain to use for the request.
 	 */
 	public static function get_api_domain( $password, $username, $klarna_variant = 'klarna_payments' ) {
-		// If the klarna variant is not kco, just return the Klarna domain.
-		if ( 'kco' !== $klarna_variant ) {
-			return 'klarna.com';
-		}
-
-		// If the password starts with 'kco_', or the mid starts with 'M' or 'PM', use kustom.co, otherwise use klarna.com.
-		$password_pattern = '/^kco_/';
-		$mid_pattern = '/^(M|PM)/';
-
-		$domain = 'klarna.com';
-		if ( preg_match( $password_pattern, $password ) || preg_match( $mid_pattern, $username ) ) {
+		if ( 'kco' === $klarna_variant ) {
 			$domain = 'kustom.co';
-		}
-
-		$domain = apply_filters( 'kco_api_domain', $domain, $username );
-
-		// Ensure the return domain is a valid string, and remove any leading or trailing whitespace or slashes.
-		if ( ! is_string( $domain ) || empty( $domain ) ) {
+		} else {
 			$domain = 'klarna.com';
 		}
 
-		return trim( $domain, " \t\n\r\0\x0B/" );
+		$filtered_domain = apply_filters( 'kco_api_domain', $domain, $username );
+		// Ensure the return domain is a valid string, and remove any leading or trailing whitespace or slashes.
+		if ( is_string( $filtered_domain ) && ! empty( $filtered_domain ) ) {
+			$domain = trim( $filtered_domain, " \t\n\r\0\x0B/" );
+		}
+
+		return $domain;
 	}
 
 	/**
