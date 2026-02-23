@@ -23,6 +23,9 @@ Provides post-purchase order management for Klarna Payments for WooCommerce and 
 For help setting up and configuring Klarna Order Management for WooCommerce please refer to our [documentation](https://docs.krokedil.com/article/149-klarna-order-management/).
 
 == Changelog ==
+= 2026.02.23    - version 1.11.0 =
+* Feature       - Use the kustom.co API endpoint for orders placed with Kustom Checkout (KCO).
+
 = 2026.02.17    - version 1.10.3 =
 * Fix           - Removed an unnecessary period from the return fee text.
 
