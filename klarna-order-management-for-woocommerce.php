@@ -100,21 +100,26 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		public function init() {
 
 			if ( class_exists( '\Krokedil\Klarna\OrderManagement' ) || class_exists( '\Krokedil\KustomCheckout\OrderManagement\OrderManagement' ) ) {
-				$is_kustom = class_exists( 'KCO' );
-				$is_klarna = class_exists( 'WC_Klarna_Payments' );
 
 				add_action(
 					'admin_notices',
-					function () use ( $is_kustom, $is_klarna ) {
-						$kustom_checkout_label = __( 'Kustom Checkout for WooCommerce', 'klarna-order-management-for-woocommerce' );
-						$klarna_payments_label = __( 'Klarna for WooCommerce', 'klarna-order-management-for-woocommerce' );
+					function () {
+						$is_kustom = class_exists( 'KCO' );
+						$is_klarna = class_exists( 'WC_Klarna_Payments' );
 
-						$string = sprintf(
-							/* translators: 1: Kustom Checkout, 2: Klarna Payments. */
-							__( 'Order Management is now included in %1$s%2$s', 'klarna-order-management-for-woocommerce' ),
-							$is_kustom ? $kustom_checkout_label : '',
-							$is_klarna ? ( $is_kustom ? sprintf( __( ' and %s', 'klarna-order-management-for-woocommerce' ), $klarna_payments_label ) : $klarna_payments_label ) : $klarna_payments_label
-						);
+						if ( $is_kustom || $is_klarna ) {
+							$kustom_checkout_label = __( 'Kustom Checkout for WooCommerce', 'klarna-order-management-for-woocommerce' );
+							$klarna_payments_label = __( 'Klarna for WooCommerce', 'klarna-order-management-for-woocommerce' );
+
+							$string = sprintf(
+								/* translators: 1: Kustom Checkout, 2: Klarna Payments. */
+								__( 'Order Management is now included in %1$s%2$s', 'klarna-order-management-for-woocommerce' ),
+								$is_kustom ? $kustom_checkout_label : '',
+								$is_klarna ? ( $is_kustom ? sprintf( __( ' and %s', 'klarna-order-management-for-woocommerce' ), $klarna_payments_label ) : $klarna_payments_label ) : ''
+							);
+						} else {
+							$string = __( 'Order Management is now included', 'klarna-order-management-for-woocommerce' );
+						}
 						?>
 						<div class="notice notice-error">
 				
