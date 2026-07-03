@@ -87,7 +87,7 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * *Singleton* via the `new` operator from outside of this class.
 		 */
 		protected function __construct() {
-			add_action( 'plugins_loaded', array( $this, 'init' ) );
+			add_action( 'plugins_loaded', array( $this, 'init' ), 11 );
 			add_action( 'before_woocommerce_init', array( $this, 'declare_wc_compatibility' ) );
 
 			// Add action links.
@@ -98,6 +98,43 @@ if ( ! class_exists( 'WC_Klarna_Order_Management' ) ) {
 		 * Init the plugin at plugins_loaded.
 		 */
 		public function init() {
+
+			if ( class_exists( '\Krokedil\Klarna\OrderManagement' ) || class_exists( '\Krokedil\KustomCheckout\OrderManagement\OrderManagement' ) ) {
+
+				add_action(
+					'admin_notices',
+					function () {
+						$is_kustom = class_exists( 'KCO' );
+						$is_klarna = class_exists( 'WC_Klarna_Payments' );
+
+						if ( $is_kustom || $is_klarna ) {
+							$kustom_checkout_label = __( 'Kustom Checkout for WooCommerce', 'klarna-order-management-for-woocommerce' );
+							$klarna_payments_label = __( 'Klarna for WooCommerce', 'klarna-order-management-for-woocommerce' );
+
+							$string = sprintf(
+								/* translators: 1: Kustom Checkout, 2: Klarna Payments. */
+								__( 'Order Management is now included in %1$s%2$s', 'klarna-order-management-for-woocommerce' ),
+								$is_kustom ? $kustom_checkout_label : '',
+								$is_klarna ? ( $is_kustom ? sprintf( __( ' and %s', 'klarna-order-management-for-woocommerce' ), $klarna_payments_label ) : $klarna_payments_label ) : ''
+							);
+						} else {
+							$string = __( 'Order Management is now included', 'klarna-order-management-for-woocommerce' );
+						}
+						?>
+						<div class="notice notice-error">
+				
+								<?php /* translators: [merchant-facing]. */ ?>
+								<p><strong><?php echo esc_html( $string . '.' ); ?></strong></p>
+								<?php /* translators: [merchant-facing]. */ ?>
+								<p><?php esc_html_e( 'You no longer need the separate Klarna Order Management plugin.', 'klarna-order-management-for-woocommerce' ); ?></p>
+						</div>
+						<?php
+					}
+				);
+
+				return;
+			}
+
 			include_once WC_KLARNA_ORDER_MANAGEMENT_PLUGIN_PATH . '/classes/class-wc-klarna-order-management-settings.php';
 			$this->settings = new WC_Klarna_Order_Management_Settings();
 
